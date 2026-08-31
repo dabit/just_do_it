@@ -53,6 +53,28 @@ not link. This repository is never modified by the sync.
 See `AGENTS.md`. JDI is markdown: point any agent at `commands/<name>.md` and tell it to follow the
 file.
 
+### Updating
+
+All three harnesses install a **copy**, so `git pull` here does not update them:
+
+```sh
+git pull
+claude plugin update jdi@just-do-it     # Claude Code
+codex plugin add jdi@just-do-it         # Codex — re-adding refreshes the snapshot
+./bin/sync-opencode.sh                  # OpenCode
+```
+
+`claude plugin update` compares **versions**, not content: it reports "already at the latest
+version" and does nothing if `version` in `.claude-plugin/plugin.json` has not moved. When editing
+JDI itself, either bump the version in `plugin.json` **and** `marketplace.json` (they must match),
+or reinstall:
+
+```sh
+claude plugin uninstall jdi@just-do-it && claude plugin install jdi@just-do-it
+```
+
+The OpenCode sync has no such gate — it copies every time.
+
 ## Set up a repository
 
 ```sh
