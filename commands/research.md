@@ -11,11 +11,11 @@ Find or create architecture documentation for the area we are about to change.
 
 Follow these steps:
 
-0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults in
-   `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory —
-   `${CLAUDE_PLUGIN_ROOT}/reference/config.md`). Everything below refers to `tracker`, `plans`,
-   `docs`, and `consumers` from that config.
+0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
+   in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
+   Everything below refers to `tracker`, `plans`, `docs`, and `consumers` from that config.
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` to understand what we are working on. If several plans

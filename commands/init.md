@@ -10,9 +10,9 @@ argument-hint: "[optional notes about how this repo works]"
 Set JDI up for this repository by writing `.jdi/config.yml`. Additional context from the user:
 $ARGUMENTS
 
-The full schema, the defaults, and example tier mappings are in JDI's `reference/config.md` — in
-the JDI plugin's own directory (`${CLAUDE_PLUGIN_ROOT}/reference/config.md`). Read it before
-asking anything.
+The full schema, the defaults, and example tier mappings are in JDI's `reference/config.md` — in the
+JDI plugin's own directory (`${CLAUDE_PLUGIN_ROOT}/reference/config.md`, or, if that variable does
+not resolve, `reference/` one level up from this command file). Read it before asking anything.
 
 Follow these steps:
 

@@ -10,9 +10,10 @@ argument-hint: "[plan slug]"
 Mark the current task as complete, then immediately execute the next one. This is `/jdi:done`
 followed by `/jdi:execute`, in a single step.
 
-0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults in
-   `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`).
+0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
+   in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
 
 ---
 

@@ -12,9 +12,10 @@ Create a pull request for the current plan.
 
 Follow these steps:
 
-0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults in
-   `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`).
+0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
+   in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` for the full scope and the issue reference.

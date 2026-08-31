@@ -15,9 +15,10 @@ a role's prompt directly.
 
 Follow these steps:
 
-0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults in
-   `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`).
+0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
+   in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
 
 1. **Determine what to review** — If `$ARGUMENTS` names an output, a role, or a plan ("the plan",
    "the last diff", "the researcher's prompt"), target that. Otherwise default to the most recent

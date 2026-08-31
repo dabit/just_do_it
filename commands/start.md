@@ -13,10 +13,11 @@ Follow these steps:
 
 0. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory —
-   `${CLAUDE_PLUGIN_ROOT}/reference/config.md`). Everything below refers to `tracker`, `plans`,
-   `docs`, and `git` from that config. If no config exists anywhere, say so once and ask only the
-   questions this command actually needs; suggest `/jdi:init` at the end.
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
+   Everything below refers to `tracker`, `plans`, `docs`, and `git` from that config. If no config
+   exists anywhere, say so once and ask only the questions this command actually needs; suggest
+   `/jdi:init` at the end.
 
 1. **Identify the issue** — Perform **T1** from JDI's `reference/tracker.md`: ask whether there is
    an issue for this work, and use it if the user names one. If a tracker is configured and the

@@ -18,9 +18,9 @@ Follow these steps:
 
 1. **Load the JDI config** — Read `.jdi/config.yml` at the repository root; fall back to defaults
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
-   `reference/config.md` (in the JDI plugin directory —
-   `${CLAUDE_PLUGIN_ROOT}/reference/config.md`). Everything below refers to `tracker`, `plans`,
-   `docs`, and `consumers` from it.
+   `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
+   or, if that variable does not resolve, `reference/` one level up from this command file).
+   Everything below refers to `tracker`, `plans`, `docs`, and `consumers` from it.
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
