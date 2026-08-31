@@ -34,6 +34,11 @@ config. Pass it exactly the inputs the role's *What it receives* section lists â
 the preferred path: the role gets a clean context window, and the orchestrator's context is not
 flooded by the role's reading.
 
+Most harnesses register the files in `agents/` as agent types of their own, under a name that
+matches the role â€” `jdi:researcher`, `jdi-researcher`, or similar. **If one is already registered,
+spawn that** rather than re-reading the definition file into a generic subagent: the harness has
+already loaded the role's instructions, and passing them twice is waste.
+
 **2. The harness has no subagents, but can run a second session** (a CLI you can invoke
 non-interactively). Shell out to it with the role file and the inputs as the prompt, and read back
 its report.
