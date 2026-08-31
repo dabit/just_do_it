@@ -1,0 +1,59 @@
+# .jdi/config.yml — JDI workflow configuration
+#
+# Copy this to `.jdi/config.yml` at the root of a repository, or let `/jdi:init`
+# write it for you. Every key is optional; the full schema and the defaults are
+# in this plugin's reference/config.md.
+
+tracker:
+  # linear | jira | github | none
+  # Anything else is treated as a custom tracker: JDI uses whatever integration
+  # is available for it and degrades to `none` if there is none.
+  name: linear
+
+  # Default project or board for new issues.
+  project: "Backend"
+
+  # Team, workspace, or organisation the project lives in.
+  team: "Engineering"
+
+  # Issue key prefix. Used to build plan slugs and to recognise whether the
+  # current branch already names the issue.
+  id_prefix: "ENG"
+
+  # First line of the comment JDI upserts on an issue when research lands.
+  # Keep it stable so the write stays idempotent.
+  research_comment_heading: "## 🔬 Research findings (JDI)"
+
+plans:
+  # repo     — plans are files in this repository, committed with the code.
+  # external — plans live in a note service; nothing plan-shaped is committed.
+  mode: repo
+  path: plans
+
+  # external mode only:
+  # service: obsidian
+  # location: "Work/Engineering plans"
+
+docs:
+  # Where architecture docs live. /jdi:research reads from here and writes here.
+  path: doc
+
+git:
+  # "auto" detects it from `git symbolic-ref refs/remotes/origin/HEAD`.
+  default_branch: auto
+
+  # Optional branch prefix. Leave empty to follow the repo's CLAUDE.md.
+  branch_prefix: ""
+
+# Optional. Maps JDI's three reasoning tiers onto concrete models. Leave a tier
+# empty — or drop the block — to run it on whatever model the session is using.
+# That is a supported configuration, not a degraded one.
+models:
+  deep: ""
+  standard: ""
+  fast: ""
+
+# Optional. Sibling repos or clients that consume this repo's public interfaces.
+# The Researcher sweeps these when a change alters an externally-consumed
+# contract, so "does a client need updating?" is never left unanswered.
+consumers: []
