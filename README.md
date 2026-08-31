@@ -15,65 +15,101 @@ JDI is deliberately boring about three things other workflows hardcode:
 
 ## Install
 
-### Claude Code
+First, get the code. Everything below assumes this path — substitute your own if it differs:
 
 ```sh
-/plugin marketplace add ~/git/just_do_it     # or the git URL
-/plugin install jdi@just-do-it
+git clone <this-repo-url> ~/git/just_do_it
 ```
 
-Commands appear as `/jdi:prep`, `/jdi:yolo`, and so on.
+Claude Code and Codex both read the plugin format directly from that checkout, so there is nothing
+to build. OpenCode has no plugin loader and gets a synced copy instead.
+
+| Harness | You type | Prefix |
+|---|---|---|
+| Claude Code | `/jdi:prep`, `/jdi:yolo`, … | supplied by the plugin name |
+| Codex | the JDI commands, discoverable with `/` in the TUI | supplied by Codex |
+| OpenCode | `/jdi-prep`, `/jdi-yolo`, … | added by the sync script |
+
+### Claude Code
+
+From a terminal:
+
+```sh
+claude plugin marketplace add ~/git/just_do_it
+claude plugin install jdi@just-do-it
+```
+
+Or from inside a session, with `/plugin marketplace add ~/git/just_do_it` then
+`/plugin install jdi@just-do-it`. A git URL works in place of the path.
+
+Verify: `claude plugin list` shows `jdi@just-do-it` enabled, and `/jdi:help` prints the command
+table. The seven roles register as spawnable agents — `jdi:researcher`, `jdi:planner`, and so on.
 
 ### Codex
 
-Codex reads the same plugin format:
+Codex consumes the same plugin manifest:
 
 ```sh
-codex plugin marketplace add ~/git/just_do_it   # or the git URL
+codex plugin marketplace add ~/git/just_do_it
 codex plugin add jdi@just-do-it
 ```
 
-Codex migrates each command into a skill it invokes by description rather than by slash command.
+Verify: `codex plugin list` shows `jdi@just-do-it` installed and enabled. Type `/` in the Codex TUI
+to see the commands it registered — Codex owns the naming, so check the list rather than assuming a
+prefix.
+
+Codex has no subagents, so the roles are adopted inline instead of spawned. That path is designed
+for, not tolerated: every phase still runs, sharing one context window. See
+`reference/delegation.md`.
 
 ### OpenCode
 
 OpenCode has no plugin loader, so its copy is synced from this repository:
 
 ```sh
-./bin/sync-opencode.sh
+~/git/just_do_it/bin/sync-opencode.sh
 ```
 
-This writes `~/.config/opencode/command/jdi-*.md` and `~/.config/opencode/agent/jdi-*.md`,
-namespaced `jdi-` because OpenCode has no plugin namespace of its own. Commands appear as
-`/jdi-prep`, `/jdi-yolo`, and so on. **Re-run it after every `git pull`** — the sync copies, it does
-not link. This repository is never modified by the sync.
+This writes `~/.config/opencode/command/jdi-*.md` and `~/.config/opencode/agent/jdi-*.md`. The
+`jdi-` prefix is added by the script because OpenCode has no plugin namespace of its own —
+without it, `next.md` would claim `/next`. Set `OPENCODE_CONFIG_DIR` if your config lives
+elsewhere.
+
+Verify: 16 files in `~/.config/opencode/command/` and 7 in `~/.config/opencode/agent/`, and
+`/jdi-help` in a session.
+
+The sync **copies** — it does not link, and it never modifies this repository. Re-run it after
+every `git pull`.
 
 ### Anything else
 
-See `AGENTS.md`. JDI is markdown: point any agent at `commands/<name>.md` and tell it to follow the
-file.
+See `AGENTS.md`. JDI is markdown with no harness machinery in the command bodies: point any agent at
+`commands/<name>.md`, tell it to follow the file, and substitute your request for `$ARGUMENTS`.
 
 ### Updating
 
-All three harnesses install a **copy**, so `git pull` here does not update them:
+All three install a **copy**, so `git pull` here does not update them:
 
 ```sh
-git pull
+cd ~/git/just_do_it && git pull
+
 claude plugin update jdi@just-do-it     # Claude Code
 codex plugin add jdi@just-do-it         # Codex — re-adding refreshes the snapshot
 ./bin/sync-opencode.sh                  # OpenCode
 ```
 
-`claude plugin update` compares **versions**, not content: it reports "already at the latest
-version" and does nothing if `version` in `.claude-plugin/plugin.json` has not moved. When editing
-JDI itself, either bump the version in `plugin.json` **and** `marketplace.json` (they must match),
-or reinstall:
+**`claude plugin update` compares versions, not content.** It reports "already at the latest
+version" and does nothing if `version` in `.claude-plugin/plugin.json` has not moved — so editing a
+JDI prompt and pulling is not enough. Either bump the version in `plugin.json` **and**
+`marketplace.json` (they must match), or reinstall:
 
 ```sh
 claude plugin uninstall jdi@just-do-it && claude plugin install jdi@just-do-it
 ```
 
-The OpenCode sync has no such gate — it copies every time.
+This matters most when you act on a `/jdi:feedback` prompt fix: unlike a workflow kept in a repo's
+own `.claude/`, an installed plugin's prompts are a cached copy, and the edit does not take effect
+until you reinstall. The OpenCode sync has no such gate — it copies every time.
 
 ## Set up a repository
 
@@ -84,6 +120,11 @@ The OpenCode sync has no such gate — it copies every time.
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
 more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
+
+`/jdi:init` asks about the tracker, where plans should live, and where architecture docs live. It
+proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
+starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
+silently.
 
 ## Use it
 
@@ -100,7 +141,11 @@ Or one phase at a time, stopping wherever you like:
 ```
 
 `/jdi:help` prints the full command table. `/jdi:status` says where you are. `/jdi:feedback`
-critiques the last thing an agent produced — on demand, never as an automatic gate.
+critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`
+and `/jdi:reresearch` throw a phase away and redo it.
+
+Command names above use the Claude Code prefix; substitute your harness's from the table in
+**Install**.
 
 ## How it is put together
 
