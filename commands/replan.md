@@ -11,7 +11,10 @@ Re-write the implementation plan from scratch, even though one already exists. T
 planning pass — use it when the research has changed, when a decision has been reversed, or when
 the existing plan does not survive scrutiny.
 
-Follow `/jdi:plan` in full, with four differences:
+Which plan, and anything the user wants changed about it: $ARGUMENTS
+
+Follow `/jdi:plan` in full — including step 0's config load and step 1's plan lookup, which uses the
+argument above — with four differences:
 
 1. **The branch and the issue status are already handled.** `/jdi:plan` step 2 creates the branch
    and moves the issue to In Progress. By the time you are re-planning, both have happened. Verify

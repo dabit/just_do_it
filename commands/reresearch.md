@@ -11,7 +11,10 @@ Re-run research from scratch, even though research has already been done. This f
 at the codebase and the docs — use it when the tree has moved, when the scope has changed, or when
 the first pass does not survive scrutiny.
 
-Follow `/jdi:research` in full, with three differences:
+Which plan, and anything the user wants the second pass to focus on: $ARGUMENTS
+
+Follow `/jdi:research` in full — including step 0's config load and step 1's plan lookup, which uses
+the argument above — with three differences:
 
 1. **Do not skip because references already exist.** The point of this command is to replace them.
 
