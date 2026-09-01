@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "just-do-it": {
+      "source": {
+        "source": "github",
+        "repo": "dabit/just_do_it"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "jdi@just-do-it": true
+  }
+}

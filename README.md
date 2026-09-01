@@ -30,17 +30,49 @@ to build. OpenCode has no plugin loader and gets a synced copy instead.
 | Codex | the JDI commands, discoverable with `/` in the TUI | supplied by Codex |
 | OpenCode | `/jdi-prep`, `/jdi-yolo`, … | added by the sync script |
 
+### Choosing a scope
+
+JDI installs either **for you, on this machine** — available in every repo — or **for one
+repository**, in a form you commit so your teammates get it from the clone.
+
+| | Claude Code | Codex | OpenCode |
+|---|---|---|---|
+| **User / machine** | `--scope user` (default) | the only scope it has | `bin/sync-opencode.sh` |
+| **Project, committable** | `--scope project` → `.claude/settings.json` | — | `bin/sync-opencode.sh --project` → `.opencode/` |
+
+Project scope is the better default for a team: the workflow arrives with the repo, and everyone
+runs the same version of it. User scope is the better default for your own machine, where you want
+JDI everywhere.
+
 ### Claude Code
 
-From a terminal:
+**For you, on this machine:**
 
 ```sh
 claude plugin marketplace add ~/git/just_do_it
 claude plugin install jdi@just-do-it
 ```
 
-Or from inside a session, with `/plugin marketplace add ~/git/just_do_it` then
-`/plugin install jdi@just-do-it`. A git URL works in place of the path.
+Or from inside a session: `/plugin marketplace add ~/git/just_do_it` then
+`/plugin install jdi@just-do-it`.
+
+**For one repository, committed** — run this from the repo's root:
+
+```sh
+claude plugin marketplace add dabit/just_do_it --scope project
+claude plugin install jdi@just-do-it --scope project
+```
+
+That writes `.claude/settings.json`; commit it, and JDI arrives with the clone. The equivalent file
+is in `examples/claude-project-settings.json` if you are merging into settings that already exist.
+
+**Use the git source for anything you commit.** A directory source gets absolutized — installing
+from `~/git/just_do_it` (or even `./vendor/jdi`) at project scope records `/home/you/...`, which
+resolves on your machine and nowhere else. The `github` form resolves for everyone.
+
+One constraint to know about: a marketplace **name** can hold only one source per machine. If
+`just-do-it` is already declared from a local directory at user scope, adding it from a git URL at
+project scope is refused until you remove the first. Pick one form and use it consistently.
 
 Verify: `claude plugin list` shows `jdi@just-do-it` enabled, and `/jdi:help` prints the command
 table. The seven roles register as spawnable agents — `jdi:researcher`, `jdi:planner`, and so on.
@@ -58,25 +90,43 @@ Verify: `codex plugin list` shows `jdi@just-do-it` installed and enabled. Type `
 to see the commands it registered — Codex owns the naming, so check the list rather than assuming a
 prefix.
 
+Codex has **no project scope**: `codex plugin add` takes no `--scope`, and the install is recorded
+in `~/.codex/config.toml` for the whole machine. A repo that wants JDI available to Codex users
+should say so in its own `AGENTS.md` and point at the install commands above.
+
 Codex has no subagents, so the roles are adopted inline instead of spawned. That path is designed
 for, not tolerated: every phase still runs, sharing one context window. See
 `reference/delegation.md`.
 
 ### OpenCode
 
-OpenCode has no plugin loader, so its copy is synced from this repository:
+OpenCode has no plugin loader, so its copy is synced from this repository.
+
+**For you, on this machine:**
 
 ```sh
 ~/git/just_do_it/bin/sync-opencode.sh
 ```
 
-This writes `~/.config/opencode/command/jdi-*.md` and `~/.config/opencode/agent/jdi-*.md`. The
-`jdi-` prefix is added by the script because OpenCode has no plugin namespace of its own —
-without it, `next.md` would claim `/next`. Set `OPENCODE_CONFIG_DIR` if your config lives
-elsewhere.
+This writes `~/.config/opencode/command/jdi-*.md` and `~/.config/opencode/agent/jdi-*.md`, and
+points them at the reference files in this checkout — so a `git pull` refreshes those without a
+re-sync. Set `OPENCODE_CONFIG_DIR` if your config lives elsewhere.
 
-Verify: 16 files in `~/.config/opencode/command/` and 7 in `~/.config/opencode/agent/`, and
-`/jdi-help` in a session.
+**For one repository, committed** — run this from the repo's root:
+
+```sh
+~/git/just_do_it/bin/sync-opencode.sh --project
+```
+
+This writes `.opencode/command/`, `.opencode/agent/`, and `.opencode/jdi/` — the reference files and
+roles copied in, with every path rewritten repo-relative. The result contains no absolute paths, so
+committing `.opencode/` gives every teammate JDI with nothing to install. `--project <dir>` targets
+a directory other than the current one.
+
+The `jdi-` prefix is added by the script in both modes because OpenCode has no plugin namespace of
+its own — without it, `next.md` would claim `/next`.
+
+Verify: `opencode agent list` shows the seven `jdi-*` agents, and `/jdi-help` works in a session.
 
 The sync **copies** — it does not link, and it never modifies this repository. Re-run it after
 every `git pull`.
@@ -95,7 +145,7 @@ cd ~/git/just_do_it && git pull
 
 claude plugin update jdi@just-do-it     # Claude Code
 codex plugin add jdi@just-do-it         # Codex — re-adding refreshes the snapshot
-./bin/sync-opencode.sh                  # OpenCode
+./bin/sync-opencode.sh                  # OpenCode (add --project, from the repo, for that scope)
 ```
 
 **`claude plugin update` compares versions, not content.** It reports "already at the latest
@@ -158,7 +208,8 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 | `reference/tracker.md` | The six tracker operations (T1–T6) every command calls by name |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How a role and a tier become an actual model on your harness |
-| `bin/sync-opencode.sh` | The OpenCode adapter |
+| `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
+| `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
 
 ### Roles and tiers, not agents and models
 

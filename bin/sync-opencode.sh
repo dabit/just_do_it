@@ -1,31 +1,75 @@
 #!/usr/bin/env bash
-# Sync JDI's commands and roles into OpenCode's global config.
+# Sync JDI's commands and roles into OpenCode.
 #
 # Claude Code and Codex both install this repository natively as a plugin
 # (see README). OpenCode has no plugin loader, so its copy is synced here.
 #
-# - This repository is NEVER modified: it stays the single source of truth,
-#   and `git pull` stays clean.
-# - Command and agent files are namespaced `jdi-*` because OpenCode has no
-#   plugin namespace — without the prefix, `next.md` would claim `/next`.
-# - Re-run after every `git pull` in this repository.
+# Two scopes, mirroring what the other harnesses offer:
+#
+#   --global   (default)  ~/.config/opencode/{command,agent}/
+#                         Available in every repo on this machine. Reference
+#                         files are read from this checkout, so `git pull`
+#                         refreshes them without a re-sync.
+#
+#   --project [dir]       <dir>/.opencode/{command,agent}/  (default: cwd)
+#                         Scoped to one repository and COMMITTABLE: the
+#                         reference files and roles are copied in alongside and
+#                         every path is rewritten repo-relative, so a teammate
+#                         who clones the repo gets JDI with nothing installed.
+#
+# Command and agent files are namespaced `jdi-*` because OpenCode has no plugin
+# namespace — without the prefix, `next.md` would claim `/next`.
+#
+# This repository is NEVER modified. Re-run after every `git pull`.
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OC="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
+MODE=global
+PROJECT_DIR=""
 
-if [ ! -d "$OC" ]; then
-  echo "OpenCode config directory not found at $OC" >&2
-  echo "Set OPENCODE_CONFIG_DIR to override." >&2
-  exit 1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --global)  MODE=global; shift ;;
+    --project) MODE=project; shift
+               if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then PROJECT_DIR="$1"; shift; fi ;;
+    -h|--help) sed -n '2,23p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+if [ "$MODE" = project ]; then
+  PROJECT_DIR="$(cd "${PROJECT_DIR:-$PWD}" && pwd)"
+  if [ "$PROJECT_DIR" = "$SRC" ]; then
+    echo "Refusing to sync JDI into its own checkout." >&2
+    exit 1
+  fi
+  OC="$PROJECT_DIR/.opencode"
+  # Copied in so the result is self-contained and survives a clone.
+  REF_ROOT="$OC/jdi"
+  # What the synced files will point at: repo-relative, valid on any machine.
+  REF_REWRITE=".opencode/jdi"
+else
+  OC="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
+  if [ ! -d "$OC" ]; then
+    echo "OpenCode config directory not found at $OC" >&2
+    echo "Set OPENCODE_CONFIG_DIR to override, or use --project for a repo-local install." >&2
+    exit 1
+  fi
+  REF_ROOT=""
+  REF_REWRITE="$SRC"
 fi
 
 mkdir -p "$OC/command" "$OC/agent"
 
-python3 - "$SRC" "$OC" <<'PY'
+if [ -n "$REF_ROOT" ]; then
+  mkdir -p "$REF_ROOT"
+  cp -R "$SRC/reference" "$SRC/roles" "$REF_ROOT/"
+fi
+
+python3 - "$SRC" "$OC" "$REF_REWRITE" <<'PY'
 import re, sys, pathlib
 
-src, oc = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+src, oc, ref = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
 
 # OpenCode command frontmatter accepts only these keys; anything else fails
 # validation. `argument-hint` is Claude-only and is dropped here.
@@ -73,8 +117,8 @@ def filter_frontmatter(fm, keep=None, drop=None):
 
 def convert(text, *, keep=None, drop=None, rename=None, add_mode=False):
     # ${CLAUDE_PLUGIN_ROOT} only resolves inside Claude Code. Point OpenCode at
-    # this checkout so reference/ and roles/ still resolve by path.
-    text = text.replace("${CLAUDE_PLUGIN_ROOT}", str(src))
+    # the reference files so reference/ and roles/ still resolve by path.
+    text = text.replace("${CLAUDE_PLUGIN_ROOT}", ref)
     fm, body = split_frontmatter(text)
     if fm is None:
         return text
@@ -103,5 +147,12 @@ for f in sorted((src / "agents").glob("*.md")):
 
 print(f"Synced {n_cmd} commands -> {oc}/command/jdi-*.md")
 print(f"Synced {n_agent} agents   -> {oc}/agent/jdi-*.md")
-print(f"Reference files stay in {src} and are read from there.")
 PY
+
+if [ "$MODE" = project ]; then
+  echo "Copied reference files -> $REF_ROOT/ (paths rewritten to $REF_REWRITE)"
+  echo
+  echo "Commit .opencode/ to give every teammate JDI with nothing to install."
+else
+  echo "Reference files stay in $SRC and are read from there."
+fi

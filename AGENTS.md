@@ -61,5 +61,11 @@ imposing its own.
 `bin/sync-opencode.sh` is the template. An adapter is a transformation by subtraction: the Claude
 plugin format is the superset, and a target harness needs some subset of the frontmatter, a
 namespace prefix if it has no plugin namespace of its own, and `${CLAUDE_PLUGIN_ROOT}` rewritten to
-an absolute path. The bodies are never touched — if an adapter needs to rewrite a body, that body
-has a harness assumption in it that belongs in frontmatter or in `.jdi/config.yml` instead.
+a path that resolves. The bodies are never touched — if an adapter needs to rewrite a body, that
+body has a harness assumption in it that belongs in frontmatter or in `.jdi/config.yml` instead.
+
+Support both scopes if the harness has them. The sync script shows the shape: `--global` points the
+synced files at the JDI checkout, so a `git pull` refreshes the reference files; `--project` copies
+the reference files into the target repo and rewrites every path **repo-relative**, so the result
+carries no absolute paths and can be committed. That relative rewrite is the whole trick — an
+adapter that bakes in `/home/you/...` produces something that works only on the machine that ran it.
