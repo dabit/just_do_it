@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.2
+
+**The splitter is configurable: pieces become subtickets, tracker tasks, or just commits.**
+
+- New `split.pieces` key in `.jdi/config.yml` — `commits` (the default), `tasks`, or `subtickets`.
+  It says what a split piece becomes **in addition to** a task file and a commit; the task files and
+  the one-commit-per-task rhythm are identical in all three modes, so an existing repo with no such
+  key behaves exactly as it did.
+- `subtickets` mirrors every task, UAT included, as a child issue of the plan's issue — a Linear
+  sub-issue, a Jira sub-task, a GitHub sub-issue. `tasks` mirrors them as a checklist on the issue
+  where the tracker has one.
+- Two new tracker operations in `reference/tracker.md`: **T7** materialises the pieces at split
+  time, **T8** closes a piece when its task is marked done. `/jdi:split` and `/jdi:prep` call T7;
+  `/jdi:done`, `/jdi:next`, and `/jdi:yolo` call T8.
+- **Degrades down, never up.** No tracker, no issue, no reachable integration, no native checklist,
+  or a declined confirmation all mean `commits` for that run, announced out loud. A configured
+  `tasks` never quietly becomes `subtickets` — creating issues nobody asked for is the worse
+  failure. Sub-issue creation asks once for the whole batch, listing the titles.
+- Each mirrored task file records a `Ticket:` line, so re-running `/jdi:split` updates the mirror
+  instead of stacking duplicates — the same idempotency rule T5 uses for the research comment.
+- `/jdi:init` asks the new question, but only when a tracker is configured, and says plainly whether
+  that tracker can express the mode being chosen.
+
 ## 1.0.1
 
 **Installable at user scope or project scope.**

@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, where plans live, and where docs live."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, and where plans and docs live."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -38,7 +38,23 @@ Follow these steps:
    configured tracker with no integration still works, JDI just degrades to the metadata the user
    types by hand.
 
-4. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
+4. **Ask what the split pieces should become — only if the tracker is not `none`** — When
+   `/jdi:split` breaks a plan into pieces, those pieces are always task files that each land as
+   their own commit. Ask whether they should *also* be mirrored into the tracker:
+   - **`commits`** (the default) — nothing is written to the tracker. Recommend it unless the user
+     wants the breakdown visible to people who never open the repository.
+   - **`tasks`** — each piece becomes a task or checklist item on the issue, where the tracker has
+     such a thing. Say plainly whether the configured tracker does: Linear has no first-class issue
+     checklist, Jira's is an add-on, GitHub Issues has task lists in the issue body. Where it does
+     not, this setting falls back to `commits` at split time, out loud.
+   - **`subtickets`** — each piece becomes a child issue of the plan's issue (Linear sub-issue,
+     Jira sub-task, GitHub sub-issue). Mention that this creates issues, one per task, and that
+     `/jdi:split` will still ask before it does.
+
+   Skip this question entirely when the tracker is `none` — there is nothing to mirror onto — and
+   write `commits`.
+
+5. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
    - **`repo`** (recommended, the default) — plans are files in this repository, committed with the
      code they describe. Ask for the folder; default `plans`.
    - **`external`** — plans live in a note service (Obsidian, recuerd0, Notion, a wiki). Ask which
@@ -50,29 +66,29 @@ Follow these steps:
    them, and the plan is silently gone on a fresh clone. If it is ignored, say so plainly and offer
    to un-ignore it, pick a different folder, or switch to `external`.
 
-5. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
+6. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
    architecture documents into. Default `doc`; propose whatever step 2 found.
 
-6. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
+7. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
    (research, planning, implementation, review), `standard` (splitting, condensing, PR writing), and
    `fast` (orchestration, status, commits). Offer to map them to concrete models for whatever
    harness and provider the user runs, and make clear that leaving them empty is fully supported:
    every tier then runs on the session's own model and nothing about the workflow changes.
 
-7. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
+8. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
    sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-8. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+9. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
    the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
    empty scaffolding.
 
-9. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
-   **not** configure branch naming or commit message format: it reads them from the repo's own
-   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file states
-   them and the user told you what they are, offer to add them there. Do not write to those files
-   without saying you are about to.
+10. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+    **not** configure branch naming or commit message format: it reads them from the repo's own
+    `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
+    states them and the user told you what they are, offer to add them there. Do not write to those
+    files without saying you are about to.
 
-10. **Report and point at the next step** — Show the config you wrote, name anything you deliberately
-    left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or `/jdi:help` for
-    the tour.
+11. **Report and point at the next step** — Show the config you wrote, name anything you
+    deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
+    `/jdi:help` for the tour.

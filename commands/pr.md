@@ -101,4 +101,6 @@ Follow these steps:
     exists, or the tracker is unreachable. Say which of those happened.
 
 11. **Report** — Show the user the pull request URL, and name anything that was skipped: an unrun
-    UAT, a tracker transition that did not happen, a task left pending.
+    UAT, a tracker transition that did not happen, a task left pending. Where `split.pieces`
+    mirrored the tasks into the tracker, say which pieces are still open there — condensing the
+    plan deletes the task files, but it does not touch the tracker.

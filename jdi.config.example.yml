@@ -24,6 +24,14 @@ tracker:
   # Keep it stable so the write stays idempotent.
   research_comment_heading: "## 🔬 Research findings (JDI)"
 
+split:
+  # What the split pieces become, on top of the task files in the plan folder.
+  #   commits    — nothing but task files and one commit each (the default)
+  #   tasks      — mirror each piece as a task/checklist item on the issue, where the
+  #                tracker has one; falls back to commits, out loud, where it does not
+  #   subtickets — mirror each piece as a child issue of the plan's issue
+  pieces: subtickets
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.

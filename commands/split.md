@@ -90,7 +90,25 @@ Follow these steps:
    be exercised. Do not imply coverage that does not exist: an acceptance criterion with no
    scenario is how work gets closed on an unobserved claim.
 
-5. **Present the tasks** — Summarise the tasks and their dependencies, note which path step 2 took
-   and why if it was a close call, and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
+5. **Materialise the pieces** — Read `split.pieces` from the config: `commits` (the default),
+   `tasks`, or `subtickets`.
+
+   **`commits`** — nothing to do. The task files are the pieces, and each one becomes a commit when
+   it is marked done. Say nothing; there is nothing to skip.
+
+   **`tasks` or `subtickets`** — perform **T7** from JDI's `reference/tracker.md`: mirror every task
+   file, UAT included, as a checklist item on the issue or as a child issue of it. Ask **once** for
+   the batch before creating any child issue, listing the titles. Record what each write produced as
+   a `Ticket:` line in the task file it came from, so a re-split updates the mirror instead of
+   duplicating it. Announce any rung of T7's degradation ladder you land on — no tracker, no issue,
+   no native support, or a declined confirmation all mean this plan runs as `commits`, out loud.
+
+   The mirror is **additive**. Whatever `split.pieces` says, the task files stay where they are and
+   `/jdi:execute` and `/jdi:done` keep working off them, one commit per task. A tracker mirror that
+   makes the work visible to people outside the repository is the only thing being added.
+
+6. **Present the tasks** — Summarise the tasks and their dependencies, note which path step 2 took
+   and why if it was a close call, name the pieces that were mirrored to the tracker (or say the run
+   is `commits`), and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 
 Do **not** write any implementation code. This command produces task documents only.

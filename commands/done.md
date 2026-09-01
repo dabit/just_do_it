@@ -34,6 +34,12 @@ Follow these steps:
    In `external` plan mode, the task status lives in the service, not in the repo — update it
    there, and commit only the code.
 
-5. **Next up** — Tell the user the task is done. If tasks remain, show what is next and suggest
+5. **Close the piece** — If `split.pieces` is `tasks` or `subtickets` and this task file carries a
+   `Ticket:` line, perform **T8** from JDI's `reference/tracker.md`: tick the checklist item, or
+   transition the child issue to its Done state. Skip in `commits` mode, and skip when there is no
+   `Ticket:` line — the split either ran as `commits` or degraded to it. Warn, never fail: the
+   commit is the real record.
+
+6. **Next up** — Tell the user the task is done. If tasks remain, show what is next and suggest
    `/jdi:execute` to continue, or `/jdi:next` to roll straight on. If everything is complete, say
    so and suggest `/jdi:pr`.

@@ -1,6 +1,6 @@
 # Tracker operations
 
-JDI talks to an issue tracker through six named operations. Commands call them **by name**; this
+JDI talks to an issue tracker through eight named operations. Commands call them **by name**; this
 file says what each one means and how to carry it out against whichever tracker
 `.jdi/config.yml` records.
 
@@ -90,3 +90,75 @@ a kebab-case slug of the title: `<id-prefix>-<number>-<slug>`.
 Apply the repo's own branch convention on top — the prefix in `git.branch_prefix`, or whatever the
 repo's `CLAUDE.md` prescribes (`feat/`, `bug/`, `chore/`, …). With no issue, build the name from the
 plan slug alone.
+
+## T7 — Materialise the split pieces
+
+Mirror the task files `/jdi:split` just wrote into the tracker. **Only runs when `split.pieces` is
+`tasks` or `subtickets`**; `commits` — the default — skips it entirely and says nothing, because
+there is nothing to skip.
+
+**The degradation ladder.** Take the first rung that applies, say which one out loud, and treat the
+run as `commits` from there on:
+
+1. `tracker.name: none`, or no reachable integration → `commits`.
+2. `Issue: none` in `PLAN.md` — there is no parent to hang pieces off → `commits`.
+3. The tracker has no native form of the configured mode → `commits`.
+
+**Never degrade upward.** A configured `tasks` that the tracker cannot express falls back to
+`commits`; it never becomes `subtickets`. Silently creating issues the user did not ask for is a
+worse failure than mirroring nothing.
+
+**One confirmation for the batch.** Creating sub-issues is issue creation, so universal rule 4
+applies — but ask **once**, listing the titles about to be created, not once per piece. On a "no",
+fall back to `commits` for this run and carry on.
+
+**Idempotent, like T5.** Each mirrored task file records the artefact it produced on the line below
+its title:
+
+```
+Ticket: ENG-124        # subtickets mode — the child issue's key
+```
+
+```
+Ticket: task 3         # tasks mode — the checklist item's position or anchor
+```
+
+Re-running `/jdi:split` **updates** the recorded artefact rather than creating a second one. Match
+on the recorded id first; where there is none, match on an exact title match under the same parent
+before creating anything. A piece the re-split dropped is closed or cancelled in `subtickets` mode
+and removed from the list in `tasks` mode, never left dangling as a child of work that no longer
+exists.
+
+**What each piece carries.** The task's title (`NN — Title`), and the **Why** and **Description**
+from the task file as the body. Not the verification commands, not the file list — those are
+implementation detail for the Executor, and a tracker is read by people who are not running it.
+Link each piece back to the plan and, in `subtickets` mode, set the parent so the tracker's own
+hierarchy carries the relationship. The UAT task is a piece like any other.
+
+| Tracker | `tasks` | `subtickets` |
+|---|---|---|
+| Linear | no first-class checklist feature on an issue — markdown checkboxes in a description are not a tracked list, so treat `tasks` as unsupported, say so, and fall back to `commits` | `save_issue` with the plan's issue as `parentId`, one child per piece |
+| Jira | a checklist is an add-on, not core — treat as unsupported unless the instance actually exposes one | a `Sub-task` issue type under the parent, or the project's configured child type |
+| GitHub Issues | a task list in the parent issue's body — edit the body, never append a comment | sub-issues where the repo has them; otherwise one issue per piece, referenced from a task list in the parent |
+| other | its native checklist, if it has one | its native child-issue type |
+
+Before setting a type, status, or label on a tracker you have not written to this session, **list
+the available values first** — never invent one. Confirm the writes by reading the pieces back.
+
+## T8 — Complete a split piece
+
+When a task is marked done (`/jdi:done`, `/jdi:next`, `/jdi:yolo`), close its mirror so the tracker
+does not go stale. Skip when `split.pieces` is `commits`, when the task file has no `Ticket:` line,
+or when T7 degraded on this plan.
+
+| Mode | What to do |
+|---|---|
+| `tasks` | tick the checklist item — the parent issue's body edited in place, leaving every other item as it was |
+| `subtickets` | transition the child issue to its **Done** state, resolved by listing the team's workflow states and picking the completed one. Never hardcode a name or an ID |
+
+This is the piece's own completion only. The **parent** issue's In Progress and In Review
+transitions stay **T4**'s job, and a closed piece never moves the parent: a plan can be finished and
+its pull request still unopened.
+
+Warn, never fail. A commit that landed is the real record; an untickable checklist item is a note
+for the user, not a reason to stop the workflow.

@@ -39,6 +39,21 @@ tracker:
   # Kept identical across runs so the write is idempotent (update, never duplicate).
   research_comment_heading: "## 🔬 Research findings (JDI)"
 
+split:
+  # commits | tasks | subtickets
+  #   commits    — the split pieces stay task files in the plan folder, and each one
+  #                becomes a commit when it is marked done. Nothing is written to the
+  #                tracker. This is the default and the only mode that needs no tracker.
+  #   tasks      — as `commits`, plus each piece is mirrored as a native task/checklist
+  #                item on the issue, if the tracker has such a thing. Where it does not,
+  #                JDI says so and falls back to `commits`.
+  #   subtickets — as `commits`, plus each piece is mirrored as a child issue of the plan's
+  #                issue (Linear sub-issue, Jira sub-task, GitHub sub-issue).
+  #
+  # The task files and the one-commit-per-task rhythm are the same in all three modes;
+  # `tasks` and `subtickets` add a tracker mirror on top. See reference/tracker.md, T7/T8.
+  pieces: commits
+
 plans:
   # repo | external
   #   repo     — plans are files in this repository, committed with the code they describe.
@@ -104,6 +119,7 @@ models:                    models:                     models:
 |---|---|
 | `tracker.name` | `none` — JDI runs fully offline, no issue, no comments, no status transitions |
 | `tracker.research_comment_heading` | `## 🔬 Research findings (JDI)` |
+| `split.pieces` | `commits` — task files and one commit per task; nothing written to the tracker |
 | `plans.mode` | `repo` |
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |
@@ -115,6 +131,14 @@ models:                    models:                     models:
 
 - **`tracker.name: none` is a first-class mode, not a degraded one.** Every tracker step in every
   command is skippable, and skipping must be announced, never silently swallowed.
+- **`split.pieces` never changes what gets executed.** Whatever it is set to, the plan folder holds
+  the same task files and each task still lands as its own commit. `tasks` and `subtickets` only
+  add a mirror of those pieces in the tracker, so progress is visible to people who never open the
+  repository.
+- **A mode the tracker cannot honour degrades down to `commits`, never up.** No tracker, no issue,
+  no reachable integration, or no native checklist all mean `commits` for that run, announced out
+  loud. `tasks` must never quietly become `subtickets`: creating issues nobody asked for is worse
+  than mirroring nothing.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

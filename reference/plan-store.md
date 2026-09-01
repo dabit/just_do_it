@@ -14,6 +14,10 @@ numbered task files:
 
 Where that folder physically lives is `plans.mode` in `.jdi/config.yml`.
 
+A task file also carries a `Ticket:` line when `split.pieces` mirrors the pieces into the tracker as
+tasks or subtickets — see **T7** in `reference/tracker.md`. That mirror is additive: the task files
+and the one-commit-per-task rhythm below are identical in all three `split.pieces` modes.
+
 ## `plans.mode: repo` (default)
 
 Plans are files under `<plans.path>/` in the repository being changed, and they are **committed

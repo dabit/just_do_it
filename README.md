@@ -164,17 +164,33 @@ until you reinstall. The OpenCode sync has no such gate — it copies every time
 ## Set up a repository
 
 ```sh
-/jdi:init      # asks about the tracker, the plan store, and the docs folder
+/jdi:init      # asks about the tracker, the split pieces, the plan store, and the docs folder
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
 more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
-`/jdi:init` asks about the tracker, where plans should live, and where architecture docs live. It
-proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
-starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
-silently.
+`/jdi:init` asks about the tracker, what the split pieces should become, where plans should live,
+and where architecture docs live. It proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`,
+and directory layout rather than starting from zero, and it checks that the plans folder is not
+gitignored — a trap that loses plans silently.
+
+### What a split piece becomes
+
+`/jdi:split` always writes numbered task files, and each one lands as its own commit. `split.pieces`
+in `.jdi/config.yml` says whether those pieces are **also** mirrored into your tracker:
+
+| `split.pieces` | What you get |
+|---|---|
+| `commits` (default) | Task files and one commit each. Nothing is written to the tracker; needs no tracker at all |
+| `tasks` | The above, plus a task or checklist item per piece on the issue — where the tracker has such a thing |
+| `subtickets` | The above, plus a child issue per piece (Linear sub-issue, Jira sub-task, GitHub sub-issue) |
+
+The mirror is additive: execution reads the task files in every mode, and the commit rhythm never
+changes. `/jdi:done` ticks each piece off as it goes. A mode your tracker cannot express — Linear
+has no first-class issue checklist, and there is nothing to hang pieces off when the plan has no
+issue — falls back to `commits` and says so out loud rather than inventing a substitute.
 
 ## Use it
 
@@ -205,7 +221,7 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |
-| `reference/tracker.md` | The six tracker operations (T1–T6) every command calls by name |
+| `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How a role and a tier become an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |

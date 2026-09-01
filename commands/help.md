@@ -7,9 +7,9 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 **Role: Butler** — JDI's orchestrator (`roles/butler.md`).
 
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
-naming what this repository is currently configured for — the tracker, the plan store, and whether
-`.jdi/config.yml` exists at all. If it does not, say `/jdi:init` writes it, and that JDI works
-without it by asking as it goes.
+naming what this repository is currently configured for — the tracker, the plan store, what the
+split pieces become, and whether `.jdi/config.yml` exists at all. If it does not, say `/jdi:init`
+writes it, and that JDI works without it by asking as it goes.
 
 ---
 
@@ -22,12 +22,12 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 | Command | Roles | Tier | What it does |
 |---|---|---|---|
-| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, plan store, docs folder. Writes `.jdi/config.yml`. |
+| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, plan store, docs folder. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | fast + deep + standard | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
 | `/jdi:start` | Butler | fast | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | deep | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
 | `/jdi:plan` | Butler + Planner | deep | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
-| `/jdi:split` | Splitter | standard | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. |
+| `/jdi:split` | Splitter | standard | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so. |
 | `/jdi:execute` | Butler + Executor | deep | Implement the next pending task. Shows the diff and asks for your feedback. |
 | `/jdi:done` | Butler | fast | Mark the current task complete, update the checklist, and commit. |
 | `/jdi:next` | Butler + Executor | deep | `/jdi:done` then `/jdi:execute`, in one step. |
@@ -78,6 +78,15 @@ the research are committable on their own and the work is resumable later or by 
 
 At PR time the task files collapse back into a single slim `PLAN.md` — the commits are the task
 list by then.
+
+### What the pieces become
+
+Every task file lands as its own commit — that is `split.pieces: commits`, the default, and it
+needs no tracker. Set `split.pieces` to `tasks` or `subtickets` in `.jdi/config.yml` and each piece
+is **also** mirrored onto the issue: a checklist item where the tracker has one, or a child issue
+(Linear sub-issue, Jira sub-task, GitHub sub-issue). The mirror is additive — the task files and
+the one-commit-per-task rhythm are the same either way — and it ticks itself off as tasks are
+marked done. A mode the tracker cannot honour falls back to `commits` and says so.
 
 ### Tiers, not models
 

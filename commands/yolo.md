@@ -44,6 +44,11 @@ unchecked task:
    `CLAUDE.md` / `AGENTS.md` prescribes, or the style of the recent `git log`, and put the task
    number and title in the body. Check `git status --short` column 2 for unstaged work first. In
    `external` plan mode, update the status in the service and commit only the code.
+4. **Close the piece.** If `split.pieces` is `tasks` or `subtickets` and the task file carries a
+   `Ticket:` line, perform **T8** from JDI's `reference/tracker.md` — tick the checklist item, or
+   transition the child issue to its Done state. Skip in `commits` mode and when there is no
+   `Ticket:` line. Warn, never fail: a tracker that will not accept the write is not a reason to
+   stop the loop.
 
 ### Step 2 — Execute the next task
 

@@ -20,7 +20,7 @@ Follow these steps:
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
-   Everything below refers to `tracker`, `plans`, `docs`, and `consumers` from it.
+   Everything below refers to `tracker`, `split`, `plans`, `docs`, and `consumers` from it.
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
@@ -151,10 +151,15 @@ Follow these steps:
     the existing issue ID instead of re-instructing creation. A decision recorded in one section and
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
-16. **Split into tasks** — Follow `/jdi:split` steps 2 through 4: judge whether splitting is worth
+16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
     it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**
     at the **standard** tier. State the decision and the reason. The final task is always UAT, and
     it maps every clause of the issue's acceptance criteria to the scenario or test that proves it.
+
+    Then materialise the pieces per `split.pieces`: `commits` (the default) writes nothing to the
+    tracker, while `tasks` and `subtickets` mirror each task file onto the issue via **T7** from
+    JDI's `reference/tracker.md`. The issue created in step 4 — or given in step 3 — is the parent.
+    Ask once for the batch before creating child issues, and announce any fallback to `commits`.
 
 17. **Present the prepared plan** — Summarise what you created, note which splitting path you took
     (and why, if it was a close call), list the generated tasks, and suggest `/jdi:yolo` as the next

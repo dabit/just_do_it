@@ -45,6 +45,11 @@ implementation.
   scenario is how work gets closed on an unobserved claim
 - Update `PLAN.md` with the master task checklist
 
+The Splitter never writes to the issue tracker. Where `split.pieces` mirrors the tasks as tracker
+tasks or subtickets, the Butler does that after these files exist, and adds the `Ticket:` line to
+each one — so write the task's **Why** and **Description** to be readable by someone who will only
+ever see them in a ticket.
+
 ## Task file shape
 
 ```
