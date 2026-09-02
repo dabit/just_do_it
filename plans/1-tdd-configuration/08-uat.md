@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 08 — UAT: prove the TDD-on path and the off-by-default regression guard
 
 Depends on: 07

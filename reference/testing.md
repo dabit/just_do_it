@@ -38,7 +38,7 @@ anything.
 ## TS1 — Prove the test suite runs
 
 Resolved once per plan, before the first task is executed, by the Butler. Its output is one line in
-`PLAN.md`, written immediately after `- Started:`, in exactly one of two shapes:
+`PLAN.md`'s metadata block, alongside `- Started:`, in exactly one of two shapes:
 
 ```
 - TDD: on — proven 2026-09-02 with `python3 -m unittest discover -s tests -v`
@@ -72,13 +72,21 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
    the Executor must know, or it will read someone else's red as its own.
 
    **Not proof:** command not found, a missing interpreter, a dependency-resolution error, a config
-   parse error, an unreachable container, a timeout, an interactive prompt. In every one of those,
-   nothing ran — and an exit code of `0` from a wrapper that swallowed the failure would not change
-   that. This is universal rule 1, and it is `reference/tracker.md:18-19`'s "no error is not proof"
-   pointed at a runner instead of a tracker write.
-5. **Proven** → write the `on` line after `- Started:`, naming the date and the exact command that
-   ran. That command is what the Butler hands every Executor for the rest of the plan; nothing
-   re-derives it later.
+   parse error, an unreachable container, a timeout, an interactive prompt. **Nor is an import or
+   collection error**, even though most runners print a tally alongside one — `python3 -m unittest`
+   answers a bad module path with `ModuleNotFoundError`, `Ran 1 test`, and `FAILED (errors=1)`, and
+   that tally counts the failure to load, not a test. A runner that could not import the tests has
+   not been shown to run them. This is the same exclusion **TS2** step 4 applies to a red run, for
+   the same reason and at the other end of the operation. In every one of those cases, nothing ran —
+   and an exit code of `0` from a wrapper that swallowed the failure would not change that. This
+   is universal rule 1, and it is `reference/tracker.md:18-19`'s "no error is not proof" pointed
+   at a runner instead of a tracker write.
+5. **Proven** → write the `on` line into `PLAN.md`'s metadata, naming the date and the invocation
+   the narrow run proved — **unscoped**. Rung 3 narrows the probe to make it cheap; rung 5 records
+   the command the rest of the plan will actually use, which is that same invocation with the
+   scoping removed. Recording the narrowed form instead is a quiet trap: every later TS2 would run
+   the same slice, and a red raised by a test outside it would never appear. That command is what
+   the Butler hands every Executor for the rest of the plan; nothing re-derives it later.
 6. **Disproven** → off, and **announced**, with the command that was tried and the output showing
    why it is not proof. Write the `off` line naming both. This one *is* a degradation rather than a
    silence: the user asked for TDD and did not get it (`roles/butler.md:23-25` — "Silent

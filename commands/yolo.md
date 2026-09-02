@@ -26,16 +26,22 @@ so the issue carries the research record before any task runs. See **T5** in JDI
 `reference/tracker.md`. Skip and say so when `Issue: none`; warn but proceed if the tracker is
 unreachable.
 
-**Before the loop — resolve the TDD decision for this plan.** Do this only when every task in the
-checklist is still unchecked and `PLAN.md` carries no `TDD:` line: if `tdd.enabled` is not `true`,
-do nothing and say nothing; otherwise perform **TS1** from JDI's `reference/testing.md` and record
-its result as a `- TDD:` line in `PLAN.md`'s metadata block — immediately after `- Started:` where
-that line exists, and as the last metadata bullet where it does not, since only `/jdi:execute`
-writes `- Started:` and a plan taken straight from `/jdi:prep` to here has never had one.
-Anything else is a resumption — read the line that is there, or the absence of one, and re-detect
-nothing, because a plan that began without TDD must not be turned on part-way through. This is the
-only place this command resolves TDD: once per run, never once per task, and TS1's ambiguous rung
-asks the user here, at the top, rather than mid-flight.
+**Before the loop — resolve the TDD decision for this plan.** Do this **only when `PLAN.md` carries
+no `- Started:` line**, which means this plan has never been executed by any command. If
+`tdd.enabled` is not `true`, do nothing and say nothing; otherwise perform **TS1** from JDI's
+`reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. Then add a
+`Started: YYYY-MM-DD` line yourself, exactly as `/jdi:execute`'s first-task check does, so the plan
+carries the same "execution has begun" marker whichever command began it.
+
+**Gate on `- Started:`, not on the checklist.** A plan whose first task was run by `/jdi:execute`
+still has every box unchecked — that command deliberately leaves ticking to `/jdi:done` — so
+checklist state cannot tell "never run" from "already running". Reading it as "never run" would let
+a user flip `tdd.enabled` after one task and have this command turn TDD **on** part-way through a
+plan that began without it, which is exactly what the next sentence forbids. Anything other than a
+missing `- Started:` is a resumption: read the `TDD:` line that is there, or the absence of one, and
+re-detect nothing, because a plan that began without TDD must not be turned on part-way through.
+This is the only place this command resolves TDD: once per run, never once per task, and TS1's
+ambiguous rung asks the user here, at the top, rather than mid-flight.
 
 Then loop through the following cycle until every task is complete.
 

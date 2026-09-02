@@ -18,8 +18,9 @@ A task file also carries a `Ticket:` line when `split.pieces` mirrors the pieces
 tasks or subtickets — see **T7** in `reference/tracker.md`. That mirror is additive: the task files
 and the one-commit-per-task rhythm below are identical in all three `split.pieces` modes.
 
-`PLAN.md` itself carries a `TDD:` line, written immediately after `- Started:`, when `tdd.enabled`
-was `true` at the start of that plan — see **TS1** in `reference/testing.md`. It has two shapes:
+`PLAN.md` itself carries a `TDD:` line, written into the metadata block alongside `- Started:`,
+when `tdd.enabled` was `true` at the start of that plan — see **TS1** in `reference/testing.md`.
+It has two shapes:
 
 ```
 - TDD: on — proven YYYY-MM-DD with `<the invocation that ran>`

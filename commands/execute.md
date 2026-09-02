@@ -19,8 +19,14 @@ Follow these steps:
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` for the task checklist.
 
-2. **First-task check** — If every task is still unchecked, the plan has just been approved. Before
-   any implementation begins:
+2. **First-task check** — If `PLAN.md` carries no `- Started:` line, the plan has just been
+   approved and has never been executed. Before any implementation begins:
+
+   **Gate on `- Started:`, not on the checklist.** This step writes that line, so its absence is
+   the only reliable "this plan has never run" signal. Checklist state is not: this command
+   deliberately leaves the task it just executed unchecked (see the closing note), so "every task
+   is still unchecked" stays true after a task has already been implemented, and re-running this
+   check would re-resolve decisions the plan has already made.
 
    a. **Ensure the research findings reached the issue (durable-memory gate).** Read `Issue:` and
       `Issue URL:` from `PLAN.md`. If there is an issue, check its comments for one beginning with
@@ -30,7 +36,14 @@ Follow these steps:
       `reference/tracker.md`. Skip and say so when `Issue: none`; warn but proceed if the tracker
       is unreachable.
 
-   b. **Commit the approved plan.** Add a `Started: YYYY-MM-DD` timestamp to the top of `PLAN.md`
+   b. **Resolve the TDD decision for this plan.** If `tdd.enabled` is not `true`, do nothing and
+      say nothing: write no line, and announce no skip. Otherwise perform **TS1** from JDI's
+      `reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. This
+      runs before `c`'s commit, so the decision rides the plan-approval commit. TS1 answers once
+      per plan, every later command reads that answer, and editing `.jdi/config.yml` mid-plan
+      changes nothing until the next plan.
+
+   c. **Commit the approved plan.** Add a `Started: YYYY-MM-DD` timestamp to the top of `PLAN.md`
       and commit the entire plan folder — `PLAN.md` plus every task file — along with any new
       architecture doc created during research, as `chore: Approve plan for <slug>`. This captures
       the approved plan and the research before any implementation exists.
@@ -38,14 +51,6 @@ Follow these steps:
       In `external` plan mode there is no plan folder to commit: commit only the architecture doc,
       write the `Started:` timestamp into the plan document in the service, and say that the plan
       itself lives in `<plans.service>`.
-
-   c. **Resolve the TDD decision for this plan.** If `tdd.enabled` is not `true`, do nothing and say
-      nothing: write no line, and announce no skip. Otherwise, if `PLAN.md` carries no `TDD:` line
-      yet, perform **TS1** from JDI's `reference/testing.md` and record its result as a `- TDD:`
-      line immediately after `- Started:`. Do this before `b`'s commit runs, so the decision rides
-      the plan-approval commit. A line that is already there is read, never re-resolved and never
-      rewritten: TS1 answers once per plan, every later command reads that answer, and editing
-      `.jdi/config.yml` mid-plan changes nothing until the next plan.
 
 3. **Pick the next task** — Find the first unchecked task in the checklist whose dependencies are
    all complete. Read that task file.
