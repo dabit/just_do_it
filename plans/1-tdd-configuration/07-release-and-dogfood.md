@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 07 — Version bump, changelog, and dogfood this repo's own config
 
 Depends on: 02, 03, 04, 05, 06

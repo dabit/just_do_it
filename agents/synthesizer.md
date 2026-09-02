@@ -60,7 +60,10 @@ The condensed plan covers, in this order:
 
 1. **Metadata** — a `# Title` heading followed by the plan's bullet list
    (`- Tracker: / - Project: / - Issue: / - Issue URL: / - Created: / - Summary:`), copied from the
-   verbose `PLAN.md`. **Never emit YAML `---` frontmatter.**
+   verbose `PLAN.md`. **Never emit YAML `---` frontmatter.** Carry the `- TDD:` line too whenever
+   the verbose plan has one: `reference/plan-store.md` defines its **absence** as "TDD was never
+   enabled for this plan", so dropping it does not lose a detail — it asserts something false about
+   how the work was built, in the one copy that outlives the branch.
 2. **References** — repo-relative file paths, one per line. No bare filenames, no markdown links
    with placeholder URLs. Drop anything already covered by the metadata (the issue URL). No line
    numbers; git history has those.

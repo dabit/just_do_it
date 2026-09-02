@@ -26,6 +26,17 @@ split:
   #   subtickets — mirror each piece as a GitHub sub-issue
   pieces: commits
 
+tdd:
+  # Whether the Executor writes the failing test before the implementation.
+  #   false — whatever order the task calls for (the default)
+  #   true  — test first, once the suite has been seen to run. Tests and the
+  #           implementation still land in the same commit, one per task.
+  enabled: true
+
+  # Prose an agent reads and translates into an invocation, never a string to
+  # execute. Empty means the Butler works it out from the repo.
+  test_instructions: "python3 -m unittest discover -s tests -v, from the repository root. No install step and no third-party packages."
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.
