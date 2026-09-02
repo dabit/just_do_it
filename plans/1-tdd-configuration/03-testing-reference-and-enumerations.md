@@ -65,6 +65,17 @@ Update both hand-maintained enumerations:
 - `README.md`
 - `AGENTS.md`
 
+### Carried over from task 02
+
+Task 02 deliberately left the `tdd:` schema block in `reference/config.md` **without** the
+cross-reference that `split:` carries (`# See reference/tracker.md, T7/T8.`), because
+`reference/testing.md` did not exist at that commit and a citation to a missing file is exactly the
+dangling reference this repo's docs warn against. **Add it now**, mirroring `split:`'s form:
+`# See reference/testing.md, TS1/TS2.` at the end of the `tdd:` block.
+
+For the same reason task 02 made no mention of the `TDD:` `PLAN.md` metadata line. This task defines
+it (in TS1) and documents it in `reference/plan-store.md`.
+
 ## Verification
 1. `python3 -m unittest discover -s tests -v` — expect `OK`. The discriminating module is
    `tests/test_enumerations.py`. Its falsifiability control:

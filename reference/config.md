@@ -54,6 +54,23 @@ split:
   # `tasks` and `subtickets` add a tracker mirror on top. See reference/tracker.md, T7/T8.
   pieces: commits
 
+tdd:
+  # true | false
+  #   false — the Executor writes tests and implementation in whatever order the
+  #           task calls for, exactly as it always has. This is the default and the
+  #           only mode that needs nothing proven about the repository's test runner.
+  #   true  — the Executor writes the failing test first, once the suite has been
+  #           seen to run. Tests and implementation still land in the same commit,
+  #           one per task; only the order they are written in changes.
+  enabled: false
+
+  # Free-form prose an agent reads and translates into an invocation — never a
+  # string to execute. "run `bin/rails test` inside the devcontainer" is the shape:
+  # the literal text is usually not runnable as typed, because the real invocation
+  # depends on a container, a service, or a working directory. Leave it empty to
+  # have the Executor work the invocation out from the repository itself.
+  test_instructions: ""
+
 plans:
   # repo | external
   #   repo     — plans are files in this repository, committed with the code they describe.
@@ -120,6 +137,8 @@ models:                    models:                     models:
 | `tracker.name` | `none` — JDI runs fully offline, no issue, no comments, no status transitions |
 | `tracker.research_comment_heading` | `## 🔬 Research findings (JDI)` |
 | `split.pieces` | `commits` — task files and one commit per task; nothing written to the tracker |
+| `tdd.enabled` | `false` — the Executor works as it always has; nothing is announced |
+| `tdd.test_instructions` | empty — the Executor works the test invocation out from the repo |
 | `plans.mode` | `repo` |
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |
@@ -139,6 +158,13 @@ models:                    models:                     models:
   no reachable integration, or no native checklist all mean `commits` for that run, announced out
   loud. `tasks` must never quietly become `subtickets`: creating issues nobody asked for is worse
   than mirroring nothing.
+- **`tdd` never changes what gets committed.** Tests and implementation land in the same commit,
+  one per task, exactly as without it. It changes the order the Executor writes them, not history.
+- **`tdd` degrades down to off, never up to on.** An unproven runner, an unreachable environment,
+  or an unanswerable ambiguity all mean off for that plan, announced out loud. A repo with
+  `enabled: false` is never turned on because a test folder happens to exist: running "on" against
+  a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
+  TDD at all.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

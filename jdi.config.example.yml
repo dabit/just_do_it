@@ -32,6 +32,17 @@ split:
   #   subtickets — mirror each piece as a child issue of the plan's issue
   pieces: subtickets
 
+tdd:
+  # true  — the Executor writes the failing test first, once it has seen the suite
+  #         run. Tests and implementation still land in the same commit, one per task.
+  # false — whatever order the task calls for (the default)
+  enabled: true
+
+  # Prose an agent reads and translates into an invocation, never a string to
+  # execute — the real invocation is usually not runnable as typed. Leave it empty
+  # to have the Executor work it out from the repo.
+  test_instructions: "run `bin/rails test` inside the devcontainer"
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.

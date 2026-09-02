@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 02 — Add the `tdd` key to the config schema, defaults, notes, and example
 
 Depends on: 01
