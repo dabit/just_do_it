@@ -40,7 +40,7 @@ tdd:
 
   # Prose an agent reads and translates into an invocation, never a string to
   # execute — the real invocation is usually not runnable as typed. Leave it empty
-  # to have the Executor work it out from the repo.
+  # to have the Butler work it out from the repo.
   test_instructions: "run `bin/rails test` inside the devcontainer"
 
 plans:

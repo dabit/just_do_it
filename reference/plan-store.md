@@ -18,6 +18,20 @@ A task file also carries a `Ticket:` line when `split.pieces` mirrors the pieces
 tasks or subtickets — see **T7** in `reference/tracker.md`. That mirror is additive: the task files
 and the one-commit-per-task rhythm below are identical in all three `split.pieces` modes.
 
+`PLAN.md` itself carries a `TDD:` line, written immediately after `- Started:`, when `tdd.enabled`
+was `true` at the start of that plan — see **TS1** in `reference/testing.md`. It has two shapes:
+
+```
+- TDD: on — proven YYYY-MM-DD with `<the invocation that ran>`
+- TDD: off — <the TS1 rung that applied, and the evidence for it>
+```
+
+**Its absence means TDD was never enabled for that plan**, and it is not a gap to be filled: a plan
+written before the `tdd` key existed and a plan whose TS1 stopped at its first rung look identical,
+deliberately. The line is written once, before the first task, and is never rewritten for that
+plan — every later command **reads** it rather than re-detecting anything, so changing
+`.jdi/config.yml` mid-plan has no effect until the next one.
+
 ## `plans.mode: repo` (default)
 
 Plans are files under `<plans.path>/` in the repository being changed, and they are **committed

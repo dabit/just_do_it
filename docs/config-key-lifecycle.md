@@ -254,13 +254,14 @@ T8 earned their place because five commands invoke them by name: `split.md` and 
 `bin/sync-opencode.sh:66` copies the whole `reference/` directory, so no adapter edit is needed.
 But two enumerations are hand-maintained and will not notice:
 
-- `README.md:223-226` — the "How it is put together" table, one row per reference file.
-- `AGENTS.md:46-47` — the sentence naming the four files commands refer to.
+- `README.md`'s "How it is put together" table, one row per reference file.
+- `AGENTS.md`'s **Reference files.** paragraph, the sentence naming the files commands refer to.
 
-Both currently say "four", by listing four. Adding a fifth without editing both leaves the repo
-describing itself incorrectly, in the two documents a newcomer reads first. Note also
-`README.md:224`, which names "The eight tracker operations (T1–T8)" — a count that had to move
-when T7 and T8 arrived. Counts in prose are citations too; if you add an operation, grep for the
+Neither states a number; each states a count by listing one. Adding a file without editing both
+leaves the repo describing itself incorrectly, in the two documents a newcomer reads first — which
+is exactly what `reference/testing.md` had to do when it arrived, editing both in the same
+commit. Note also the README row naming "The eight tracker operations (T1–T8)" — a count that
+had to move when T7 and T8 arrived. Counts in prose are citations too; if you add an operation, grep for the
 old number.
 
 ## 5. What must never become a config key

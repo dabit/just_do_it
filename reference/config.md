@@ -67,8 +67,8 @@ tdd:
   # Free-form prose an agent reads and translates into an invocation — never a
   # string to execute. "run `bin/rails test` inside the devcontainer" is the shape:
   # the literal text is usually not runnable as typed, because the real invocation
-  # depends on a container, a service, or a working directory. Leave it empty to
-  # have the Executor work the invocation out from the repository itself.
+  # depends on a container, a service, or a working directory. Leave it empty to have
+  # the Butler work the invocation out from the repo. See reference/testing.md, TS1/TS2.
   test_instructions: ""
 
 plans:
@@ -138,7 +138,7 @@ models:                    models:                     models:
 | `tracker.research_comment_heading` | `## 🔬 Research findings (JDI)` |
 | `split.pieces` | `commits` — task files and one commit per task; nothing written to the tracker |
 | `tdd.enabled` | `false` — the Executor works as it always has; nothing is announced |
-| `tdd.test_instructions` | empty — the Executor works the test invocation out from the repo |
+| `tdd.test_instructions` | empty — the Butler works the test invocation out from the repo |
 | `plans.mode` | `repo` |
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |

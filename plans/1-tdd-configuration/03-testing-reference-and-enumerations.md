@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 03 — Write the shared TS1/TS2 ladder and update both reference-file enumerations
 
 Depends on: 01
