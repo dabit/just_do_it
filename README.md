@@ -164,17 +164,20 @@ until you reinstall. The OpenCode sync has no such gate — it copies every time
 ## Set up a repository
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, the plan store, and the docs folder
+/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, and the docs folder
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
 more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
-`/jdi:init` asks about the tracker, what the split pieces should become, where plans should live,
-and where architecture docs live. It proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`,
-and directory layout rather than starting from zero, and it checks that the plans folder is not
-gitignored — a trap that loses plans silently.
+`/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
+should write tests first (TDD), where plans should live, and where architecture docs live. It
+proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
+starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
+silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
+whether the runner runs here before the setting is written rather than at the first task. The
+setting is recorded either way, and JDI re-proves the runner at the start of every plan.
 
 ### What a split piece becomes
 
@@ -192,11 +195,31 @@ changes. `/jdi:done` ticks each piece off as it goes. A mode your tracker cannot
 has no first-class issue checklist, and there is nothing to hang pieces off when the plan has no
 issue — falls back to `commits` and says so out loud rather than inventing a substitute.
 
+### Test-first execution
+
+`tdd` in `.jdi/config.yml` says whether the Executor writes the failing test before the code:
+
+| `tdd` | What you get |
+|---|---|
+| `enabled: false` (default) | Nothing changes, and nothing is said. Tests and code are written in whatever order the task calls for, and no command running a plan mentions TDD — not even to note it is off |
+| `enabled: true` | The Executor writes the failing test first, captures the red, then implements and captures the green. Both runs come back in its report — a task is not complete at red |
+| `test_instructions` | Prose an agent reads and translates into an invocation — "run `bin/rails test` inside the devcontainer" — never a string JDI executes. Leave it empty to have JDI work the invocation out from the repo |
+
+The runner is proven, not assumed. Once per plan, before the first task, JDI derives the invocation
+and watches it actually run, scoped to a single file or directory; the answer is recorded in
+`PLAN.md` and every later command reads it rather than re-deciding, so editing `.jdi/config.yml`
+mid-plan changes nothing until the next plan. A runner it cannot prove — no such command, an
+unreachable container, a dependency error — degrades that plan to off and says so, naming what it
+tried and what came back, because a red run against a runner nobody watched is fabricated evidence.
+Nothing about the history changes: tests and implementation still land in the same commit, one per
+task, and only the order they are written in is different. A task with no testable behaviour —
+documentation, prose, configuration — gets an announced skip rather than an invented test.
+
 ## Use it
 
 ```sh
 /jdi:prep "Add presence indicators to pages"   # research + plan + split, in one pass
-/jdi:yolo                                      # execute every task, stopping on failure
+/jdi:yolo                                      # execute every task, stopping on a real failure
 /jdi:pr                                        # condense the plan, push, open the PR
 ```
 
@@ -222,10 +245,19 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
+| `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How a role and a tier become an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
+| `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |
+
+**Running the tests.** `tests/` is a stdlib `unittest` suite — no install step and no
+third-party packages. Run it from the repository root:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
 
 ### Roles and tiers, not agents and models
 

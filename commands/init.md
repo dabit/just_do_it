@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, and where plans and docs live."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, and where plans and docs live."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -54,7 +54,37 @@ Follow these steps:
    Skip this question entirely when the tracker is `none` — there is nothing to mirror onto — and
    write `commits`.
 
-5. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
+5. **Ask whether the Executor should write tests first** — Off by default, and off means nothing
+   changes: the Executor writes tests and implementation in whatever order the task calls for, and
+   no command says a word about TDD while a plan runs — not even that it is off. Ask whether they
+   want it on (`tdd.enabled`).
+
+   On a yes, **propose `tdd.test_instructions` rather than asking from zero** — a test script in the
+   manifest, a Makefile or `just` target, a `bin/` wrapper, a devcontainer or compose service the
+   README names, or whatever step 2 already read that says how tests are run here. Say plainly that
+   the value is **prose a later agent reads and translates into an invocation**, not a command JDI
+   executes: "run `bin/rails test` inside the devcontainer" is a *better* answer than a bare
+   `bin/rails test`, because the real invocation depends on a container, a service, or a working
+   directory that a bare command string cannot carry.
+
+   **Then actually try it once**, scoped as narrowly as the runner allows — one file or one
+   directory, seconds rather than a full suite. This is step 3's integration check pointed at a test
+   runner: prove the capability, do not record an aspiration. **Read the output, not the exit
+   code.** Proof is a printed test-result tally — the runner reached the point of counting tests and
+   said so, and "ran 0 tests" in a repository that has none yet is still proof that the runner runs.
+   A command not found, a missing interpreter, a dependency-resolution error, an unreachable
+   container, a timeout, or a prompt waiting for input is not proof, whatever it exited with. Say
+   which invocation you tried and what it printed.
+
+   **If it did not run, say so and record the setting anyway** when that is still what the user
+   wants. The config records the intent; the Butler re-checks it once per plan, and a runner it
+   cannot prove degrades that plan to off out loud rather than fabricating evidence. Writing the
+   setting down before the environment is fixed loses nothing.
+
+   Ask this question every time. Unlike the split pieces, TDD does not depend on a tracker, so there
+   is no configuration in which it is skipped.
+
+6. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
    - **`repo`** (recommended, the default) — plans are files in this repository, committed with the
      code they describe. Ask for the folder; default `plans`.
    - **`external`** — plans live in a note service (Obsidian, recuerd0, Notion, a wiki). Ask which
@@ -66,29 +96,29 @@ Follow these steps:
    them, and the plan is silently gone on a fresh clone. If it is ignored, say so plainly and offer
    to un-ignore it, pick a different folder, or switch to `external`.
 
-6. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
+7. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
    architecture documents into. Default `doc`; propose whatever step 2 found.
 
-7. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
+8. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
    (research, planning, implementation, review), `standard` (splitting, condensing, PR writing), and
    `fast` (orchestration, status, commits). Offer to map them to concrete models for whatever
    harness and provider the user runs, and make clear that leaving them empty is fully supported:
    every tier then runs on the session's own model and nothing about the workflow changes.
 
-8. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
+9. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
    sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-9. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
-   the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
-   empty scaffolding.
+10. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+    the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
+    empty scaffolding.
 
-10. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+11. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own
     `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
     states them and the user told you what they are, offer to add them there. Do not write to those
     files without saying you are about to.
 
-11. **Report and point at the next step** — Show the config you wrote, name anything you
+12. **Report and point at the next step** — Show the config you wrote, name anything you
     deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
     `/jdi:help` for the tour.

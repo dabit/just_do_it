@@ -38,7 +38,11 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   verify the expected value is reproducible in the test context — check for time-dependent expiry
   and required ambient state — and default to the assertion style of the precedent test the plan
   cites (pattern-match over exact-match) rather than prescribing exact equality on
-  nondeterministic output
+  nondeterministic output. **Attribute the strategy to the implementation steps** — say which test
+  proves which step — and **name explicitly any step whose behaviour no test can observe**, with
+  what proves it instead. A test-first execution reads the strategy to decide what to write before
+  it writes anything, so a step whose untestability goes unstated is one the Executor will either
+  skip silently or invent a test for
 - When a planned test relies on fixture or seeded state to prove a filter or guard, **verify the
   fixture leaves the excluded rows present at the base scope** — the assertion must FAIL without
   the filter. If the fixture's lifecycle removes them another way (a soft-delete that also
