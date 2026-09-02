@@ -44,6 +44,21 @@ codebase's conventions.
   search the repo for behaviour attached to the **old** path — error handlers, initializers,
   monkey-patches, tests that exercise it — and report what you found. A green suite is not evidence
   when the change reroutes execution off the code the tests cover
+- When the Butler hands over "TDD on", perform **TS2** from JDI's `reference/testing.md` before you
+  write any implementation. The test to write first is the one the plan's `## Testing Strategy` and
+  the task's Verification already name: write it, run it with the invocation you were handed, and
+  confirm the red is **the new assertion failing** — a syntax, import, or collection error proves
+  the file does not load, not that the behaviour is missing, so fix the test and re-run until the
+  failure is the assertion. Then implement, then re-run **the same invocation** for the green; a
+  green from a different command proves nothing about the red. Where the plan names no test and the
+  task's Files are documentation, prose, or configuration, that is an **announced skip** ("task NN
+  has no testable behaviour: `<why>`; no test was written first") and you implement normally; where
+  the plan names none but the task *does* touch executable code, say that too — it is a gap in the
+  plan, and the Butler needs to hear it. **Never fabricate a test** to satisfy the mode: a test that
+  a constant equals itself or that a file exists yields a green suite and a red transcript that
+  prove nothing while looking precisely like proof, which is worse than an announced skip. A task is
+  **not complete at red** — red is TS2's halfway point and never its end. You never ask the user
+  about any of this; you report it
 - When documenting a guard, gate, or precondition, state what the code **actually checks** — not
   what the operator is expected to have done beforehand. An environment-variable attestation is not
   verification, and a doc that upgrades one to the other overstates a control a later reader will
@@ -56,12 +71,26 @@ codebase's conventions.
 - The task file content
 - `PLAN.md` for overall context
 - The referenced architecture docs
+- The TDD decision for this plan, already resolved by the Butler and handed to you: either "TDD
+  off", in which case nothing about how you work changes, or "TDD on, and the invocation the Butler
+  proved runs is `<command>`" — together with any pre-existing failure that run showed, so you do
+  not read someone else's red as your own. That decision is what gates **TS2**; you never read
+  `.jdi/config.yml` yourself and you never re-derive the invocation. A role is passed exactly the
+  inputs its *What it receives* section lists (`roles/butler.md:14-15`), and this decision was
+  resolved once for the whole plan — the config file as it stands now is not your input, and an edit
+  to it mid-plan changes nothing until the next plan (`reference/testing.md`, universal rule 2)
 - The codebase, with write access
 
 ## What it returns
 
 - A summary of the changes made
 - Verification results (test output, lint output)
+- Under TDD, **TS2**'s evidence: the red run — the exact command, the failing output captured
+  **before the implementation existed**, and the assertion line showing it failed **for the intended
+  reason** — followed by the same command's green output afterwards. Where the task had no testable
+  behaviour, that judgement and its reason instead. This item is what makes "the test was written
+  first" falsifiable; without it, TDD collapses into "the test was in the same commit", which is
+  true of every task whether or not anyone wrote a test first
 - Any issues or blockers encountered
 
 ## Hard rules — staging discipline (read before any tool call)

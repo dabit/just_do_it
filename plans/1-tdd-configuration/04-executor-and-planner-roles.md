@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 04 — Give the Executor and Planner their TDD responsibilities
 
 Depends on: 03

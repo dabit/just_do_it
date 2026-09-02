@@ -129,7 +129,7 @@ Executor is handed that decision and the proven invocation already resolved; it 
 7. **Return both. A task is not complete at red.** Red is the halfway point of TS2 and never its
    end; an Executor that returns a red run as its result has stopped in the middle of the operation.
 
-**The Butler does not reproduce red.** It cannot do so cheaply: `agents/executor.md:80-88` forbids
+**The Butler does not reproduce red.** It cannot do so cheaply: `agents/executor.md:109-117` forbids
 `git stash` outright, and reconstructing the pre-change tree by any of the routes that rule leaves
 open — a throwaway worktree, a second clone, a diff against the base ref — costs more, on every
 task of every plan, than the check is worth. So the Butler verifies what it can see directly: that
