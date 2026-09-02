@@ -61,6 +61,7 @@ Update both hand-maintained enumerations:
 
 ## Files
 - `reference/testing.md` (new)
+- `reference/config.md` (the carried-over pointer, below)
 - `reference/plan-store.md`
 - `README.md`
 - `AGENTS.md`
