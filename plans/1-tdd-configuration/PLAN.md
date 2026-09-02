@@ -520,7 +520,7 @@ The grep that finds them all is `grep -rn "TS1\|TS2\|TDD" commands/` — name it
 - [x] 02 — Add the `tdd` key to the config schema, defaults, notes, and example (depends on: 01)
 - [x] 03 — Write the shared TS1/TS2 ladder and update both reference-file enumerations (depends on: 01)
 - [x] 04 — Give the Executor and Planner their TDD responsibilities (depends on: 03)
-- [ ] 05 — Wire TS1/TS2 into execute, next, and yolo (depends on: 03, 04)
+- [x] 05 — Wire TS1/TS2 into execute, next, and yolo (depends on: 03, 04)
 - [ ] 06 — Document TDD in init, help, and README (depends on: 02, 03)
 - [ ] 07 — Version bump, changelog, and dogfood this repo's own config (depends on: 02, 03, 04, 05, 06)
 - [ ] 08 — UAT: prove the TDD-on path and the off-by-default regression guard (depends on: 07)

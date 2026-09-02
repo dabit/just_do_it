@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 05 — Wire TS1/TS2 into execute, next, and yolo
 
 Depends on: 03, 04

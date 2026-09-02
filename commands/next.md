@@ -52,13 +52,26 @@ followed by `/jdi:execute`, in a single step.
 
 9. **Delegate to the Executor** — Hand off to the **Executor** role at the **deep** tier; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it
-   the task file content, `PLAN.md` for context, and the referenced architecture docs. Instruct it
-   to implement the task, follow the codebase's existing patterns, run the task's verification
-   steps, and report what was done plus any issues. Remind it: stage every edit, never stash, do
-   not commit or push.
+   the task file content, `PLAN.md` for context, and the referenced architecture docs. Read the
+   `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the
+   line names, and instruct the Executor to perform **TS2** from JDI's `reference/testing.md` — the
+   failing test first, the implementation after it, and both runs returned as evidence. A line
+   reading `off`, a missing line, and an unparseable line all mean the same thing: pass nothing and
+   say nothing. **Never run TS1 here** — a plan running without TDD writes no line either, so a
+   missing line is not an invitation to detect one. No line means no TDD, for every command,
+   always; detecting here would let a mid-plan config flip turn TDD on part-way through a plan.
+   Instruct it to implement the task, follow the codebase's existing patterns, run the task's
+   verification steps, and report what was done plus any issues. Remind it: stage every edit, never
+   stash, do not commit or push.
 
 10. **Verify independently** — Run the task's verification steps yourself. The Executor's report is
-    evidence, not proof.
+    evidence, not proof. When the `TDD:` line says `on`, confirm the task's new tests are in
+    `git diff --staged` and that your own run is green; **do not reproduce the red** — read the
+    Executor's captured red and check it names the new assertion failing, since an import, syntax,
+    or collection error is a broken test rather than red evidence and counts as none. If a task that
+    touched executable code carries neither red evidence nor a stated reason there was nothing to
+    test, lead with that the way you would lead with a failed verification, and ask whether to
+    accept it or send it back.
 
 11. **Show the diff** — Run `git diff` (and `git diff --staged`) and present it with a brief
     explanation of what changed and why. If verification failed, lead with that.

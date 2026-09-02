@@ -26,6 +26,15 @@ so the issue carries the research record before any task runs. See **T5** in JDI
 `reference/tracker.md`. Skip and say so when `Issue: none`; warn but proceed if the tracker is
 unreachable.
 
+**Before the loop — resolve the TDD decision for this plan.** Do this only when every task in the
+checklist is still unchecked and `PLAN.md` carries no `TDD:` line: if `tdd.enabled` is not `true`,
+do nothing and say nothing; otherwise perform **TS1** from JDI's `reference/testing.md` and record
+its result as a `- TDD:` line immediately after `- Started:` in `PLAN.md`. Anything else is a
+resumption — read the line that is there, or the absence of one, and re-detect nothing, because a
+plan that began without TDD must not be turned on part-way through. This is the only place this
+command resolves TDD: once per run, never once per task, and TS1's ambiguous rung asks the user
+here, at the top, rather than mid-flight.
+
 Then loop through the following cycle until every task is complete.
 
 ---
@@ -59,17 +68,38 @@ unchecked task:
    dependencies are blocking.
 3. **Delegate to the Executor** — hand off to the **Executor** role at the **deep** tier; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it
-   the task file content, `PLAN.md` for context, and the referenced architecture docs. Instruct it
-   to implement the task, follow the codebase's existing patterns, run the task's verification
-   steps, and report what was done plus any issues. Remind it: stage every edit, never stash, do
-   not commit or push.
+   the task file content, `PLAN.md` for context, and the referenced architecture docs. Read the
+   `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the
+   line names, and instruct the Executor to perform **TS2** from JDI's `reference/testing.md` — the
+   failing test first, the implementation after it, and both runs returned as evidence. A line
+   reading `off`, a missing line, and an unparseable line all mean the same thing: pass nothing and
+   say nothing. **Never run TS1 here** — a plan running without TDD writes no line either, so a
+   missing line is not an invitation to detect one. No line means no TDD, for every command,
+   always; detecting here would let a mid-plan config flip turn TDD on part-way through a plan.
+   Instruct it to implement the task, follow the codebase's existing patterns, run the task's
+   verification steps, and report what was done plus any issues. Remind it: stage every edit, never
+   stash, do not commit or push.
 4. **Self-verify** — after the Executor finishes, **run the task's verification steps yourself** to
    confirm independently that the work passes. Do not trust the Executor's report alone; a role that
-   just wrote the code is the worst judge of whether it works. Always verify.
+   just wrote the code is the worst judge of whether it works. Always verify. When the `TDD:` line
+   says `on`, confirm the task's new tests are in `git diff --staged` and that your own run is
+   green; **do not reproduce the red** — read the Executor's captured red and check it names the new
+   assertion failing, since an import, syntax, or collection error is a broken test rather than red
+   evidence and counts as none.
 5. **Check for failure** — if any verification step fails, **stop the loop immediately**. Show the
    user the diff, the failing output, and what went wrong, and ask how to proceed. Do **not**
    continue to the next task. An auto-pilot that carries on past a red build produces a branch
    nobody can bisect.
+
+   The failure being checked is the outcome of **your own** run in item 4, against the tree as it
+   stands now. Under TDD the Executor's report will contain a failing test run: that red is required
+   evidence, captured before the implementation existed, and it is a record of a past state, not a
+   verification result. Do not treat it as one. If your own item-4 run is green, the task passed,
+   whatever red the report contains; if your own run is red, stop, whatever the report says.
+
+   One new stop: TDD is on, the task touched executable code, and the report carries neither red-run
+   evidence nor a stated reason there was nothing to test. Stop the loop and show the report — that
+   is the same class of failure as a verification that was never run.
 
 ### Step 3 — Loop back to Step 1
 

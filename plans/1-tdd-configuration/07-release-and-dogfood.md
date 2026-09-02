@@ -38,6 +38,14 @@ starting with the *next* plan run in this repository.
 - `CHANGELOG.md`
 - `.jdi/config.yml`
 
+### Carried over from task 05
+
+The CHANGELOG entry must state that **a plan whose first task ran before this key existed simply
+runs without TDD.** No line means no TDD, for every command, always — a plan started before the key
+carries no `TDD:` line, is indistinguishable from one that started with TDD off, and neither is an
+invitation to detect. Without this said out loud, a user who enables `tdd` mid-plan will expect
+behaviour they will not get.
+
 ## Verification
 1. `python3 -m unittest discover -s tests -v` — expect `OK`. The discriminating module is
    `tests/test_versions.py`. Its falsifiability control: if one version file is bumped and the

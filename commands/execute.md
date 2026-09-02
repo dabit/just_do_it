@@ -39,6 +39,14 @@ Follow these steps:
       write the `Started:` timestamp into the plan document in the service, and say that the plan
       itself lives in `<plans.service>`.
 
+   c. **Resolve the TDD decision for this plan.** If `tdd.enabled` is not `true`, do nothing and say
+      nothing: write no line, and announce no skip. Otherwise, if `PLAN.md` carries no `TDD:` line
+      yet, perform **TS1** from JDI's `reference/testing.md` and record its result as a `- TDD:`
+      line immediately after `- Started:`. Do this before `b`'s commit runs, so the decision rides
+      the plan-approval commit. A line that is already there is read, never re-resolved and never
+      rewritten: TS1 answers once per plan, every later command reads that answer, and editing
+      `.jdi/config.yml` mid-plan changes nothing until the next plan.
+
 3. **Pick the next task** — Find the first unchecked task in the checklist whose dependencies are
    all complete. Read that task file.
 
@@ -50,6 +58,12 @@ Follow these steps:
    - the task file content
    - `PLAN.md` for the overall context
    - the referenced architecture docs
+   - the TDD decision for this plan, read from the `TDD:` line in `PLAN.md`. `on` means pass that
+     decision, the proven invocation the line names, and any pre-existing failure TS1 reported, and
+     instruct the Executor to perform **TS2** from JDI's `reference/testing.md`: the failing test
+     first, the implementation after it, and both runs returned as evidence. A line reading `off`, a
+     missing line, and a line in neither of TS1's two shapes all mean the same thing — pass nothing
+     and say nothing.
 
    Instruct it to implement the work described in the task file, follow the existing patterns and
    conventions in the codebase, run the task's verification steps, and return a summary of what was
@@ -59,6 +73,14 @@ Follow these steps:
 6. **Verify independently** — Run the task's verification steps **yourself**. The Executor's report
    is evidence, not proof: a role that just wrote the code is the worst judge of whether it works.
    Spot-check any load-bearing citation in its report too.
+
+   When the plan's `TDD:` line says `on`, verify the ordering too: confirm the task's new tests are
+   in `git diff --staged` and that your own run of the proven invocation is green. **Do not
+   reproduce the red** — read the Executor's captured red instead, and check it names the new
+   assertion failing. A red that is an import, syntax, or collection error is a broken test rather
+   than red evidence, and counts as none. If a task that touched executable code carries neither red
+   evidence nor a stated reason there was nothing to test, lead with that the way you would lead
+   with a failed verification, and ask the user whether to accept the task or send it back.
 
 7. **Show the diff** — Run `git diff` (and `git diff --staged`) to show the user exactly what
    changed, with a brief explanation of the changes and why they were made. If verification failed,
