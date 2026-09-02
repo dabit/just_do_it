@@ -83,9 +83,10 @@ default teaches nothing. Match the convention — set the example to the interes
 
 **`commands/init.md` takes two edits, and the second one renumbers.** The frontmatter
 `description:` enumerates the questions init asks (`commands/init.md:2`), and a new numbered step
-is inserted among the existing eleven (`split.pieces` is step 4, `commands/init.md:41-55`).
+is inserted among the existing steps (`split.pieces` is step 4; `tdd` became step 5), which
+renumbers every step after it.
 Inserting a step **renumbers everything after it**, and steps refer to each other by number —
-`commands/init.md:70` says "propose whatever step 2 found". After renumbering, grep the file for
+`commands/init.md:100` says "propose whatever step 2 found". After renumbering, grep the file for
 `step [0-9]` and fix the back-references. Nothing outside `init.md` references its steps by
 number today, but other command files do reference each other's: `commands/prep.md:154` says
 "Follow `/jdi:split` steps 2 through 5", and `commands/replan.md:19` says "`/jdi:plan` step 2". If
@@ -261,8 +262,8 @@ Neither states a number; each states a count by listing one. Adding a file witho
 leaves the repo describing itself incorrectly, in the two documents a newcomer reads first — which
 is exactly what `reference/testing.md` had to do when it arrived, editing both in the same
 commit. Note also the README row naming "The eight tracker operations (T1–T8)" — a count that
-had to move when T7 and T8 arrived. Counts in prose are citations too; if you add an operation, grep for the
-old number.
+had to move when T7 and T8 arrived. Counts in prose are citations too; if you add an
+operation, grep for the old number.
 
 ## 5. What must never become a config key
 
@@ -274,7 +275,7 @@ Three categories are permanently out of scope. The reasoning for each is already
 > `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 
 Duplicating them into `.jdi/config.yml` creates a second source of truth that silently diverges
-from the one humans and every other tool already read. `commands/init.md:86-90` turns this into
+from the one humans and every other tool already read. `commands/init.md:116-120` turns this into
 behaviour: init explicitly does **not** configure them, and instead offers to write them into
 `CLAUDE.md` / `AGENTS.md` if they are missing. `git.branch_prefix` is the deliberate seam —
 `reference/config.md:83-85`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —

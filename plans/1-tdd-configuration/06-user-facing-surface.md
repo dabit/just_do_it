@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 06 — Document TDD in init, help, and README
 
 Depends on: 02, 03
