@@ -226,6 +226,14 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 | `reference/delegation.md` | How a role and a tier become an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
+| `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |
+
+**Running the tests.** `tests/` is a stdlib `unittest` suite — no install step and no
+third-party packages. Run it from the repository root:
+
+```sh
+python3 -m unittest discover -s tests -v
+```
 
 ### Roles and tiers, not agents and models
 

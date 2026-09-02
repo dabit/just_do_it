@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 01 — Add the repository's first automated test suite
 
 Depends on: None

@@ -516,7 +516,7 @@ of site (detection, verification-scoping, evidence-checking) rather than repeats
 The grep that finds them all is `grep -rn "TS1\|TS2\|TDD" commands/` — name it in the commit body.
 
 ## Tasks
-- [ ] 01 — Add the repository's first automated test suite (depends on: none)
+- [x] 01 — Add the repository's first automated test suite (depends on: none)
 - [ ] 02 — Add the `tdd` key to the config schema, defaults, notes, and example (depends on: 01)
 - [ ] 03 — Write the shared TS1/TS2 ladder and update both reference-file enumerations (depends on: 01)
 - [ ] 04 — Give the Executor and Planner their TDD responsibilities (depends on: 03)
