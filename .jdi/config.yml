@@ -1,0 +1,44 @@
+# .jdi/config.yml — JDI workflow configuration
+# Schema, defaults, and example tier mappings: reference/config.md
+
+tracker:
+  # linear | jira | github | none
+  name: github
+
+  # Default project or board for new issues.
+  project: "feature development"
+
+  # Team, workspace, or organisation the project lives in.
+  team: "dabit"
+
+  # Issue key prefix, e.g. "ENG" for ENG-1234. GitHub issues are bare numbers
+  # (#123), so there is no prefix — plan slugs use the issue number.
+  id_prefix: ""
+
+  # First line of the comment JDI upserts on an issue when research lands.
+  # Keep it stable so the write stays idempotent.
+  research_comment_heading: "## 🔬 Research findings (JDI)"
+
+split:
+  # What a split piece becomes, on top of the task file and its commit.
+  #   commits    — nothing written to the tracker (the default)
+  #   tasks      — mirror each piece as a checklist item in the issue body
+  #   subtickets — mirror each piece as a GitHub sub-issue
+  pieces: commits
+
+plans:
+  # repo     — plans are files in this repository, committed with the code.
+  # external — plans live in a note service; nothing plan-shaped is committed.
+  mode: repo
+  path: plans
+
+docs:
+  # Where architecture docs live. /jdi:research reads from here and writes here.
+  path: docs
+
+git:
+  # "auto" detects it from `git symbolic-ref refs/remotes/origin/HEAD`.
+  default_branch: auto
+
+  # Optional branch prefix. Left empty to follow the repo's AGENTS.md.
+  branch_prefix: ""
