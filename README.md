@@ -240,7 +240,7 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 16 workflow commands. Each one is written to the orchestrator |
+| `commands/` | The 17 workflow commands. Each one is written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |

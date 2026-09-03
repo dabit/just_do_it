@@ -32,6 +32,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:done` | Butler | fast | Mark the current task complete, update the checklist, and commit. |
 | `/jdi:next` | Butler + Executor | deep | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
 | `/jdi:yolo` | Butler + Executor | deep | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
+| `/jdi:pair` | Butler + Executor ×2 | deep | Auto-pilot the remaining tasks as a pair: two agents in two Herdr panes ping-ponging a failing test, with the Butler driving the turns and taking neither side. Needs TDD on and a Herdr session; degrades by asking, never silently. |
 | `/jdi:status` | Butler | fast | Show progress on the current plan. |
 | `/jdi:help` | Butler | fast | Print this command table and the typical flow, then say what this repository is configured for. |
 | `/jdi:pr` | Butler + Synthesizer + PR Writer | standard | Condense the plan, push, and open the pull request. |

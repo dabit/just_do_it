@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 05 — Add `commands/pair.md`, and its four enumerations
 
 Depends on: 01, 02, 03, 04

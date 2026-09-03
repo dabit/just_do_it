@@ -30,6 +30,7 @@ The commands are:
 | `commands/done.md` | Mark the current task done and commit |
 | `commands/next.md` | `done` then `execute`, in one step |
 | `commands/yolo.md` | Auto-pilot every remaining task |
+| `commands/pair.md` | Auto-pilot every remaining task as a pair of agents |
 | `commands/status.md` | Show progress on the current plan |
 | `commands/pr.md` | Condense the plan, push, open the pull request |
 | `commands/feedback.md` | Critique the last output on demand |

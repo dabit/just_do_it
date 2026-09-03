@@ -489,7 +489,7 @@ Suite grows 15 → 17 tests, stdlib only, `python3 -m unittest discover -s tests
 - [x] 02 — Add the `pair` config block (depends on: 01)
 - [x] 03 — Write `reference/pairing.md`, and both reference-file enumerations (depends on: 02)
 - [x] 04 — Resolve the three `reference/testing.md` collisions (depends on: 03)
-- [ ] 05 — Add `commands/pair.md`, and its four enumerations (depends on: 01, 02, 03, 04)
+- [x] 05 — Add `commands/pair.md`, and its four enumerations (depends on: 01, 02, 03, 04)
 - [ ] 06 — Give the Executor its paired turn, and document the `Pair:` line (depends on: 05)
 - [ ] 07 — Document pairing in init, help, and the README (depends on: 05)
 - [ ] 08 — Release 1.0.4, and dogfood (depends on: 06, 07)
