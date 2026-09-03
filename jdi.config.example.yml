@@ -72,6 +72,27 @@ models:
   standard: ""
   fast: ""
 
+# Optional. Read only by /jdi:herd. `kind` must be an installed Herdr agent
+# kind; `max_parallel` is a spend guard, since each agent is a full session.
+herd:
+  kind: claude
+  max_parallel: 3
+
+  # Arguments for the agent CLI itself, keyed by agent kind. Empty by default,
+  # and JDI never adds one of its own. This is where an unattended herd gets
+  # its permission-bypass flag — with approvals off, nothing reviews what the
+  # spawned agents do, so set it deliberately.
+  args: {}
+  # args:
+  #   claude: ["--dangerously-skip-permissions"]
+
+  # Environment for the pane each agent starts in — a different account,
+  # provider, or CLI configuration than this session runs under. Values are
+  # verbatim, so write absolute paths; a leading "~" stays a literal tilde.
+  env: {}
+  # env:
+  #   CLAUDE_CONFIG_DIR: /Users/you/.claude-other
+
 # Optional. Sibling repos or clients that consume this repo's public interfaces.
 # The Researcher sweeps these when a change alters an externally-consumed
 # contract, so "does a client need updating?" is never left unanswered.

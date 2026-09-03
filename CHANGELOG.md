@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.4
+
+**`/jdi:herd` preps a list of issues in parallel — one git worktree, one agent, one `/jdi:prep` each.**
+
+- New `/jdi:herd` command and a new optional `herd` block in `.jdi/config.yml` — `kind`,
+  `max_parallel`, `args` and `env`, every one of them defaulted. A repo that sets none of them, or
+  omits the block entirely, is unaffected: no other command reads it, and nothing about an existing
+  workflow changes because the command now exists.
+- **One worktree per issue, on a scratch branch.** Parallel preps in a single checkout would fight
+  over the branch `/jdi:prep` creates at its step 6. The scratch branch deliberately does **not**
+  name the issue, because `/jdi:prep` keeps a branch that already names the work — a scratch branch
+  carrying the issue ID would be adopted, and the plan would lose its **T6** slug.
+- **It sets work up; it does not supervise it.** A spawned agent that stops at a question holds its
+  turn and runs no tools, so it cannot call for help at the moment help is needed. The command
+  offers a poll instead, reports which agent is waiting and what it asked, and names every worktree,
+  workspace and scratch branch it created so they can be cleaned up.
+- **Validates, never repairs.** No Herdr pane, no binary, no server socket, or no such agent kind
+  each end the run with that reason. `/jdi:herd` starts no server, installs nothing, and never
+  degrades to a sequential `/jdi:prep`: a herd that quietly became one prep is indistinguishable
+  from a herd that worked.
+- **`herd.args` and `herd.env` are pass-through.** JDI composes no flag and translates none between
+  agent kinds, so a permission-bypass flag is a value the user wrote down rather than a mode JDI
+  entered on their behalf. `env` is enough to run a herd under a different account or profile —
+  which also means the agents read *that* profile's settings, plugins and credentials, and JDI must
+  be installed there for `/jdi:prep` to exist at all.
+
 ## 1.0.3
 
 **Opt in and the Executor writes the failing test first — once the suite has been watched to run.**

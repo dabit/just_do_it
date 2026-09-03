@@ -110,6 +110,43 @@ models:
   standard: ""    # splitting, condensing, PR writing
   fast: ""        # orchestration, status, commits
 
+# Optional. Read only by /jdi:herd, which preps several issues in parallel,
+# one Herdr worktree and agent per issue.
+herd:
+  # Herdr agent kind to start. Must be one of the kinds the installed Herdr
+  # reports on the `kinds:` line of `herdr agent`.
+  kind: claude
+
+  # How many issues one /jdi:herd run may start without asking again. Each
+  # agent is a full session with a real token cost, so this is a spend guard,
+  # not a technical limit.
+  max_parallel: 5
+
+  # Arguments handed to the agent CLI itself, after Herdr's `--` separator.
+  # Keyed by agent kind, because every CLI has its own flags. A kind with no
+  # entry starts with no arguments, and JDI never adds one of its own.
+  #
+  # This is where an unattended herd gets its permission-bypass flag. Approvals
+  # are what make a spawned agent stop and wait for you, so turning them off
+  # means nothing reviews what the agent does. The worktree isolates the branch
+  # and the working tree, and nothing else: same credentials, same network,
+  # same machine. Set it deliberately.
+  #
+  #   args:
+  #     claude: ["--dangerously-skip-permissions"]
+  args: {}
+
+  # Environment variables set on the pane each agent starts in. Use it to run
+  # the herd under a different account, provider, or CLI configuration than
+  # this session uses.
+  #
+  # Values are passed verbatim, so write absolute paths: a leading "~" arrives
+  # as a literal tilde and the variable then points nowhere.
+  #
+  #   env:
+  #     CLAUDE_CONFIG_DIR: /Users/you/.claude-other
+  env: {}
+
 # Optional. Sibling repositories or client codebases that consume this repo's
 # public interfaces (APIs, webhooks, tool surfaces, published packages). The
 # Researcher sweeps these when a change alters an externally-consumed contract,
@@ -144,6 +181,10 @@ models:                    models:                     models:
 | `docs.path` | `doc` |
 | `git.default_branch` | `auto` |
 | `models.*` | empty — every tier runs on the session's own model |
+| `herd.kind` | `claude` |
+| `herd.max_parallel` | `5` |
+| `herd.args` | empty — spawned agents start with no CLI arguments, so approvals stay on |
+| `herd.env` | empty — spawned agents inherit the environment Herdr gives a new pane |
 | `consumers` | empty |
 
 ## Notes
@@ -165,6 +206,16 @@ models:                    models:                     models:
   `enabled: false` is never turned on because a test folder happens to exist: running "on" against
   a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
   TDD at all.
+- **`herd` is read by `/jdi:herd` and by nothing else.** No other command changes behaviour because
+  the block exists, and a repo without Herdr never reaches a line that reads it. The whole block is
+  optional, and every key in it has a working default.
+- **`/jdi:herd` validates Herdr and stops; it never repairs.** No server, no binary, no socket, or
+  no such agent kind each end the run with the reason. It starts nothing, installs nothing, and
+  never silently degrades to a sequential `/jdi:prep`: a herd that quietly became one prep looks
+  exactly like a herd that worked.
+- **`herd.args` is passed through, never composed.** JDI adds no flag of its own and translates
+  none between agent kinds. A permission-bypass flag is therefore a value the user wrote down, not
+  a mode JDI decided to enter on their behalf.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

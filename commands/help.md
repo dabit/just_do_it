@@ -8,7 +8,8 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
-split pieces become, whether TDD is on, and whether `.jdi/config.yml` exists at all. If it does not,
+split pieces become, whether TDD is on, the herd defaults where Herdr is installed, and whether
+`.jdi/config.yml` exists at all. If it does not,
 say `/jdi:init` writes it, and that JDI works without it by asking as it goes.
 
 ---
@@ -22,8 +23,9 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 | Command | Roles | Tier | What it does |
 |---|---|---|---|
-| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder. Writes `.jdi/config.yml`. |
+| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder, and the herd defaults where Herdr is installed. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | fast + deep + standard | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
+| `/jdi:herd` | Butler | fast | Prep several existing issues in parallel — one git worktree, pane, and agent for each. Needs [Herdr](https://herdr.dev). |
 | `/jdi:start` | Butler | fast | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | deep | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
 | `/jdi:plan` | Butler + Planner | deep | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
@@ -109,6 +111,24 @@ Where a task has no testable behaviour — documentation, prose, configuration �
 announces the skip and implements normally. A test invented to satisfy the mode would be worse than
 no test at all: it produces a green suite and a red-run transcript that prove nothing while looking
 precisely like proof.
+
+### Preparing several issues at once
+
+`/jdi:herd` preps a list of existing issues in parallel, and it needs [Herdr](https://herdr.dev), a
+terminal multiplexer that starts and reads coding agents in its panes. Each issue gets its own git
+worktree and its own agent running `/jdi:prep`, so the runs never share a branch or a working tree.
+It creates nothing until Herdr answers — the pane, the binary, the server socket, and the agent
+kind are all checked first, and a failure ends the run with the reason rather than a repair.
+
+The optional `herd` block configures it: `kind` (which agent to start), `max_parallel` (a spend
+guard, since each agent is a full session), `args` (flags for the agent CLI itself, keyed by kind)
+and `env` (the environment each agent starts in, enough to run the herd under another account).
+Every key has a working default, and no other command reads the block.
+
+**It sets work up; it does not supervise it.** An agent that stops to ask you something holds its
+turn and cannot call for help, so `/jdi:herd` offers to poll them all and report which one waits.
+Prepping three issues still leaves three sets of questions, three plans to read, and three
+worktrees to merge or discard.
 
 ### Tiers, not models
 

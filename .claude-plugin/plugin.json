@@ -1,6 +1,6 @@
 {
   "name": "jdi",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Just Do It (JDI) — a structured, agent-driven dev workflow that takes a change from idea to pull request: start, research, plan, split into atomic tasks, execute, and open the PR. Works with any issue tracker (Linear, Jira, GitHub Issues, or none) and stores plans in the repo or in an external service.",
   "keywords": [
     "workflow",
