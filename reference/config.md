@@ -71,6 +71,19 @@ tdd:
   # the Butler work the invocation out from the repo. See reference/testing.md, TS1/TS2.
   test_instructions: ""
 
+pair:
+  # Free-form prose naming the two agents `/jdi:pair` should pair — never a list
+  # JDI parses and never a command it executes. "claude and opencode, both in
+  # this repository" is the shape. The Butler reads it, translates it into two
+  # Herdr agent kinds, and proves each one startable here and now before
+  # honouring it.
+  #
+  # There is no `enabled` key: running `/jdi:pair` is the intent, and no other
+  # command reads this block. Leave it empty and `/jdi:pair` asks which two
+  # agents to pair, then offers to write the answer here.
+  # See reference/pairing.md, P1/P2/P3.
+  agents: ""
+
 plans:
   # repo | external
   #   repo     — plans are files in this repository, committed with the code they describe.
@@ -139,6 +152,7 @@ models:                    models:                     models:
 | `split.pieces` | `commits` — task files and one commit per task; nothing written to the tracker |
 | `tdd.enabled` | `false` — the Executor works as it always has; nothing is announced |
 | `tdd.test_instructions` | empty — the Butler works the test invocation out from the repo |
+| `pair.agents` | empty — `/jdi:pair` asks which two agents to pair and offers to persist the answer |
 | `plans.mode` | `repo` |
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |
@@ -165,6 +179,14 @@ models:                    models:                     models:
   `enabled: false` is never turned on because a test folder happens to exist: running "on" against
   a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
   TDD at all.
+- **`pair` has no `enabled` key, and no command reads it but `/jdi:pair`.** A repo that sets it and
+  never runs the command behaves exactly like a repo that never set it. `/jdi:yolo`, `/jdi:execute`
+  and `/jdi:next` stay single-agent whatever this block says; the command is the intent.
+- **Pairing degrades to not pairing, never to a half-pair.** No `TDD: on` line for the plan, no
+  Herdr session, or an agent kind that is not startable here all mean the run is not paired — said
+  out loud, with the option to run single-agent instead. One pane up and one refused is a failure,
+  not a degraded mode: a single agent taking both sides of a ping-pong is the rubber stamp the
+  protocol exists to make impossible.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

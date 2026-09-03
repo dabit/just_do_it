@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 02 — Add the `pair` config block
 
 Depends on: 01

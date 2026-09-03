@@ -43,6 +43,13 @@ tdd:
   # to have the Butler work it out from the repo.
   test_instructions: "run `bin/rails test` inside the devcontainer"
 
+pair:
+  # Prose naming the two agents `/jdi:pair` should pair, read and translated by
+  # an agent — never a list JDI parses or a command it executes. There is no
+  # on/off key: running `/jdi:pair` is the intent. Leave it empty and the
+  # command asks, then offers to write the answer here.
+  agents: "claude and opencode, both started in this repository"
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.
