@@ -121,7 +121,8 @@ documented in `plan-store.md`, carried by the Synthesizer — and diverges in on
 environment refused, and later commands must be told not to re-detect. Pairing is requested by a
 **command**, so the degradation is announced to the user who typed it, in the same turn — the
 announcement is the record. An `off` line would create a persistent artefact a later command might
-be tempted to read, which is the failure universal rule 3 exists to prevent. **No command reads the
+be tempted to read, which is the failure `reference/pairing.md`'s own universal rule 1 —
+pairing is requested, never detected — exists to prevent. **No command reads the
 line to decide anything.**
 
 **P1 runs per invocation; the line is written once per plan.** Unlike TS1 the preflight *cannot* be
@@ -490,7 +491,7 @@ Suite grows 15 → 17 tests, stdlib only, `python3 -m unittest discover -s tests
 - [x] 03 — Write `reference/pairing.md`, and both reference-file enumerations (depends on: 02)
 - [x] 04 — Resolve the three `reference/testing.md` collisions (depends on: 03)
 - [x] 05 — Add `commands/pair.md`, and its four enumerations (depends on: 01, 02, 03, 04)
-- [ ] 06 — Give the Executor its paired turn, and document the `Pair:` line (depends on: 05)
+- [x] 06 — Give the Executor its paired turn, and document the `Pair:` line (depends on: 05)
 - [ ] 07 — Document pairing in init, help, and the README (depends on: 05)
 - [ ] 08 — Release 1.0.4, and dogfood (depends on: 06, 07)
 - [ ] 09 — UAT (depends on: 08)

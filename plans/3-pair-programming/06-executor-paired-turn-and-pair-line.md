@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 06 — Give the Executor its paired turn, and document the `Pair:` line
 
 Depends on: 05

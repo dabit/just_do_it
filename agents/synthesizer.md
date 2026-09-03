@@ -63,7 +63,9 @@ The condensed plan covers, in this order:
    verbose `PLAN.md`. **Never emit YAML `---` frontmatter.** Carry the `- TDD:` line too whenever
    the verbose plan has one: `reference/plan-store.md` defines its **absence** as "TDD was never
    enabled for this plan", so dropping it does not lose a detail — it asserts something false about
-   how the work was built, in the one copy that outlives the branch.
+   how the work was built, in the one copy that outlives the branch. Carry the `- Pair:` line on the
+   same terms and for the same reason: `reference/plan-store.md` defines *its* absence as "the plan
+   was never paired", so dropping it asserts something equally false about how the work was built.
 2. **References** — repo-relative file paths, one per line. No bare filenames, no markdown links
    with placeholder URLs. Drop anything already covered by the metadata (the issue URL). No line
    numbers; git history has those.
