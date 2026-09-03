@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 09 — UAT
 
 Depends on: 08
@@ -51,14 +51,14 @@ exercise non-interactively.
 
 | Criterion | Scenario(s) | Note |
 |---|---|---|
-| A `pair` block in `.jdi/config.yml`, documented, no `enabled` key | A4; task 02's `test_config_schema.py` checks | — |
-| Every existing repo behaves exactly as it does now | A1, A6 | — |
+| A `pair` block in `.jdi/config.yml`, documented, no `enabled` key | A4 (partial); `ForbiddenKeyTest` | **Group A observed the block's existence and shape by reading, not by writing it** — A4 stops at the ask. The no-`enabled`-key invariant was unguarded until UAT found it; `tests/test_config_schema.py`'s `ForbiddenKeyTest` now enforces it |
+| Every existing repo behaves exactly as it does now | A1, A6 | Established for **execution**: A1, A6, and the fact that `commands/{yolo,execute,next,done}.md` are unchanged on this branch. **Not** established for `/jdi:init`, which now asks a new question of anyone with `herdr` on `PATH` who never runs `/jdi:pair` — a deliberate interpretation recorded in `PLAN.md`, not blanket coverage |
 | A new `/jdi:pair` command that runs a plan end to end with two agents | B1 | Requires group B |
 | Driver/navigator roles with ping-pong rotation at the red/green boundary, **derived from human pair-programming practice** | B1, B4 for the rotation mechanic | **The "derived from" provenance claim is not a runtime behaviour and no scenario observes it.** It is proven by reading `reference/pairing.md`'s cited sources and `PLAN.md`'s References section (Böckeler & Siessegger, Open Practice Library's ping-pong loop, Falco's strong-style pairing, Fintak's trunk-based ping-pong, the coderetreat catalogue, Tuple, Xebia) against the P2 rules that cite them — a documentation review, not a scenario |
 | The pair shares notes and corrections through a file that survives the run | B1 | Requires group B |
 | The navigator produces a concrete artifact each turn, falsifiable | B1, B2, B3 | Requires group B |
-| Running `/jdi:pair` with no `pair` configuration asks inline and persists it | A4 | — |
-| Outside Herdr, without `TDD: on`, or with an agent unreachable, degrades out loud | A2, A3, A5 | — |
+| Running `/jdi:pair` with no `pair` configuration asks inline and persists it | A4 (the ask only) | **The persistence half is NOT OBSERVED and cannot be by an agent** — rung 3 requires explicit user confirmation before writing, and fabricating one is the failure this feature exists to prevent. A4 reached the ask and composed the exact YAML; the write awaits a human |
+| Outside Herdr, without `TDD: on`, or with an agent unreachable, degrades out loud | A2, A3, A5 | Established, with one qualifier: **A3 was simulated** with `env -u HERDR_ENV` inside a real Herdr pane. A genuinely non-Herdr session was not observed |
 | A blocked agent stops the run and surfaces it; neither answers the other's prompts | B6 | Requires group B |
 | `/jdi:init` asks about it, and the README documents it | — | **Not observed by any scenario here**, matching the TDD-configuration plan's precedent for its own criteria 5 and 6: `/jdi:init` is interactive, and scripting an answer to a question and then judging its own wording proves nothing. Substitute: task 07's verification — `commands/init.md`'s new step exists with the herdr-on-`PATH` skip intact, and `README.md`'s two enumerations plus its new section exist. **Remains genuinely unverified** (does the question get asked, in the right words, with the right default) until a live `/jdi:init` run against a repo with no existing `.jdi/config.yml`, or a dedicated scratch-repo check |
 
@@ -66,6 +66,26 @@ Two mechanisms exercised by group B that map to **no** acceptance-criterion clau
 they are not mistaken for AC coverage: B5 (the turn-back cap) proves P2's own stop condition, not a
 clause of issue #3; B2/B3 prove the falsifiability *mechanism* behind the navigator-artifact
 criterion above, listed there rather than twice.
+
+## Outcome — group A run 2026-09-03, group B not run
+
+**Group A: 6 observed pass, 1 partial.** A1 (the regression guard), A2, A3, A5, A6 and A7 passed.
+A4 reached rung 3's ask and composed the exact YAML; its *write* is unobserved, because the rung
+requires explicit user confirmation and an agent inventing one is the failure this mode exists to
+prevent.
+
+**Group B: NOT RUN. Recorded as unverified, never as passed.** B1-B6 need two live Herdr panes and
+a human. Nothing in group B is claimed.
+
+**Running group A found five defects, all fixed before the PR:** P1 rung 3 was unperformable as
+written (it required rung 4's check before any pane exists, while rung 4 named only the pane-bound
+form of `herdr agent explain` — the offline `--file --agent` form is now named); `commands/init.md`
+asked whether an integration was *current* where rung 4 asks whether a kind is *classifiable*, so
+the two commands would have offered different kind sets on the same machine; rung 3's append-only
+write produced a second `pair:` key against a config already carrying the schema's own empty one,
+which YAML accepts silently; `docs/herdr-coordination.md` claimed the manifest question needs a live
+pane and undercounted the classifiable kinds; and the no-`enabled`-key invariant was guarded by
+nothing, which `ForbiddenKeyTest` now fixes.
 
 ## Files
 None — this task runs the shipped commands against a live repo and records results; it edits

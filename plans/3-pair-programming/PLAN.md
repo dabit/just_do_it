@@ -494,4 +494,4 @@ Suite grows 15 → 17 tests, stdlib only, `python3 -m unittest discover -s tests
 - [x] 06 — Give the Executor its paired turn, and document the `Pair:` line (depends on: 05)
 - [x] 07 — Document pairing in init, help, and the README (depends on: 05)
 - [x] 08 — Release 1.0.4, and dogfood (depends on: 06, 07)
-- [ ] 09 — UAT (depends on: 08)
+- [x] 09 — UAT (depends on: 08)

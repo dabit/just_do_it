@@ -104,7 +104,13 @@ P2 exists to make impossible.
      command it executes.
    - **Show the exact YAML, name the absolute path of the file it goes in, and get explicit
      confirmation** before writing anything.
-   - **Append the `pair:` block and nothing else.** Never reformat, reorder, or rewrite the rest of
+   - **Fill the existing key in place when there is one; append the block only when there is not.**
+     This rung fires on `pair.agents` being empty *or* absent, and those need different writes. A
+     config already carrying the schema's own `pair:` / `agents: ""` gets its value filled in;
+     appending a second `pair:` block there is not an error a YAML parser will report — it silently
+     keeps the last — and an agent reading the file top-down would hit the empty one first,
+     conclude nothing is configured, and re-ask on every run.
+   - **Write nothing else.** Never reformat, reorder, or rewrite the rest of
      the file: it is the user's, and a config rewrite nobody asked for is a diff they must audit.
    - **If `.jdi/config.yml` does not exist, do not create it as a side effect of running a plan.**
      Offer a minimal file or a one-run answer that is not persisted, and let the user pick.
@@ -118,13 +124,19 @@ P2 exists to make impossible.
    is resolvable by `command -v`.
 
    **Layer 2 asks whether the kind is classifiable, not whether an integration is current.** A kind
-   clears it two ways, and `herdr agent explain <pane> --verbose` after rung 5 says which: an
+   clears it two ways: an
    integration hook with authority (`full_lifecycle_hook_authority`), or a detection manifest that
    classifies by scraping the terminal (`osc_title_working` and its siblings). Neither is better
    evidence *that the kind can run* — they differ in how much you should trust a state reading, and
    that is what rung 6 records. An **outdated** integration is a warning, not a refusal: name the
    kind and both versions so the user can update, and carry on. A kind with **no** integration and
    **no** manifest is a genuine layer-2 failure — nothing would report when its turn ended.
+
+   **Answer layer 2 without a pane**, because rung 3 needs it before any pane exists: `herdr agent
+   explain --file <any path> --agent <kind> --verbose` reports the manifest that would classify that
+   kind, with no pane and no running agent. That is the form to use here. The pane-bound form,
+   `herdr agent explain <pane> --verbose`, answers a different question — which source actually
+   classified *this* pane — and belongs to rung 6, after rung 5 has started one.
 
    Say which layer failed, and **name the environment you measured in.** Layer 3 is the one most
    likely to differ between the machine a plan was written on and the machine it runs on, and a

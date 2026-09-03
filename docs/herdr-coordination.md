@@ -249,12 +249,18 @@ one does not imply state is unavailable.** The practical consequences differ by 
   will read a half-written report and hand the turn back.
 
 For the six kinds with no integration at all, a detection manifest is the only possible source.
-Whether one ships for a given kind is answerable only by running `herdr agent explain` against a
-live pane of that kind — which this document did not do, because none was running.
+Whether one ships for a given kind is answerable **without a pane**, and this document originally
+said otherwise. `herdr agent explain --file <any path> --agent <kind> --verbose` reports the
+manifest that would classify a kind with no pane and no running agent; the pane-bound form answers
+the different question of which source classified *that* pane. Measured 2026-09-03 with the
+file form, **seven** kinds have a manifest here — `pi`, `opencode`, `claude`, `codex`, `gemini`,
+`copilot`, `grok` — not the four an integration-only reading suggests, because a detection manifest
+classifies a kind whose integration is not installed at all.
 
-**So the check before honouring a configured kind is: in the supported list, then installed and
-current per `herdr integration status`, then resolvable on `PATH` — and then, once a pane is
-actually up, `herdr agent explain` to learn which lifecycle source you are trusting.**
+**So the check before honouring a configured kind is: in the supported list, then classifiable —
+by an authoritative hook or by a detection manifest, an outdated integration being a warning and
+not a refusal — then resolvable on `PATH`.** `reference/pairing.md`'s P1 rung 4 is the normative
+statement of it; this section is the measurement behind it.
 
 ## 4. The five lifecycle states
 

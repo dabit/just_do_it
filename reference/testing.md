@@ -169,6 +169,7 @@ the tests are in the diff, and that they are green now. For the ordering it read
 captured red evidence. That transcript is the only thing that makes "the test was written first"
 falsifiable; without it, TDD collapses into "the test was in the same commit", which is true of
 every task whether or not anyone wrote a test first.
+
 Under **P2** (`reference/pairing.md`) the Butler still does not reproduce red — but **a pair does it
 for free**, because the receiving agent must run the test before it may implement, so every red in a
 paired run is independently verified by a second party that did not write it.

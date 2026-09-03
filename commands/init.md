@@ -94,8 +94,13 @@ Follow these steps:
    **Propose kinds rather than asking from zero**, and offer only kinds that stand a chance of
    clearing all three of P1's layers (`reference/pairing.md`, rung 4): the kind is in the list
    `herdr agent` prints, Herdr can classify its lifecycle state, and it resolves under `command -v`.
-   The first and third are answerable here and now; `herdr integration status` is the evidence for
-   the second, whose definitive answer needs a live pane and is settled by `/jdi:pair` at run time.
+   All three are answerable here and now, and layer 2 is the one most easily got wrong: it asks
+   whether Herdr can **classify** the kind's lifecycle state, not whether an integration is
+   current. `herdr agent explain --file <any path> --agent <kind> --verbose` answers it with no
+   pane running. An outdated integration is a warning, not a refusal — say the version gap and
+   carry on. Asking the wrong question here makes `/jdi:init` propose a narrower set than
+   `/jdi:pair` would accept on the same machine, which is worse than not proposing at all.
+
    **Name the environment you measured in** — the `PATH` layer is the one most likely to differ
    between this shell and the machine the plan later runs on. **Do not probe with a bare `herdr`**:
    that launches or attaches the TUI and takes over the terminal you are speaking through. Print the
