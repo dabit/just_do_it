@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 04 — Resolve the three `reference/testing.md` collisions
 
 Depends on: 03
