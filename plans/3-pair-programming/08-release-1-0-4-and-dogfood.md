@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 08 — Release 1.0.4, and dogfood
 
 Depends on: 06, 07

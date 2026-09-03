@@ -37,6 +37,18 @@ tdd:
   # execute. Empty means the Butler works it out from the repo.
   test_instructions: "python3 -m unittest discover -s tests -v, from the repository root. No install step and no third-party packages."
 
+pair:
+  # Prose naming the two agents `/jdi:pair` should pair — never a list JDI
+  # parses. There is no on/off key: running `/jdi:pair` is the intent, and no
+  # other command reads this block.
+  #
+  # A claim about one machine. Measured 2026-09-03: both kinds clear all three
+  # of P1 rung 4's layers here, with `claude`'s Herdr integration outdated
+  # (v7 < v8) — a warning at that rung, not a refusal. A contributor without
+  # one of these kinds gets rung 4's announced degradation: designed behaviour,
+  # not a defect, and the path this dogfooding most needs to exercise.
+  agents: "claude and opencode, both started in this repository"
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.
