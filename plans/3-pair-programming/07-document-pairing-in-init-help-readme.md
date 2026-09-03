@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 07 — Document pairing in init, help, and the README
 
 Depends on: 05

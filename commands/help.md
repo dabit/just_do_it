@@ -8,8 +8,10 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
-split pieces become, whether TDD is on, and whether `.jdi/config.yml` exists at all. If it does not,
-say `/jdi:init` writes it, and that JDI works without it by asking as it goes.
+split pieces become, whether TDD is on, which two agents the `pair` block names — it names a pair
+and never switches pairing on, because only running `/jdi:pair` does that — and whether
+`.jdi/config.yml` exists at all. If it does not, say `/jdi:init` writes it, and that JDI works
+without it by asking as it goes.
 
 ---
 
@@ -22,7 +24,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 | Command | Roles | Tier | What it does |
 |---|---|---|---|
-| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder. Writes `.jdi/config.yml`. |
+| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, TDD, pairing, plan store, docs folder. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | fast + deep + standard | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
 | `/jdi:start` | Butler | fast | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | deep | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
@@ -111,6 +113,34 @@ Where a task has no testable behaviour — documentation, prose, configuration �
 announces the skip and implements normally. A test invented to satisfy the mode would be worse than
 no test at all: it produces a green suite and a red-run transcript that prove nothing while looking
 precisely like proof.
+
+### Pair programming
+
+`/jdi:pair` is the paired counterpart of `/jdi:yolo`: the same remaining tasks, in the same order,
+worked by two agents in two Herdr panes instead of one. The other three execution commands —
+`/jdi:execute`, `/jdi:next`, and `/jdi:yolo` itself — are unchanged and always single-agent. Pairing
+is requested, never detected: nothing starts a paired run but typing the command.
+
+The loop is ping-pong. One agent writes a failing test and hands it over; the other reproduces the
+red, makes it pass, refactors, and writes the next failing test. The turn rotates at that red/green
+boundary, so neither agent is permanently the test author. Both are running the Executor role —
+driver and navigator are turn assignments, not new roles — and the Butler carries the reports
+between the panes without writing code or taking a side. **Only the agent holding the turn edits a
+file or touches the index**; the other reads, reviews, and advises.
+
+Two requirements are checked when the command runs, not when it is configured: the plan's `TDD:`
+line must read `on`, because the handoff *is* a failing test and there is nothing to hand over
+without a proven runner, and this session must be inside a Herdr pane. A preflight that fails says
+which rung failed and **asks** — run the plan single-agent, or stop — rather than quietly going
+solo. There is no half-pair: one pane up and the other refused is a failure, because a single agent
+taking both sides of a ping-pong is exactly the rubber stamp the mode exists to prevent.
+
+The quality claim, plainly: **every red is re-run by the agent that did not write it, because it
+cannot implement until it has.** The re-run is a precondition rather than a request, so unlike an
+approval it cannot be rubber-stamped — an agent that cannot reproduce the red hands the test back
+with its own transcript instead of implementing. The `pair` block in `.jdi/config.yml` only names
+which two agents to pair; it has no on/off key, no command but `/jdi:pair` reads it, and leaving it
+empty means `/jdi:pair` asks and then offers to write the answer down.
 
 ### Tiers, not models
 

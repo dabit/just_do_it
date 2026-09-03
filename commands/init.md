@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, and where plans and docs live."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, which two agents pair, and where plans and docs live."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -84,7 +84,40 @@ Follow these steps:
    Ask this question every time. Unlike the split pieces, TDD does not depend on a tracker, so there
    is no configuration in which it is skipped.
 
-6. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
+6. **Ask which two agents should pair — only if `herdr` is on `PATH`** — `/jdi:pair` runs a plan as
+   two agents ping-ponging a failing test in two Herdr panes (`reference/pairing.md`). **There is no
+   on/off switch.** `pair.agents` never says *whether* to pair — running `/jdi:pair` is the whole of
+   the intent — it only names *which* two agents to pair when that command is run. A repository that
+   fills the block in and never runs the command behaves exactly like one that leaves it empty, and
+   no other command reads it.
+
+   **Propose kinds rather than asking from zero**, and offer only kinds that stand a chance of
+   clearing all three of P1's layers (`reference/pairing.md`, rung 4): the kind is in the list
+   `herdr agent` prints, Herdr can classify its lifecycle state, and it resolves under `command -v`.
+   The first and third are answerable here and now; `herdr integration status` is the evidence for
+   the second, whose definitive answer needs a live pane and is settled by `/jdi:pair` at run time.
+   **Name the environment you measured in** — the `PATH` layer is the one most likely to differ
+   between this shell and the machine the plan later runs on. **Do not probe with a bare `herdr`**:
+   that launches or attaches the TUI and takes over the terminal you are speaking through. Print the
+   command group instead.
+
+   This is step 5's prove-the-capability check pointed at a multiplexer, with one difference worth
+   saying out loud: `/jdi:pair` re-runs every layer in full on every invocation, because an agent
+   name is a handle on a live process and panes never survive a session. Nothing written here is
+   inherited as evidence — it only spares `/jdi:pair` the question. So a kind that fails a layer
+   today is still worth recording if that is what the user wants: say the failure out loud at the
+   time, and say that it will fail again here on the next run.
+
+   Say plainly that the value is **prose a later agent reads and translates**, exactly as
+   `tdd.test_instructions` is: "claude and opencode, both started in this repository" is the shape,
+   not a list JDI parses and not a command it executes.
+
+   Skip this question entirely when `herdr` is not on `PATH` — there is no multiplexer here to pair
+   in, so every answer would be unusable. Say once that `/jdi:pair` asks which two agents to pair
+   inline when it is actually needed, and offers to persist the answer then, and write no `pair`
+   block.
+
+7. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
    - **`repo`** (recommended, the default) — plans are files in this repository, committed with the
      code they describe. Ask for the folder; default `plans`.
    - **`external`** — plans live in a note service (Obsidian, recuerd0, Notion, a wiki). Ask which
@@ -96,29 +129,29 @@ Follow these steps:
    them, and the plan is silently gone on a fresh clone. If it is ignored, say so plainly and offer
    to un-ignore it, pick a different folder, or switch to `external`.
 
-7. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
+8. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
    architecture documents into. Default `doc`; propose whatever step 2 found.
 
-8. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
+9. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
    (research, planning, implementation, review), `standard` (splitting, condensing, PR writing), and
    `fast` (orchestration, status, commits). Offer to map them to concrete models for whatever
    harness and provider the user runs, and make clear that leaving them empty is fully supported:
    every tier then runs on the session's own model and nothing about the workflow changes.
 
-9. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
-   repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
-   sweeps these when a change alters an externally-consumed contract. Skip if there are none.
+10. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
+    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
+    sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-10. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+11. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
     the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
     empty scaffolding.
 
-11. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+12. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own
     `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
     states them and the user told you what they are, offer to add them there. Do not write to those
     files without saying you are about to.
 
-12. **Report and point at the next step** — Show the config you wrote, name anything you
+13. **Report and point at the next step** — Show the config you wrote, name anything you
     deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
     `/jdi:help` for the tour.

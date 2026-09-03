@@ -164,7 +164,7 @@ until you reinstall. The OpenCode sync has no such gate — it copies every time
 ## Set up a repository
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, and the docs folder
+/jdi:init      # asks about the tracker, split pieces, TDD, pairing, and where plans and docs live
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -172,12 +172,14 @@ more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
-should write tests first (TDD), where plans should live, and where architecture docs live. It
-proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
-starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
-silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
-whether the runner runs here before the setting is written rather than at the first task. The
-setting is recorded either way, and JDI re-proves the runner at the start of every plan.
+should write tests first (TDD), which two agents `/jdi:pair` should pair, where plans should live,
+and where architecture docs live. It proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`,
+and directory layout rather than starting from zero, and it checks that the plans folder is not
+gitignored — a trap that loses plans silently. On a yes to TDD it also tries the test runner once,
+there and then, so you find out whether the runner runs here before the setting is written rather
+than at the first task. The setting is recorded either way, and JDI re-proves the runner at the
+start of every plan. The pairing question is skipped entirely when `herdr` is not on `PATH` — there
+is no multiplexer to pair in, so `/jdi:pair` asks inline on the machine where it is actually run.
 
 ### What a split piece becomes
 
@@ -214,6 +216,35 @@ tried and what came back, because a red run against a runner nobody watched is f
 Nothing about the history changes: tests and implementation still land in the same commit, one per
 task, and only the order they are written in is different. A task with no testable behaviour —
 documentation, prose, configuration — gets an announced skip rather than an invented test.
+
+### Pair programming
+
+`/jdi:pair` works the remaining tasks as two agents ping-ponging a failing test in two Herdr panes,
+where `/jdi:yolo` works them as one. `pair` in `.jdi/config.yml` says which two, and no command but
+`/jdi:pair` reads it:
+
+| `pair` | What you get |
+|---|---|
+| unset (default) | Nothing changes, and nothing is said. Every command runs single-agent; `/jdi:pair` asks which two agents to pair when you run it, and offers to write the answer down |
+| `agents` | Prose naming the pair — "claude and opencode, both started in this repository" — read by the Butler and translated into two Herdr agent kinds, never a list JDI parses. There is no `enabled` key: it says *which* two, never *whether* |
+
+One agent writes a failing test and hands it over; the other reproduces the red, makes it pass,
+refactors, and writes the next failing test. The turn rotates at that red/green boundary, so neither
+agent is permanently the test author, and only the agent holding the turn edits a file or touches
+the index. Both are running the Executor role — driver and navigator are turn assignments, not new
+roles — while the Butler carries the reports between the panes, writes no code, and takes no side.
+
+Two things are checked when you run the command rather than when you configure it: the plan's `TDD:`
+line must read `on`, because the handoff *is* a failing test, and the session must be inside a Herdr
+pane. A preflight that fails names the rung and **asks** — run single-agent, or stop — rather than
+quietly going solo, and there is no half-pair. What the mode buys is one claim: **every red is
+re-run by the agent that did not write it, because it cannot implement until it has.** That re-run
+is a precondition, not a request, so unlike an approval it cannot be rubber-stamped.
+
+It is also expensive, and the evidence says so. Arisholm et al. (IEEE TSE, 2007; 295 professionals)
+found pairing's overall correctness gain **not significant** for roughly 84% more effort, with the
+large gains confined to complex tasks and less-expert pairs. `/jdi:pair` is therefore a deliberate
+choice for a hard task, not a default — which is why nothing turns it on but typing it.
 
 ## Use it
 
