@@ -484,7 +484,7 @@ Suite grows 15 → 17 tests, stdlib only, `python3 -m unittest discover -s tests
 
 ## Tasks
 
-- [ ] 01 — Make the new command and config key falsifiable (depends on: none)
+- [x] 01 — Make the new command and config key falsifiable (depends on: none)
 - [ ] 02 — Add the `pair` config block (depends on: 01)
 - [ ] 03 — Write `reference/pairing.md`, and both reference-file enumerations (depends on: 02)
 - [ ] 04 — Resolve the three `reference/testing.md` collisions (depends on: 03)

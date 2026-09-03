@@ -32,6 +32,19 @@ def markdown_files(directory):
     )
 
 
+def command_slugs(directory="commands"):
+    """Every `/jdi:<name>` slug derivable from a directory's `*.md` filenames.
+
+    The filenames are the only source of truth for what commands exist — a
+    harness registers `commands/done.md` as `/jdi:done` — so the slugs the
+    documents are checked against are derived, never listed a third time.
+    """
+    return {
+        "/jdi:" + pathlib.PurePosixPath(path).stem
+        for path in markdown_files(directory)
+    }
+
+
 def split_frontmatter(text):
     """Split a command or role file into (frontmatter lines, body text).
 

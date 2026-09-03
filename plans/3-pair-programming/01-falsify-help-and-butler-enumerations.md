@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 01 — Make the new command and config key falsifiable
 
 Depends on: None

@@ -33,6 +33,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:next` | Butler + Executor | deep | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
 | `/jdi:yolo` | Butler + Executor | deep | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
 | `/jdi:status` | Butler | fast | Show progress on the current plan. |
+| `/jdi:help` | Butler | fast | Print this command table and the typical flow, then say what this repository is configured for. |
 | `/jdi:pr` | Butler + Synthesizer + PR Writer | standard | Condense the plan, push, and open the pull request. |
 | `/jdi:feedback` | Butler + Feedbacker | deep | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. |
 | `/jdi:replan` | Butler + Planner | deep | Throw the plan away and write a fresh one. |
