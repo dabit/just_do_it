@@ -246,6 +246,7 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
+| `reference/pairing.md` | The three pairing operations (P1–P3) that `/jdi:pair` runs and both agents read |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How a role and a tier become an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |

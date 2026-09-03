@@ -228,8 +228,9 @@ Butler is not half the pair, so its verification stays independent.
    never reformat anything else. If `.jdi/config.yml` does not exist, do not create it as a side
    effect — offer a minimal file or a one-run answer. Record an unstartable choice if the user still
    wants it, saying so. **Write before any pane starts.**
-4. **The three-layer kind check, run now:** in `herdr agent`'s list; installed and current per
-   `herdr integration status`; resolvable by `command -v`. **Name the environment measured in.** Warn
+4. **The three-layer kind check, run now:** in `herdr agent`'s list; **classifiable** — an
+   authoritative hook or a detection manifest, an outdated integration being a warning not a
+   refusal; resolvable by `command -v`. **Name the environment measured in.** Warn
    that bare `herdr` launches the TUI and a mutating nested command probed bare executes.
 5. **Bring the panes up.** `pane layout` to pick a direction from the reported rect; `pane split
    --current --direction <dir> --cwd <absolute root> --no-focus`; `agent start <name> --kind <kind>
@@ -486,7 +487,7 @@ Suite grows 15 → 17 tests, stdlib only, `python3 -m unittest discover -s tests
 
 - [x] 01 — Make the new command and config key falsifiable (depends on: none)
 - [x] 02 — Add the `pair` config block (depends on: 01)
-- [ ] 03 — Write `reference/pairing.md`, and both reference-file enumerations (depends on: 02)
+- [x] 03 — Write `reference/pairing.md`, and both reference-file enumerations (depends on: 02)
 - [ ] 04 — Resolve the three `reference/testing.md` collisions (depends on: 03)
 - [ ] 05 — Add `commands/pair.md`, and its four enumerations (depends on: 01, 02, 03, 04)
 - [ ] 06 — Give the Executor its paired turn, and document the `Pair:` line (depends on: 05)

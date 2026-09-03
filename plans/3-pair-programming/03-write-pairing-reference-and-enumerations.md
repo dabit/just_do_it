@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 03 — Write `reference/pairing.md`, and both reference-file enumerations
 
 Depends on: 02
@@ -27,7 +27,8 @@ Three operations:
   `TDD:` line must already read `on` (never trigger TS1 from here); `HERDR_ENV` must be `1`;
   `pair.agents` empty means *ask, do not degrade* — show the exact YAML, name the path, get explicit
   confirmation, append only the `pair:` block; the three-layer kind check (binary-supported,
-  installed-and-current, resolvable on `PATH`), named against the environment it was measured in;
+  classifiable — hook or detection manifest, outdated being a warning not a refusal — resolvable on
+  `PATH`), named against the environment it was measured in;
   bring the panes up (`pane layout`, `pane split --no-focus`, `agent start`), never persisting an
   agent name; record which lifecycle source (`agent explain --verbose`) each pane's state comes
   from; designate the shared report directory, absolute, outside the working tree, asking before
