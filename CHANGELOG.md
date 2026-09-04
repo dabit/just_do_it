@@ -27,6 +27,14 @@ kill the rubber stamp, and it only showed up in use.
   orchestrator then framed the echo as two independent observations agreeing. A citation into
   context, or into a file the partner did not touch, is now grounds for return even when the
   observation is true.
+- **One test-list item per turn, and the backstop scales with the list.** P2 defined an exchange as
+  one test's whole life and said to write "the next failing test", but never said it as a rule and
+  never told the Butler how to consume a multi-item list. In the first live run the one task that
+  had a list — ten items — was handed over as "write all ten, in that order, and stop", collapsing
+  ten exchanges into one: the partner reproduced one red instead of ten and reviewed one
+  implementation instead of ten. A ten-item task is ten exchanges. The per-task backstop is now six
+  **or two more than the list's length, whichever is greater**, because a flat six would make a
+  ten-item list unfinishable and push a pair straight back into collapsing it to fit.
 - **The Butler must not quote the incoming report's results into a brief.** Naming what to check is
   the job; naming what the answer was turns an independent verification into a confirmation
   exercise, and produces agreement indistinguishable from measurement.

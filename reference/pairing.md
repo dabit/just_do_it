@@ -208,6 +208,13 @@ the assignment alternates every turn.
 **A turn** is: reproduce the incoming red → make it pass → refactor → write the next failing test →
 hand off. **An exchange** is one test's whole life, from written-failing to passing-and-reviewed.
 
+**One item off the list per turn — write that test and only that test.** A turn that writes three
+tests, or ten, collapses that many exchanges into one and takes with them everything the collapse
+was meant to buy: the partner reproduces one red instead of ten, reviews one implementation instead
+of ten, and the alternation that stops either agent owning the design stops happening. A ten-item
+task is ten exchanges, not one turn with a longer report. **The Butler must not instruct otherwise**
+— a task file listing its tests together is naming the list, not the turn.
+
 **The completion unit is the exchange, not the turn.** A paired turn legitimately ends on a captured
 red, because that red *is* the handoff — it is the test the partner will make pass. This does not
 soften `reference/testing.md`'s TS2 rule 7 that a task is not complete at red: nobody stops at red
@@ -349,7 +356,10 @@ opposite of the second pair of eyes the mode is for.
 **Termination.** A task's exchanges end when the test list is empty *and* the plan's Verification is
 satisfied. The last handoff of a task carries the green run and the Verification result, parts 2
 through 5, and **no next test** — that absence is the signal the task is finished. Backstop: **six
-exchanges per task**, after which the run stops and escalates rather than carrying on.
+exchanges per task, or two more than the test list's length, whichever is greater** — after which
+the run stops and escalates rather than carrying on. The backstop exists to stop a pair circling,
+not to truncate a task that honestly has ten tests in it; a flat six would have made a ten-item list
+unfinishable and pushed the pair back towards collapsing the list to fit.
 
 ## P3 — Drive a turn
 

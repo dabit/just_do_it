@@ -58,7 +58,8 @@ argument above — with seven differences:
    and its one TDD stop for a report carrying neither red evidence nor a stated reason there was
    nothing to test — are unchanged. Stop the loop as well on:
    - **a blocked pane** (P3 rule 7);
-   - **six exchanges on one task** — P2's backstop;
+   - **the exchange backstop on one task** — six, or two more than the test list's length,
+     whichever is greater (P2);
    - **two consecutive turn-backs** — a returned handoff or a rejection, twice in a row.
 
    Each of the three is a P3 rule 10 escalation.
