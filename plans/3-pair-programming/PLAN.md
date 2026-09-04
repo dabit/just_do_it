@@ -66,6 +66,25 @@
   behaves as before" holds for execution but not for `/jdi:init`, which now asks anyone with
   `herdr` on `PATH` a new question.
 
+**A third P2 move, added from live testing.** The first real run showed the pair working with
+strict turn-taking and no interaction at all: an agent that was unsure, or that found something the
+plan had not anticipated, had only two moves — implement it anyway and park a note, or reject the
+turn. Neither is "wait, let us think about this". That rigidity was a deliberate consequence of
+confining prose to the ledger to kill the rubber stamp, and the cost only showed up in use.
+
+P2 now has **consult**. It states named options with the tradeoff and a recommendation, never an
+open question, because "what do you think?" invites agreement and agreement costs one token — the
+rubber stamp reappearing in prose. The reply is one of the options or a third, named and justified,
+with a reason. It consumes no test-list item, is not a turn-back, and produces a `decided` ledger
+entry recording what was chosen *and what was rejected*.
+
+**The pair may settle an architectural surprise itself** — two agents in the code often see what a
+plan written beforehand could not — but a decision that changes the task's Files list or the plan's
+`## Testing Strategy` is recorded as such and surfaced at task end ahead of ordinary notes (P3 rule
+11). The accepted trade is that a run can outgrow its plan without the user in the loop; the
+mitigation is that it cannot do so quietly, because a plan quietly outgrown reads exactly like a
+plan ignored.
+
 ## Defects caught during execution
 
 Reading the files did not find these; running the shipped instructions did (UAT, `3dfa530`):

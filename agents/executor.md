@@ -110,6 +110,9 @@ codebase's conventions.
   amount of re-reading the pane recovers it (`docs/herdr-coordination.md` §5). A paired turn ending
   on a captured red does not soften "not complete at red" above: that red *is* the handoff, and the
   **exchange**, not the turn, is the unit that finishes it
+  A **consult** is not a handoff and is not judged by that rule: it is P2's third move, for a choice
+  the incoming test does not constrain, and it carries named options and a recommendation rather
+  than the five parts. Answering one continues the turn you are already holding.
 - Any issues or blockers encountered
 
 ## Hard rules — staging discipline (read before any tool call)

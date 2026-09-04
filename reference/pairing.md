@@ -241,7 +241,8 @@ missing any part is returned unread**, and the return counts against the turn-ba
 3. **The test-list delta** — what was consumed, what was added and the stated reason for each, what
    was struck and why.
 4. **The parked-notes ledger entry, or an explicit "nothing parked."** Each note carries a
-   `file:line`, the observation, and a disposition of `fix-now`, `next-test`, or `defer`. The ledger
+   `file:line`, the observation, and a disposition of `fix-now`, `next-test`, `defer`, or
+   `decided` (below). The ledger
    is how the reviewing agent's observations survive a turn without becoming a mid-turn instruction:
    the goal boundary stays where the current test put it, and nothing is lost for having waited.
 5. **A read receipt with content — name one thing the previous implementation does that the test did
@@ -271,6 +272,35 @@ worth. **The partner does it for free, because it must run the test before it ca
 under P2 every red is independently verified by a second party that neither wrote the test nor chose
 the assertion. That is this mode's main quality claim, and it is why the re-run is a precondition
 rather than a request.
+
+### Consulting the other agent
+
+Not every question is a disagreement, and not every unknown is answerable by writing a test. An
+agent unsure about a choice the incoming test does not constrain, or facing something the plan did
+not anticipate, has a third move alongside the two below: **consult.**
+
+**A consult states a choice, never an open question.** "What do you think?" invites agreement, and
+an agreeable answer costs one token — the same failure the compulsory re-run exists to prevent,
+reappearing in prose. So a consult carries the question, **at least two named options**, the
+tradeoff between them, and the sender's own recommendation. The partner replies with one of the
+named options — or a third it names and justifies — and a reason. **"Either is fine" is not a
+reply**, and neither is agreement without a reason; both make the consult malformed, and it comes
+back the way a malformed handoff does.
+
+**A consult is not a turn-back and consumes no test-list item.** The turn continues once the answer
+arrives. It produces a ledger entry dispositioned `decided`, carrying the question, the options, the
+choice, and the reason — so a reader afterwards can see not only what was chosen but what was
+rejected and why.
+
+**When the answer changes the shape of the work, the pair may still settle it — and must say so.**
+An answer that alters the task's Files list or the plan's `## Testing Strategy` is the pair going
+beyond the plan it was handed. That is allowed: two agents in the code often see what a plan written
+beforehand could not. It must never be silent. The ledger entry says explicitly what changed, P3
+rule 10 surfaces those entries at task end rather than leaving them among ordinary notes, and the
+run's closing summary names them. A plan quietly outgrown is indistinguishable from a plan ignored.
+
+**Two consecutive consults on the same question escalate**, exactly as turn-backs do. A third pass
+over the same ground is a loop, not a conversation.
 
 ### Disagreement
 
@@ -362,4 +392,15 @@ have the right shape. It does not write code, judge the work, or take a side.
     and hand the user both positions and both transcripts. **The Butler does not break the tie** —
     it wrote neither side and has run neither test. Offer the four real answers: accept the test as
     written, replace it with the corrective test the rejection proposed, strike the list item, or
-    stop the run. Then do what the user says.
+    stop the run. Then do what the user says. **Two consecutive consults on one question escalate
+    the same way** — the pair is circling a decision rather than making one, and the four answers
+    become: take one of the options they named, name a different one yourself, strike the item, or
+    stop.
+
+11. **Surface every `decided` entry at task end, and separate the ones that changed the plan.** A
+    consult that altered the task's Files list or the plan's `## Testing Strategy` is the pair
+    going beyond the plan it was handed. Report those first, with the question, the options, the
+    choice and the reason — not folded into the ordinary notes and not summarised away. **The
+    Butler does not judge whether the decision was right**; it wrote neither side. It makes sure a
+    plan that was outgrown is visibly outgrown, because a plan quietly outgrown reads exactly like
+    a plan ignored.

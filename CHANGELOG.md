@@ -25,6 +25,16 @@
   `tdd.enabled`, because TDD can be configured on and still resolve off — and a Herdr session
   (`HERDR_ENV=1`). Either unmet and the run is not paired: the Butler announces which rung stopped
   it and offers to run the plan single-agent instead.
+- **The pair can consult, and it must do so in a shape that cannot be waffled.** Not every question
+  is a disagreement and not every unknown is answerable by writing a test, so P2 has a third move
+  beside implement-and-park and reject. A consult states **named options with the tradeoff and a
+  recommendation**, never an open question — "what do you think?" invites agreement, and agreement
+  costs one token. The reply is one of the options, or a third named and justified, with a reason;
+  "either is fine" is malformed and comes back. Two consecutive consults on one question escalate.
+- **A pair that outgrows its plan says so.** A consult whose answer changes the task's Files list or
+  the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
+  beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
+  ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
 - **Degrades to not pairing, never to a half-pair.** One pane up and the other refused is a
   failure, not a degraded mode — a single agent taking both sides of a ping-pong is exactly the
   rubber stamp the protocol exists to prevent. Degradation is never automatic, and nothing turns
