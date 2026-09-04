@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.0.4.1
+
+**The pair can talk to each other — in a shape that cannot be waffled.**
+
+The first live run of `/jdi:pair` showed the two agents working with strict turn-taking and no
+interaction at all. An agent that was unsure, or that found something the plan had not anticipated,
+had exactly two moves: implement it anyway and park a note, or reject the turn. Neither is "wait,
+let us think about this". That rigidity was the deliberate cost of confining prose to the ledger to
+kill the rubber stamp, and it only showed up in use.
+
+- **The pair can consult, and it must do so in a shape that cannot be waffled.** Not every question
+  is a disagreement and not every unknown is answerable by writing a test, so P2 has a third move
+  beside implement-and-park and reject. A consult states **named options with the tradeoff and a
+  recommendation**, never an open question — "what do you think?" invites agreement, and agreement
+  costs one token. The reply is one of the options, or a third named and justified, with a reason;
+  "either is fine" is malformed and comes back. Two consecutive consults on one question escalate.
+- **A pair that outgrows its plan says so.** A consult whose answer changes the task's Files list or
+  the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
+  beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
+  ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
+- **The read receipt must cite an added line in the diff.** The first live run found the check had
+  a cheaper answer than reading the code: *read the incoming handoff's own receipt and restate it.*
+  The channel carrying the handoff also carries the answer to the check meant to police it. One
+  receipt did exactly that — citing unchanged context, not the partner's new work — and the
+  orchestrator then framed the echo as two independent observations agreeing. A citation into
+  context, or into a file the partner did not touch, is now grounds for return even when the
+  observation is true.
+- **The Butler must not quote the incoming report's results into a brief.** Naming what to check is
+  the job; naming what the answer was turns an independent verification into a confirmation
+  exercise, and produces agreement indistinguishable from measurement.
+- **`fix-now` is authorised, not merely listed.** P2's parts named it as a disposition while the
+  Disagreement section said there were exactly two moves. The run hit the gap repeatedly — a defect
+  with no design content, in an area with no test runner, where `next-test` is impossible and a
+  rejection would spend a turn-back on nothing. It is now a third move with all three conditions
+  stated. A choice with design content is a consult, not a `fix-now`.
+- **Why the version has a fourth segment.** `1.0.4` was already installed and exercised when this
+  was found. `claude plugin update` compares versions and not content, so a change made in place
+  under `1.0.4` would never reach an installed copy — it would report "already at the latest
+  version" and do nothing. This is that release.
+
 ## 1.0.4
 
 **`/jdi:pair` runs a plan as two agents ping-ponging a failing test — but only when you ask.**
@@ -25,16 +65,6 @@
   `tdd.enabled`, because TDD can be configured on and still resolve off — and a Herdr session
   (`HERDR_ENV=1`). Either unmet and the run is not paired: the Butler announces which rung stopped
   it and offers to run the plan single-agent instead.
-- **The pair can consult, and it must do so in a shape that cannot be waffled.** Not every question
-  is a disagreement and not every unknown is answerable by writing a test, so P2 has a third move
-  beside implement-and-park and reject. A consult states **named options with the tradeoff and a
-  recommendation**, never an open question — "what do you think?" invites agreement, and agreement
-  costs one token. The reply is one of the options, or a third named and justified, with a reason;
-  "either is fine" is malformed and comes back. Two consecutive consults on one question escalate.
-- **A pair that outgrows its plan says so.** A consult whose answer changes the task's Files list or
-  the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
-  beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
-  ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
 - **Degrades to not pairing, never to a half-pair.** One pane up and the other refused is a
   failure, not a degraded mode — a single agent taking both sides of a ping-pong is exactly the
   rubber stamp the protocol exists to prevent. Degradation is never automatic, and nothing turns

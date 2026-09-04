@@ -247,8 +247,18 @@ missing any part is returned unread**, and the return counts against the turn-ba
    the goal boundary stays where the current test put it, and nothing is lost for having waited.
 5. **A read receipt with content — name one thing the previous implementation does that the test did
    not require.** Not "looks good", not "reviewed": a receipt with no concrete answer makes the
-   handoff malformed, and it is returned. The question is chosen precisely because **no generic
-   answer to it exists.** It can only be answered by an agent that actually read the code, so unlike
+   handoff malformed, and it is returned.
+
+   **Name a `file:line` that appears as an added line in the diff you are reviewing.** This is the
+   part of the check that is mechanically verifiable, and it exists because the question turned out
+   to have a cheaper answer than reading the code: *read the incoming handoff's own receipt and
+   restate it.* The channel that carries the handoff also carries the answer to the check meant to
+   police it. A citation into unchanged context — or into a file the partner did not touch this
+   turn — is the signature of that echo, and it is grounds for return even when the observation is
+   true. Two receipts naming the same thing are **not** corroboration when one of them read the
+   other; only the Butler can see that, and P3 rule 6 makes it check. The question is chosen
+   precisely because **no generic answer to it exists.** It can only be answered by an agent that
+   actually read the code, so unlike
    an approval it cannot be rubber-stamped. On a task's **first** turn there is no previous
    implementation, and the receipt says exactly that — an exception checkable from the turn number
    the prompt carries, which is what stops it from becoming an escape hatch on turn five.
@@ -315,6 +325,13 @@ the pair has. There are exactly two moves:
 Wherever it can be, disagreement is expressed as a test — the Mute Ping-Pong constraint — because a
 proposed test is checkable and an opinion about a test is not.
 
+**A third disposition, `fix-now`, exists for the case those two moves do not cover**, and part 4
+lists it: a defect with no design content, in an area with no runner, where `next-test` is
+unavailable by construction and a rejection would spend a turn-back on something with nothing to
+decide. Take it only when all three hold, **and say so loudly in part 4 with the reason** — the
+disposition is the record that a fix went in outside the test channel. If there is a design choice
+to make, it is a consult, not a `fix-now`.
+
 **The turn-back cap: two consecutive turn-backs stop the run.** A return for a malformed handoff, a
 return for a red that would not reproduce, and a rejection are all turn-backs. Two in a row means
 the pair is not converging, and a third pass over the same argument is a loop rather than progress.
@@ -355,8 +372,12 @@ have the right shape. It does not write code, judge the work, or take a side.
 3. **`unknown` is never "turn over."** It means an agent is present that Herdr could not classify
    confidently: not that it finished, not that it failed. Read as completion, it produces a
    half-written report relayed as a handoff.
-4. **Prompt short, with every path resolved and absolute.** The text arrives as keystrokes into
-   another process's TUI, so `${CLAUDE_PLUGIN_ROOT}`, `$PWD`, and `~` are delivered as literal
+4. **Prompt short, with every path resolved and absolute — and do not quote the incoming report's
+   results into it.** Name what to check and where; never what the answer was. A verification whose
+   expected answer arrives with the question is a confirmation exercise, and it produces agreement
+   that looks exactly like independent measurement. Hand over the report's *path* and let the pane
+   read it. The text arrives as keystrokes into another process's TUI, so
+   `${CLAUDE_PLUGIN_ROOT}`, `$PWD`, and `~` are delivered as literal
    characters, and the receiving agent may be a different kind of agent with no JDI installed at all
    (`docs/herdr-coordination.md` §6). Resolve every path in the Butler, where those things mean
    something: the report path, the plan, the task file, this file. The prompt also carries the turn
