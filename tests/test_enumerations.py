@@ -1,13 +1,18 @@
 """Guards the enumerations that are maintained by hand and notice nothing on their own.
 
 Adding a file to `reference/`, `commands/`, or `agents/` needs no adapter change —
-`bin/sync-opencode.sh` is glob-driven and copies whole directories. Four lists are
+`bin/sync-opencode.sh` is glob-driven and copies whole directories. Six lists are
 not glob-driven, and they are in the documents a newcomer reads first:
 
 - `README.md`'s "How it is put together" table, one row per reference file
 - `AGENTS.md`'s "Reference files." paragraph, which names them in a sentence
 - `reference/delegation.md`'s roles table, one row per `agents/*.md`
 - `AGENTS.md`'s command table, one row per `commands/*.md`
+- `commands/help.md`'s command table, one row per `commands/*.md` — the list a
+  user actually sees when they run `/jdi:help`
+- `roles/butler.md`'s ownership table, whose rows *group* commands — one row can
+  name three, so it is every mention across the rows that must add up, not one
+  row per command
 
 Plus two counts written out in prose in the README table — "The 16 workflow
 commands", "The 7 delegatable roles". `docs/config-key-lifecycle.md` section 4
@@ -29,6 +34,19 @@ def backticked(lines, prefix):
     found = set()
     for line in lines:
         found.update(re.findall(r"`(%s[^`]+\.md)`" % re.escape(prefix), line))
+    return found
+
+
+def slash_commands(lines):
+    """Every `` `/jdi:<name>` `` mention across a set of lines.
+
+    A mention, not a row: the tables these guard do not agree on how many
+    commands a row may name, and counting mentions is the only reading that
+    works for both.
+    """
+    found = set()
+    for line in lines:
+        found.update(re.findall(r"`(/jdi:[A-Za-z0-9_-]+)`", line))
     return found
 
 
@@ -129,6 +147,70 @@ class CommandTableTest(unittest.TestCase):
             stale,
             [],
             "AGENTS.md's command table names %s, which does not exist" % ", ".join(stale),
+        )
+
+
+class HelpCommandTableTest(unittest.TestCase):
+    """The table a user actually sees when they run `/jdi:help`.
+
+    Scoped to the table rows, so the `**On the Feedbacker:**` prose in the same
+    section — which mentions `/jdi:feedback` — cannot stand in for the row the
+    enumeration owes it.
+    """
+
+    def test_every_command_file_has_a_row_in_the_help_command_table(self):
+        actual = jdi_files.command_slugs()
+        listed = slash_commands(
+            table_rows(jdi_files.section(jdi_files.read("commands/help.md"), "### Commands"))
+        )
+        self.assertTrue(listed, "no `/jdi:...` mentions found in commands/help.md's command table")
+
+        missing = sorted(actual - listed)
+        self.assertEqual(
+            missing,
+            [],
+            "commands/help.md's command table does not name %s" % ", ".join(missing),
+        )
+        stale = sorted(listed - actual)
+        self.assertEqual(
+            stale,
+            [],
+            "commands/help.md's command table names %s, which does not exist"
+            % ", ".join(stale),
+        )
+
+
+class ButlerOwnershipTableTest(unittest.TestCase):
+    """`roles/butler.md`'s table of what the Butler owns, command by command.
+
+    Its rows *group* commands — one row names `/jdi:done`, `/jdi:status` and
+    `/jdi:help` together — so what must add up is every mention across the rows,
+    not one row per command.
+    """
+
+    def test_every_command_file_is_named_in_the_butler_ownership_table(self):
+        actual = jdi_files.command_slugs()
+        listed = slash_commands(
+            table_rows(
+                jdi_files.section(jdi_files.read("roles/butler.md"), "## What the Butler owns")
+            )
+        )
+        self.assertTrue(
+            listed, "no `/jdi:...` mentions found in roles/butler.md's ownership table"
+        )
+
+        missing = sorted(actual - listed)
+        self.assertEqual(
+            missing,
+            [],
+            "roles/butler.md's ownership table does not name %s" % ", ".join(missing),
+        )
+        stale = sorted(listed - actual)
+        self.assertEqual(
+            stale,
+            [],
+            "roles/butler.md's ownership table names %s, which does not exist"
+            % ", ".join(stale),
         )
 
 

@@ -22,6 +22,28 @@ import jdi_files
 KNOWN_OMISSIONS = {"plans.service", "plans.location"}
 
 
+
+# `pair` deliberately has no on/off key: the block names WHICH two agents, never
+# WHETHER to pair, because running `/jdi:pair` is itself the intent. That invariant
+# is stated in reference/config.md's Notes and nothing enforced it until this test.
+KEYS_THAT_MUST_NOT_EXIST = {"pair.enabled"}
+
+
+class ForbiddenKeyTest(unittest.TestCase):
+    """A key whose absence is a documented invariant, not an oversight."""
+
+    def test_the_schema_declares_no_forbidden_key(self):
+        schema = jdi_files.key_paths(jdi_files.schema_block())
+        for key in sorted(KEYS_THAT_MUST_NOT_EXIST):
+            with self.subTest(key=key):
+                self.assertNotIn(
+                    key,
+                    schema,
+                    "reference/config.md's schema declares `%s`, whose absence is a "
+                    "documented invariant. `pair` names which two agents, never whether "
+                    "to pair: running `/jdi:pair` is the intent." % key,
+                )
+
 class ConfigSchemaTest(unittest.TestCase):
     def setUp(self):
         self.schema_keys = jdi_files.key_paths(jdi_files.schema_block())

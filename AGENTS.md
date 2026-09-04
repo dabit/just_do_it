@@ -30,6 +30,7 @@ The commands are:
 | `commands/done.md` | Mark the current task done and commit |
 | `commands/next.md` | `done` then `execute`, in one step |
 | `commands/yolo.md` | Auto-pilot every remaining task |
+| `commands/pair.md` | Auto-pilot every remaining task as a pair of agents |
 | `commands/status.md` | Show progress on the current plan |
 | `commands/pr.md` | Condense the plan, push, open the pull request |
 | `commands/feedback.md` | Critique the last output on demand |
@@ -44,10 +45,11 @@ path: read the role file in `agents/`, announce the switch, follow it for that p
 to orchestrator voice. The phases still run; they share one context window.
 
 **Reference files.** Commands refer to `reference/config.md`, `reference/tracker.md`,
-`reference/testing.md`, `reference/plan-store.md`, and `reference/delegation.md` by name, and to
-`${CLAUDE_PLUGIN_ROOT}/...` for the path. That variable only resolves inside Claude Code. Anywhere
-else, the files are wherever you cloned this repository — tell your agent that once, at the start,
-and the paths resolve for the rest of the session.
+`reference/testing.md`, `reference/pairing.md`, `reference/plan-store.md`, and
+`reference/delegation.md` by name, and to `${CLAUDE_PLUGIN_ROOT}/...` for the path. That variable
+only resolves inside Claude Code. Anywhere else, the files are wherever you cloned this
+repository — tell your agent that once, at the start, and the paths resolve for the rest of the
+session.
 
 **A tracker.** Optional. With no integration, or with `tracker.name: none` in `.jdi/config.yml`,
 every tracker step is skipped and said out loud. The workflow is fully functional without one.

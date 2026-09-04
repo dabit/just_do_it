@@ -33,6 +33,27 @@ deliberately. The line is written once, before the first task, and is never rewr
 plan — every later command **reads** it rather than re-detecting anything, so changing
 `.jdi/config.yml` mid-plan has no effect until the next one.
 
+`PLAN.md` also carries a `Pair:` line, written into that same metadata block alongside
+`- Started:` by `/jdi:pair` when **P1** in `reference/pairing.md` resolved to paired. It has one
+shape, written once and never rewritten for that plan:
+
+```
+- Pair: on — <kind A> + <kind B>, first paired YYYY-MM-DD
+```
+
+**There is no `off` shape**, and that is the one way this line diverges from `TDD:`. TS1 writes an
+`off` line because the *configuration* asked for something the environment refused, and every later
+command has to be told not to re-detect it. Pairing is asked for by a **command**, so its
+degradation is announced to the user who typed it, in that same turn — the announcement *is* the
+record, and there is no later command to warn. An `off` line would be a persistent artefact some
+future command might be tempted to read, which is the failure `reference/pairing.md`'s universal
+rule 1 exists to prevent.
+
+**Its absence means the plan was never paired.** And unlike `TDD:`, **no command reads this line to
+decide anything**: `/jdi:pair` writes it when it is absent, the Synthesizer carries it into the
+condensed plan at PR time, and nothing else touches it. Pairing adds no commit point either — the
+table below is unchanged, and the one-commit-per-task rhythm is identical paired and unpaired.
+
 ## `plans.mode: repo` (default)
 
 Plans are files under `<plans.path>/` in the repository being changed, and they are **committed

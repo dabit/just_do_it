@@ -34,7 +34,7 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 | `/jdi:research`, `/jdi:reresearch` | the freshness gate and the findings write-back; delegates the exploration |
 | `/jdi:plan`, `/jdi:replan` | the clarifying questions; delegates the planning |
 | `/jdi:split` | delegates the decomposition |
-| `/jdi:execute`, `/jdi:next`, `/jdi:yolo` | the plan-approval commit, the diff, the independent verification, the per-task commits; delegates the implementation |
+| `/jdi:execute`, `/jdi:next`, `/jdi:yolo`, `/jdi:pair` | the plan-approval commit, the diff, the independent verification, the per-task commits; delegates the implementation — and under `/jdi:pair` drives the turns between two paired panes without ever taking one |
 | `/jdi:done`, `/jdi:status`, `/jdi:help` | all of it |
 | `/jdi:pr` | the branch, the push, the PR creation, the issue transition; delegates condensation and PR copy |
 | `/jdi:feedback` | delegates the critique, presents the verdict, applies only what the user approves |

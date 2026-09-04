@@ -123,6 +123,15 @@ Executor is handed that decision and the proven invocation already resolved; it 
    that a file exists, that a function returns without raising — is the worst available outcome
    here. It is worse than an announced skip, because it produces a green suite, a red-run
    transcript, and a record that proves nothing while looking precisely like proof.
+
+   Under **P2** (`reference/pairing.md`) the granularity is a **list** rather than a single test,
+   derived from exactly those same two named sources: one item per Verification clause in the task
+   file, and one per `## Testing Strategy` item the plan attributes to the task. An item may be
+   added mid-task only with a stated reason naming the clause it refines or the bug it came from; an
+   item tracing to neither is not written as a test at all — it becomes a `next-test` parked note,
+   which the Butler surfaces to the user as a plan gap. **The plan stays the authority; the list
+   only refines it.** That is what keeps "never fabricate a test" true at six tests as well as at
+   one.
 2. **Write the test, and only the test.** No implementation, not even a stub beyond what the test
    needs in order to import.
 3. **Run it and capture the red** — the exact command, which is the one TS1 proved, and its exact
@@ -131,11 +140,26 @@ Executor is handed that decision and the proven invocation already resolved; it 
    assertion that ran and did not hold. **A syntax error, an import error, or a collection error is
    a broken test, not a red run** — it proves the file does not load, not that the behaviour is
    missing. Fix the test and re-run until the failure is the assertion, and capture *that* failure.
+
+   Under **P2** (`reference/pairing.md`) steps 3 and 4 happen **twice, and the doubling is the
+   anti-rubber-stamp mechanism.** The agent that wrote the test captures the red and confirms its
+   reason; the receiving agent then re-runs the same command **before it may implement**, confirms
+   the same assertion fails for the same reason, and captures its own transcript. A receiver that
+   cannot reproduce the red does not implement — it returns the handoff, carrying its own
+   transcript of what happened instead. The exclusion above travels with it: a syntax, import, or
+   collection error is a broken test at the receiving end too, and never a reproduced red.
 5. **Write the implementation.**
 6. **Re-run the same command and capture the green.** The same invocation, so that the two
    transcripts are comparable; a green from a different command proves nothing about the red.
 7. **Return both. A task is not complete at red.** Red is the halfway point of TS2 and never its
    end; an Executor that returns a red run as its result has stopped in the middle of the operation.
+
+   Under **P2** (`reference/pairing.md`) the unit of completion is the **exchange**, not the turn. A
+   paired turn legitimately ends on a captured red, because that red *is* the handoff — it is the
+   test the partner will make pass. **The rule above is unchanged in substance:** nobody stops at
+   red here either, and no task is complete at red. What changes is *who* finishes it. A turn that
+   returns a red without the other four parts of P2's five-part handoff has delivered nothing, and
+   is returned rather than accepted.
 
 **The Butler does not reproduce red.** It cannot do so cheaply: `agents/executor.md:109-117` forbids
 `git stash` outright, and reconstructing the pre-change tree by any of the routes that rule leaves
@@ -145,3 +169,7 @@ the tests are in the diff, and that they are green now. For the ordering it read
 captured red evidence. That transcript is the only thing that makes "the test was written first"
 falsifiable; without it, TDD collapses into "the test was in the same commit", which is true of
 every task whether or not anyone wrote a test first.
+
+Under **P2** (`reference/pairing.md`) the Butler still does not reproduce red — but **a pair does it
+for free**, because the receiving agent must run the test before it may implement, so every red in a
+paired run is independently verified by a second party that did not write it.

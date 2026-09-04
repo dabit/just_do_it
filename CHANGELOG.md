@@ -1,5 +1,75 @@
 # Changelog
 
+## 1.0.4
+
+**`/jdi:pair` runs a plan as two agents ping-ponging a failing test — but only when you ask.**
+
+- **A repository that does not set the `pair` key is unaffected.** The block has no `enabled` key,
+  because it never says *whether* to pair — only *which* two agents to pair. `/jdi:pair` is never
+  invoked unless a user types it, and `/jdi:yolo`, `/jdi:execute` and `/jdi:next` stay single-agent
+  regardless of what the block says. Nothing detects pairing, and no other command reads the key.
+- **Ping-pong, rotating on the red/green boundary.** One agent writes a failing test and hands it
+  over; the other reproduces it, makes it pass, refactors, and writes the next failing test. TDD is
+  a prerequisite rather than a coincidence — the rotation point *is* the red/green boundary
+  `reference/testing.md`'s **TS2** already turns on, so the swap is structural rather than a timer.
+- **An agent asked to review and approve will approve.** "LGTM" costs one token, satisfies the
+  instruction as written, and is indistinguishable in a transcript from a review that happened; no
+  amount of "review carefully" changes what the cheapest compliant answer is. So the protocol does
+  not ask for a review: **the receiver must re-run the incoming failing test itself, and confirm it
+  fails on the named assertion, before it may implement.** `reference/testing.md` records that the
+  Butler does not reproduce red, because a throwaway worktree or a second clone on every task costs
+  more than the check is worth — **the partner does it for free, because it must run the test
+  before it can implement.** Every red is independently verified by a second party that neither
+  wrote the test nor chose the assertion. That is this mode's whole quality claim.
+- **Two requirements, checked at run time.** A resolved `TDD: on` line in the plan — not merely
+  `tdd.enabled`, because TDD can be configured on and still resolve off — and a Herdr session
+  (`HERDR_ENV=1`). Either unmet and the run is not paired: the Butler announces which rung stopped
+  it and offers to run the plan single-agent instead.
+- **The pair can consult, and it must do so in a shape that cannot be waffled.** Not every question
+  is a disagreement and not every unknown is answerable by writing a test, so P2 has a third move
+  beside implement-and-park and reject. A consult states **named options with the tradeoff and a
+  recommendation**, never an open question — "what do you think?" invites agreement, and agreement
+  costs one token. The reply is one of the options, or a third named and justified, with a reason;
+  "either is fine" is malformed and comes back. Two consecutive consults on one question escalate.
+- **A pair that outgrows its plan says so.** A consult whose answer changes the task's Files list or
+  the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
+  beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
+  ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
+- **Degrades to not pairing, never to a half-pair.** One pane up and the other refused is a
+  failure, not a degraded mode — a single agent taking both sides of a ping-pong is exactly the
+  rubber stamp the protocol exists to prevent. Degradation is never automatic, and nothing turns
+  pairing on that the user did not type.
+- New `reference/pairing.md`, three operations under the `P` prefix. **P1** proves the pair can run
+  — an eight-rung ladder, re-run in full on every invocation, because an agent name is a handle on
+  a live process and panes never survive a session. **P2** is the exchange: a five-part handoff
+  carrying the failing test, the red transcript, the test-list delta, the parked-notes ledger, and
+  a read receipt with content. **P3** is the Butler moving reports between two panes and checking
+  their shape, never their substance. Driver and navigator are turn assignments inside the existing
+  Executor role, so no new spawnable agent type was added.
+- Two new bidirectional test guards, on `commands/help.md`'s command table and `roles/butler.md`'s
+  ownership table. Adding the first immediately found `/jdi:help` missing from its own table — 15
+  commands listed against 16 files in `commands/` — so a user who ran `/jdi:help` never learned the
+  command exists. The suite is 17 tests.
+- `/jdi:init` now asks which two agents to pair, **but only when `herdr` is on `PATH`** — with no
+  multiplexer to pair in, every answer would be unusable, so the question is skipped and no `pair`
+  block is written. When it does ask, it proposes kinds rather than asking from zero: it settles
+  P1's first and third layers here and now, takes `herdr integration status` as the evidence for
+  the second, and says out loud that the second's definitive answer needs a live pane — and that
+  `/jdi:pair` re-runs every layer in full on every invocation regardless.
+- **The honest cost.** Arisholm et al. found pairing's overall correctness gain **not significant**
+  for ~84% more effort, with the gains confined to complex tasks and less-expert pairs; two panes
+  each carrying a full context per turn roughly doubles token cost on top. `/jdi:pair` is a
+  deliberate choice for a hard task, not a default — which is why it is its own command rather than
+  a flag on `/jdi:yolo`.
+- **Deliberately left out of scope**, each for a stated reason: `commands/prep.md`'s config-block
+  list (prep never resolves P1), `commands/status.md` (matching both earlier config-key releases),
+  `agents/planner.md` (its "say which test proves which step" bullet is already the granularity P2
+  consumes), a new `agents/*.md` role file (a file in `agents/` registers a spawnable agent type,
+  and a "driver" reachable as an in-process subagent — not in a pane, unable to ping-pong — is
+  worse than one nothing can instantiate), `bin/sync-opencode.sh` (glob-driven, so it needs no
+  edit), and this changelog's own 1.0.0 entry (a historical record of what shipped then, so its
+  command count is not a number to update).
+
 ## 1.0.3
 
 **Opt in and the Executor writes the failing test first — once the suite has been watched to run.**

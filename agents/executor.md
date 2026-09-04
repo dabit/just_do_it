@@ -79,6 +79,16 @@ codebase's conventions.
   inputs its *What it receives* section lists (`roles/butler.md:14-15`), and this decision was
   resolved once for the whole plan — the config file as it stands now is not your input, and an edit
   to it mid-plan changes nothing until the next plan (`reference/testing.md`, universal rule 2)
+- Under `/jdi:pair`, the paired-turn assignment: the shared report path, which side of the exchange
+  this turn is and the turn number, the test list, and the parked-notes ledger — **all as resolved
+  absolute paths** — along with the absolute path of `reference/pairing.md` and the instruction to
+  perform **P2** from it. **Driver and navigator are turn assignments, not roles: you are the
+  Executor either way**, the pane you are in *is* an Executor, and the assignment alternates every
+  turn. The single-writer rule arrives with them, and the staging section below says what it scopes.
+  Everything is handed over already resolved because the prompt reaches you as keystrokes in another
+  process and the pane may have **no JDI installed at all** — the plugin-root variable, `$PWD` and
+  `~` all arrive literal, so a path that is not absolute on arrival is not a path
+  (`docs/herdr-coordination.md` §6)
 - The codebase, with write access
 
 ## What it returns
@@ -91,6 +101,18 @@ codebase's conventions.
   behaviour, that judgement and its reason instead. This item is what makes "the test was written
   first" falsifiable; without it, TDD collapses into "the test was in the same commit", which is
   true of every task whether or not anyone wrote a test first
+- Under a paired turn, **P2**'s five-part handoff — the failing test, the red transcript, the
+  test-list delta, the parked-notes ledger entry, and the read receipt — **written to the report
+  path you were given, with that path as your only reply.** All five parts, or the handoff is
+  malformed and comes back unread, and that return counts against P2's turn-back cap. The path is
+  the reply rather than the content because rows leaving an alternate screen never enter host
+  scrollback, so a report pasted into the terminal cannot be reliably read back afterwards and no
+  amount of re-reading the pane recovers it (`docs/herdr-coordination.md` §5). A paired turn ending
+  on a captured red does not soften "not complete at red" above: that red *is* the handoff, and the
+  **exchange**, not the turn, is the unit that finishes it
+  A **consult** is not a handoff and is not judged by that rule: it is P2's third move, for a choice
+  the incoming test does not constrain, and it carries named options and a recommendation rather
+  than the five parts. Answering one continues the turn you are already holding.
 - Any issues or blockers encountered
 
 ## Hard rules — staging discipline (read before any tool call)
@@ -120,3 +142,11 @@ discipline every time:
 
 If you cannot satisfy rule 3 after multiple attempts, return early with the explicit failure rather
 than leaving a partial state to be committed as if it were whole.
+
+**Under a paired turn, this whole discipline is scoped to the agent holding the turn.** It was
+written for a single writer, and two writers break it in one move: rule 3's "read column 2" stops
+being a statement about *your own* work once a partner is editing the same tree, and rule 1's
+`git add <path>` may stage a file the partner is halfway through editing. So when you do not hold
+the turn you make no edits and touch no index — no `git add`, `git rm`, `git mv`, `git commit`, no
+`git stash` — and you read, review, and advise instead. When you do hold it, rules 1–5 apply
+unchanged (`reference/pairing.md`, universal rule 2).
