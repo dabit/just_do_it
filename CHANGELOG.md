@@ -20,6 +20,32 @@ kill the rubber stamp, and it only showed up in use.
   the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
   beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
   ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
+- **The compulsory re-run cannot be satisfied from memory.** The one time the first run had a red
+  to reproduce, the receiver reported that the pre-implementation output "was not retained" and
+  listed the failures from memory — which in the artifacts is indistinguishable from never having
+  run it. The output only exists before the implementation does, so the transcript is captured
+  before any edit, and **"I did not keep it" is a return, not an excuse.** The orchestrator may not
+  offer that exit either; in that run its return brief did, and the one sentence turned the
+  precondition into a courtesy.
+- **The consult has named trigger moments.** Two live runs produced zero consults, which is not
+  evidence that no question arose — a move nobody is pointed at does not get used. P2 now names
+  where to reach for one: a handoff carrying no failing test, a decision the plan leaves open that
+  you are about to make by writing code, a `fix-now` you have to argue is trivial, something the
+  plan did not anticipate.
+- **The design-authority rule binds the agents, not the plan.** P2 said the test was the sender's
+  entire design authority while P3 required handing over the task file, which contains design. That
+  read as a contradiction. It is not: what the plan already decided is shared context, and what an
+  agent thinks the implementation should look like goes in a test, a consult, or nowhere.
+- **The Butler may direct attention; it may not supply findings.** "Structure only" was too narrow —
+  naming which claim is load-bearing was the most productive thing the orchestrator did — and
+  unbounded judgement is what produced the manufactured corroboration. The line is now drawn where
+  the run drew it: naming a question is help, naming its answer is contamination.
+- **A returned handoff's rewrite goes to a new path.** The first run's rewrite overwrote the
+  original, so the only record of what was wrong with it was the Butler's own account — the one
+  claim an audit most needs to check independently.
+- **Panes disagreeing about the tree stops the run.** One run had a receiver find a different `HEAD`
+  than the handoff named and resolve it alone. The whole design rests on one shared working tree, so
+  a disagreement about its state is the Butler's to settle before another edit lands on it.
 - **A turn is over when the report is complete *and* the pane is settled.** The second live run
   committed a task while its pane was still working: the report was there and read as final, so the
   orchestrator committed, and the pane went on to find a second defect whose fix was staged and in

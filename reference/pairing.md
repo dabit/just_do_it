@@ -238,15 +238,20 @@ Every handoff is written to the designated report path and carries all five part
 missing any part is returned unread**, and the return counts against the turn-back cap below.
 
 1. **A failing test — the sender's entire design authority.** No prose telling the receiver how to
-   implement it: no suggested signature, no file to put it in, no algorithm. The test states what
-   must become true and the receiver decides everything else. This is Falco's highest-abstraction
-   rule made structural rather than exhorted — keystroke dictation is not merely discouraged, it is
-   unreachable, because the channel does not carry it.
+   implement it: no suggested signature, no file to put it in, no algorithm. **This binds the
+   agents to each other; it does not bind the plan.** The task file legitimately contains design —
+   that is what a plan is — and P3 rule 4 hands it to both panes. So the rule is not "no design
+   reaches the implementer", which would be unachievable; it is that **neither agent may add design
+   of its own in prose.** What the plan already decided is shared context both sides can read; what
+   an agent thinks the implementation should look like goes in a test, a consult, or nowhere. The
+   test states what must become true and the receiver decides everything else. This is Falco's
+   highest-abstraction rule made structural rather than exhorted — keystroke dictation is not
+   merely discouraged, it is unreachable, because the channel does not carry it.
 2. **The red transcript** — the exact command, its exact output, which assertion failed, and one
    sentence on why that failure is the right one. Same standard as `reference/testing.md`'s TS2
    steps 3 and 4: a syntax, import, or collection error is a broken test, not a red run.
-3. **The test-list delta** — what was consumed, what was added and the stated reason for each, what
-   was struck and why.
+3. **The test-list delta** — what was consumed, what was added and the stated reason for each, and
+   what was struck and why.
 4. **The parked-notes ledger entry, or an explicit "nothing parked."** Each note carries a
    `file:line`, the observation, and a disposition of `fix-now`, `next-test`, `defer`, or
    `decided` (below). The ledger
@@ -290,6 +295,20 @@ under P2 every red is independently verified by a second party that neither wrot
 the assertion. That is this mode's main quality claim, and it is why the re-run is a precondition
 rather than a request.
 
+**Capture the transcript before you edit anything, and never reconstruct it.** The first live run
+produced exactly one chance to exercise this and lost it: the receiver reported *"the original
+pre-implementation test output was not retained"* and listed the failures from memory — which in the
+artifacts is indistinguishable from never having run it. The output only exists before the
+implementation does, so a turn that starts editing before capturing has destroyed the only evidence
+its own claim rests on.
+
+**"I did not keep it" is a return, not an excuse, and nobody may offer it as one.** An honest
+admission is better than a fabricated transcript, but it is not a completed turn: the check did not
+happen in any way a reader can confirm, so the turn is redone with the capture. **The Butler must
+not offer this exit either** — in that run the return brief suggested saying so plainly instead, and
+that one sentence converted the precondition into a courtesy. A turn-back costs one turn; an
+unverifiable red costs the claim the whole mode is built on.
+
 ### Consulting the other agent
 
 Not every question is a disagreement, and not every unknown is answerable by writing a test. An
@@ -313,11 +332,28 @@ rejected and why.
 An answer that alters the task's Files list or the plan's `## Testing Strategy` is the pair going
 beyond the plan it was handed. That is allowed: two agents in the code often see what a plan written
 beforehand could not. It must never be silent. The ledger entry says explicitly what changed, P3
-rule 10 surfaces those entries at task end rather than leaving them among ordinary notes, and the
+rule 12 surfaces those entries at task end rather than leaving them among ordinary notes, and the
 run's closing summary names them. A plan quietly outgrown is indistinguishable from a plan ignored.
 
 **Two consecutive consults on the same question escalate**, exactly as turn-backs do. A third pass
 over the same ground is a loop, not a conversation.
+
+**Consult at these moments specifically.** Two live runs produced zero consults, which is not
+evidence that no question arose — it is evidence that a move nobody is pointed at does not get used.
+Reach for one when:
+
+- **the incoming handoff carries no failing test**, or one that passes on your re-run, and you can
+  see what the sender probably meant. That is a question, not a malformation, and a consult costs
+  one exchange where a turn-back costs a turn and tells the sender nothing it did not know;
+- **the plan does not decide something you are about to decide by writing code** — a name that will
+  be hard to change, a boundary the tests do not pin, an ordering the Verification is silent on;
+- **you are about to take `fix-now` and are not certain it has no design content.** If you have to
+  argue that it is trivial, it is a consult;
+- **you found something the plan did not anticipate** and your next edit would commit the pair to
+  one reading of it.
+
+A consult is cheaper than every alternative on that list. The failure mode this addresses is not an
+agent refusing to ask — it is an agent not noticing that asking was available.
 
 ### Disagreement
 
@@ -342,7 +378,7 @@ to make, it is a consult, not a `fix-now`.
 **The turn-back cap: two consecutive turn-backs stop the run.** A return for a malformed handoff, a
 return for a red that would not reproduce, and a rejection are all turn-backs. Two in a row means
 the pair is not converging, and a third pass over the same argument is a loop rather than progress.
-Stop, and hand both positions to the Butler for P3 rule 10.
+Stop, and hand both positions to the Butler for P3 rule 11.
 
 **Single writer.** Only the turn-holder edits a file or touches the index. The other agent reads,
 reviews, and advises, and runs no `git add`, `git rm`, `git mv`, `git commit`, or `git stash`. This
@@ -410,11 +446,32 @@ have the right shape. It does not write code, judge the work, or take a side.
    rather than assumed away. It also removes the silent-truncation failure: rows that have left an
    alternate screen never enter host scrollback, so a short `agent read` cannot be recovered by
    raising `--lines` (`docs/herdr-coordination.md` §5).
-6. **Check the handoff's structure before relaying it — structure only.** Five parts present and
-   non-empty; that is the entire check. **Do not judge the substance.** Re-running the red is the
-   receiver's compulsory work, and a Butler that pre-judged the test would be performing the
-   receiver's review on its behalf, destroying the exact property the mode is bought for. A
-   malformed handoff goes back to its sender: never repaired, never relayed.
+6. **Check the handoff's structure before relaying it, and direct attention without supplying
+   findings.** Five parts present and non-empty is the whole of the structural check, and a
+   malformed handoff goes back on that alone. Beyond it the Butler may **name what deserves
+   scrutiny** — which claim is load-bearing, which check is cheapest to get wrong, where two
+   documents disagree. It may **not** say what the answer turned out to be, and it may **not** rule
+   on whether an implementation is right.
+
+   That line is drawn where the first live run drew it in practice. Directing attention was the most
+   productive thing the orchestrator did; supplying findings was its worst — it quoted a partner's
+   measurements into the next brief, and told an agent that its own earlier observation matched a
+   partner's, producing a final report claiming two independent observations where one had been
+   ordered to read the other. **Naming a question is help. Naming its answer is contamination**, and
+   ruling on correctness is doing the receiver's compulsory work for it.
+
+   **Do not judge the substance of a returned handoff either.** A return says which of the five
+   parts is missing. It does not rewrite them, dictate their contents, or decide whether a
+   transcript was thorough enough — the first run's return ran to fifty lines specifying what each
+   part must say, which is the Butler writing the handoff it is supposed only to check.
+   Re-running the red is the receiver's compulsory work, and a Butler that pre-judged the test would
+   be performing the receiver's review on its behalf, destroying the exact property the mode is
+   bought for. A malformed handoff goes back to its sender: never repaired, never relayed.
+
+   **The rewrite goes to a new path, and the original stays.** In the first live run the returned
+   report was rewritten over itself, so the only surviving record of what was wrong with it was the
+   Butler's own description — which is the one account an audit most needs to check independently.
+   Number the rewrite (`…-turn03b.md`) and leave the original where it is.
 7. **`agent_blocked` → stop and ask the user.** Inspect the pane with `agent get` and `agent read`,
    say what it is asking, and hand the question over. **Never answer another agent's dialog**: it
    exists because that agent's permission system decided a human should decide, and it is not a
@@ -423,11 +480,19 @@ have the right shape. It does not write code, judge the work, or take a side.
 8. **`agent read` is for looking at a pane, not for transporting a report.** Use it to see what a
    pane is doing right now and to inspect a blocked dialog. A short read is not a flag problem to be
    solved by raising `--lines`; the rows are gone (rule 5).
-9. **Handle an error code you have never seen.** Herdr's schema types the error code as a bare
+9. **If the panes disagree about the tree, stop.** A handoff states the commit it was written
+   against. A receiver that finds a different `HEAD` has one of two problems — a commit landed
+   mid-turn, or the panes are not looking at the same tree — and it can tell neither apart nor
+   which is safe. In the first run this happened, and the receiver resolved it alone by reasoning
+   that the source and gates matched anyway. That was probably right and is not the receiver's call
+   to make: the whole design rests on one shared working tree, so a disagreement about its state is
+   the Butler's to settle before another edit lands on it.
+
+10. **Handle an error code you have never seen.** Herdr's schema types the error code as a bare
    string with no enumeration (`docs/herdr-coordination.md` §5), so matching the known codes is
    necessary and not sufficient. An unrecognised code stops the run and is reported verbatim; it is
    never treated as a transient failure to retry through.
-10. **Escalate on two consecutive turn-backs, six exchanges in one task, or a blocked pane.** Stop,
+11. **Escalate on two consecutive turn-backs, six exchanges in one task, or a blocked pane.** Stop,
     and hand the user both positions and both transcripts. **The Butler does not break the tie** —
     it wrote neither side and has run neither test. Offer the four real answers: accept the test as
     written, replace it with the corrective test the rejection proposed, strike the list item, or
@@ -436,7 +501,7 @@ have the right shape. It does not write code, judge the work, or take a side.
     become: take one of the options they named, name a different one yourself, strike the item, or
     stop.
 
-11. **Surface every `decided` entry at task end, and separate the ones that changed the plan.** A
+12. **Surface every `decided` entry at task end, and separate the ones that changed the plan.** A
     consult that altered the task's Files list or the plan's `## Testing Strategy` is the pair
     going beyond the plan it was handed. Report those first, with the question, the options, the
     choice and the reason — not folded into the ordinary notes and not summarised away. **The

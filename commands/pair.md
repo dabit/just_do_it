@@ -62,7 +62,7 @@ argument above — with seven differences:
      whichever is greater (P2);
    - **two consecutive turn-backs** — a returned handoff or a rejection, twice in a row.
 
-   Each of the three is a P3 rule 10 escalation.
+   Each of the three is a P3 rule 11 escalation.
 
 5. **Step 1's commit runs only when neither pane holds the turn** — in the window between receiving
    a task's final handoff and prompting the first turn of the next one. **Re-read the pane's state
@@ -78,7 +78,7 @@ argument above — with seven differences:
    ledger** to the user: every note still open, with its `file:line`, its observation, and its
    disposition. **Report the `decided` entries first, and separate the ones that changed the task's
    Files list or the plan's `## Testing Strategy`** — those are the pair going beyond the plan it
-   was handed, which is allowed and must not be silent (P3 rule 11). `fix-now` notes were dealt
+   was handed, which is allowed and must not be silent (P3 rule 12). `fix-now` notes were dealt
    with inside the task; **`defer` notes are carried forward
    into the next task's first prompt, never deleted along with the scratch directory**; and any plan
    gap P2 flagged is surfaced alongside them. At the end of the run, **release both panes and say
