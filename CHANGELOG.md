@@ -20,6 +20,13 @@ kill the rubber stamp, and it only showed up in use.
   the plan's `## Testing Strategy` is allowed — two agents in the code often see what a plan written
   beforehand could not — but it is recorded as a `decided` note and surfaced at task end ahead of
   ordinary notes, because a plan quietly outgrown reads exactly like a plan ignored.
+- **A turn is over when the report is complete *and* the pane is settled.** The second live run
+  committed a task while its pane was still working: the report was there and read as final, so the
+  orchestrator committed, and the pane went on to find a second defect whose fix was staged and in
+  no commit. The rule said the report file *was* the turn-over signal and demoted pane state to
+  "only the wake-up", which is what the orchestrator followed. **A report is written during a turn,
+  not at its end** — a complete file and a working pane are a normal combination, not a
+  contradiction. Anything that commits, stages, or hands work onward now needs both signals.
 - **The read receipt must cite an added line in the diff.** The first live run found the check had
   a cheaper answer than reading the code: *read the incoming handoff's own receipt and restate it.*
   The channel carrying the handoff also carries the answer to the check meant to police it. One

@@ -395,10 +395,18 @@ have the right shape. It does not write code, judge the work, or take a side.
    first-turn exception checkable rather than merely asserted. **The payload goes in the file in
    both directions**, not only the reply direction: the `agent prompt` size ceiling is unmeasured
    and plausibly belongs to the receiving agent's input widget, so it differs by kind.
-5. **The report file is the turn-over signal; Herdr state is only the wake-up.** A settled state
-   says the pane is ready to be looked at. A complete report at the designated path says the turn
-   is over. **One rule for both kinds** — which is how the asymmetry between a pane whose state
-   comes from a hook with authority and one whose state is a terminal-title scrape gets *handled*
+5. **A turn is over when the report is complete *and* the pane is settled — both, and in that
+   order.** Neither alone is enough, and the reason is that **a report is written during a turn, not
+   at its end**: an agent writes the file and keeps working, so file-existence is a lagging signal
+   and not a terminal one. A pane that has written a complete report and gone back to reading can
+   still stage more, find a second defect, or change what it already wrote. Check the file first,
+   because Herdr state alone cannot tell a finished turn from a truncated one; then re-read the
+   state immediately before acting on it, because the file alone cannot tell a finished turn from a
+   turn still in progress. **Anything that commits, stages, or hands the work onward needs
+   both.**
+
+   **One rule for both kinds** — which is how the asymmetry between a pane whose state comes from
+   a hook with authority and one whose state is a terminal-title scrape gets *handled*
    rather than assumed away. It also removes the silent-truncation failure: rows that have left an
    alternate screen never enter host scrollback, so a short `agent read` cannot be recovered by
    raising `--lines` (`docs/herdr-coordination.md` §5).

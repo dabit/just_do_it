@@ -65,7 +65,10 @@ argument above — with seven differences:
    Each of the three is a P3 rule 10 escalation.
 
 5. **Step 1's commit runs only when neither pane holds the turn** — in the window between receiving
-   a task's final handoff and prompting the first turn of the next one. Its item 3 reads column 2 of
+   a task's final handoff and prompting the first turn of the next one. **Re-read the pane's state
+   immediately before committing, not merely the report's existence** (P3 rule 5): a report is
+   written during a turn, not at its end, so a complete file and a working pane are a normal
+   combination and not a contradiction. Its item 3 reads column 2 of
    `git status --short` for unstaged work, and that reading is a statement about a single writer. It
    is trustworthy again here precisely because the turn-holder staged its own edits and then
    released the turn. Commit while a pane still holds it and you may stage a file that agent is
