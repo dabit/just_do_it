@@ -234,7 +234,8 @@ nothing gitignored reaches it — no `.env`, no installed dependency, no local d
 empty, every agent works that out mid-run and fixes it differently, and two that settle on the
 same test database manufacture thousands of failures that read as a regression in the branch under
 test. `seed.copy` names files to copy in from your checkout, `seed.set` rewrites keys in a dotenv
-file, and `seed.run` runs commands in the worktree. `{{n}}` expands to the worktree index, which is
+file, and `seed.setup` runs the commands that finish the tree — a failing one takes that issue
+out of the herd rather than handing an agent a half-built worktree. `{{n}}` expands to the worktree index, which is
 how a shared resource becomes a per-worktree one. JDI infers none of it: it never guesses that a
 repo is Rails, that `.env` exists, or which key names a database.
 

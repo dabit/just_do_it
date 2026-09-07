@@ -24,9 +24,11 @@
   `.env` files, installed dependencies and local database names are simply absent from it. Left
   empty, each agent discovers that mid-run and repairs it differently — and two agents that settle
   on the same test database manufacture thousands of failures that read as a regression in the
-  branch under test. `seed.copy`, `seed.set` and `seed.run` are declarative and infer nothing: JDI
+  branch under test. `seed.copy`, `seed.set` and `seed.setup` are declarative and infer nothing: JDI
   never guesses that a repo is Rails, that `.env` exists, or which key names a database. `{{n}}`
-  expands to the worktree index, which is how a shared resource becomes a per-worktree one.
+  expands to the worktree index, which is how a shared resource becomes a per-worktree one. A
+  `setup` command that exits non-zero disqualifies its worktree — no agent is started there,
+  and the herd continues with the rest.
 - **`herd.args` and `herd.env` are pass-through.** JDI composes no flag and translates none between
   agent kinds, so a permission-bypass flag is a value the user wrote down rather than a mode JDI
   entered on their behalf. `env` is enough to run a herd under a different account or profile —

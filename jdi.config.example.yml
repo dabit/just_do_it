@@ -95,7 +95,9 @@ herd:
 
   # What goes into each worktree before its agent starts. A worktree is created
   # from origin/<default>, so nothing gitignored reaches it — no .env, no
-  # installed dependency, no local database name. Applied copy -> set -> run.
+  # installed dependency, no local database name. Applied copy -> set -> setup.
+  # A setup command that exits non-zero disqualifies that worktree: no agent is
+  # started for it, and the herd continues with the others.
   #
   # Placeholders: {{n}} (1-based worktree index), {{issue}}, {{issue_lower}},
   # {{worktree}}, {{repo_root}}. Put {{n}} in anything concurrent runs would
@@ -109,7 +111,7 @@ herd:
   #   set:
   #     apps/core/api/.env:
   #       TEST_DATABASE: myapp_test_herd{{n}}
-  #   run:
+  #   setup:
   #     - npm ci --prefix apps/core/frontend
   #     - cd apps/core/api && bin/rails db:test:prepare
 

@@ -152,11 +152,11 @@ herd:
   # no installed dependency, no local database name. Everything here is
   # optional, and an empty block seeds nothing.
   #
-  # Applied per worktree in the order copy -> set -> run, from JDI's own shell
+  # Applied per worktree in the order copy -> set -> setup, from JDI's own shell
   # with the worktree as the working directory — never in the pane the agent
   # is about to claim.
   #
-  # Placeholders, substituted in every `set` value and every `run` command:
+  # Placeholders, substituted in every `set` value and every `setup` command:
   #   {{n}}            the worktree's 1-based index in this herd
   #   {{issue}}        the issue ID, e.g. JUT-3073
   #   {{issue_lower}}  the same, lowercased
@@ -175,9 +175,10 @@ herd:
   #     set:                               # dotenv-style key replacement, after copy
   #       apps/core/api/.env:
   #         TEST_DATABASE: jute_testing_herd{{n}}
-  #     run:                               # cwd is the worktree root; a non-zero
-  #       - npm ci --prefix apps/core/frontend   # exit skips the rest for that
-  #       - cd apps/core/api && bin/rails db:test:prepare   # worktree only
+  #     setup:                             # cwd is the worktree root; a non-zero
+  #       - npm ci --prefix apps/core/frontend   # exit disqualifies that
+  #       - cd apps/core/api && bin/rails db:test:prepare   # worktree: no agent
+  #                                                        # is started for it
   seed: {}
 
 # Optional. Sibling repositories or client codebases that consume this repo's

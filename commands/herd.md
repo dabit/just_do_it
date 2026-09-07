@@ -119,7 +119,7 @@ Follow these steps:
      seed:
        copy: [<path>, ...]                # gitignored files to copy in from this checkout
        set:  { <path>: { KEY: VALUE } }   # per-worktree values inside a dotenv-style file
-       run:  [<command>, ...]             # commands run with the worktree root as cwd
+       setup: [<command>, ...]            # commands that finish the worktree, cwd = its root
    ```
 
    - **`copy`** — each path is relative to the repository root and is copied from *this* checkout
@@ -127,11 +127,15 @@ Follow these steps:
      error: not every machine holds every local file.
    - **`set`** — for each named file, replace the value of each key, appending the line where the
      key is absent. It runs after `copy`, so it edits the copy and never your original.
-   - **`run`** — commands run in order. A non-zero exit is recorded, the remaining commands for
-     that worktree are skipped, and the herd continues with the other issues; report it in
-     step 10 against that issue.
+   - **`setup`** — commands that finish the worktree, run in order once it holds the files
+     `copy` and `set` put there. **A non-zero exit disqualifies that worktree**: the remaining
+     setup commands are skipped, **step 8 never starts its agent**, and step 10 reports the
+     issue as failed with the command and its exit status. The other issues in the herd
+     continue — a partial herd is useful, and an agent turned loose in a half-built worktree
+     is not. It flounders on a broken dependency or a missing database and reports the
+     wreckage as a finding about the branch.
 
-   **Placeholders** are substituted in every `set` value and every `run` command:
+   **Placeholders** are substituted in every `set` value and every `setup` command:
 
    | Placeholder | Expands to |
    |---|---|
@@ -143,7 +147,7 @@ Follow these steps:
 
    **This is where a shared resource becomes a per-worktree one.** Anything concurrent runs would
    otherwise collide on — a test database, a port, a cache directory, a container name — belongs
-   in `set` or `run` with `{{n}}` in it:
+   in `set` or `setup` with `{{n}}` in it:
 
    ```yaml
    herd:
@@ -154,7 +158,7 @@ Follow these steps:
        set:
          apps/core/api/.env:
            TEST_DATABASE: jute_testing_herd{{n}}
-       run:
+       setup:
          - npm ci --prefix apps/core/frontend
          - cd apps/core/api && bin/rails db:test:prepare
    ```
@@ -163,51 +167,55 @@ Follow these steps:
    which key names a database. An absent or empty `seed` block copies nothing and runs nothing,
    which is exactly the behaviour before this key existed.
 
-   Dependency installs are the slow part of a herd, and they run once per worktree. Where `run`
-   takes minutes each, say so before starting rather than after.
+   Dependency installs are the slow part of a herd, and they run once per worktree. Where
+   `setup` takes minutes each, say so before starting rather than after.
 
 8. **Start one agent per worktree** — Read `herd.args` for the kind in use. It is a list of the
-    agent CLI's own arguments, and it is empty by default.
+   agent CLI's own arguments, and it is empty by default.
 
-    ```sh
-    herdr agent start <name> --kind <kind> --pane <root_pane_id> [-- <args for kind>]
-    ```
+   **Start no agent for a worktree step 7 disqualified.** A failed `setup` command means the
+   tree is half-built; the issue is already recorded as failed, and starting an agent there
+   turns one clear failure into a confusing one.
 
-    **Pass `--` only when the list has entries.** Everything after it goes to the agent CLI
-    untouched; everything before it belongs to Herdr. A kind with no entry starts with no arguments.
+   ```sh
+   herdr agent start <name> --kind <kind> --pane <root_pane_id> [-- <args for kind>]
+   ```
 
-    **Take the list literally. Never add an argument JDI thinks is needed, and never translate one
-    between kinds** — each CLI has its own spelling, and a wrong flag either fails the start or
-    means something else entirely. This is where an unattended run gets its permission-bypass flag,
-    if the user wants one; that is the user's decision to record, not JDI's to infer.
+   **Pass `--` only when the list has entries.** Everything after it goes to the agent CLI
+   untouched; everything before it belongs to Herdr. A kind with no entry starts with no arguments.
 
-    **Print the arguments in the step 9 report, verbatim.** They apply to every agent in the herd at
-    once. Where they turn approvals off, say so in plain words: a fresh worktree isolates the branch
-    and the working tree, and nothing else — the same credentials, the same network, and the same
-    machine stay in reach.
+   **Take the list literally. Never add an argument JDI thinks is needed, and never translate one
+   between kinds** — each CLI has its own spelling, and a wrong flag either fails the start or
+   means something else entirely. This is where an unattended run gets its permission-bypass flag,
+   if the user wants one; that is the user's decision to record, not JDI's to infer.
 
-    `agent start` returns only once Herdr sees the agent ready for input. An `agent_not_ready`
-    result still leaves the name usable: read the pane with `herdr agent read <name>` and report it
-    as blocked at startup. **A first-run trust or permission prompt is the usual cause, unless
-    `herd.args` turned approvals off.** Do not answer it.
+   **Print the arguments in the step 9 report, verbatim.** They apply to every agent in the herd at
+   once. Where they turn approvals off, say so in plain words: a fresh worktree isolates the branch
+   and the working tree, and nothing else — the same credentials, the same network, and the same
+   machine stay in reach.
+
+   `agent start` returns only once Herdr sees the agent ready for input. An `agent_not_ready`
+   result still leaves the name usable: read the pane with `herdr agent read <name>` and report it
+   as blocked at startup. **A first-run trust or permission prompt is the usual cause, unless
+   `herd.args` turned approvals off.** Do not answer it.
 
 9. **Send the prompts — do not wait** —
 
-    ```sh
-    herdr agent prompt <name> "/jdi:prep <ISSUE-ID>"
-    ```
+   ```sh
+   herdr agent prompt <name> "/jdi:prep <ISSUE-ID>"
+   ```
 
-    **Never pass `--wait` here.** A wait blocks until that agent settles, which would run the herd
-    one issue at a time and defeat the whole command. Send to every agent first, then read the
-    states once.
+   **Never pass `--wait` here.** A wait blocks until that agent settles, which would run the herd
+   one issue at a time and defeat the whole command. Send to every agent first, then read the
+   states once.
 
-    An `agent_blocked` result means the agent already sits at an approval or question dialog and
-    the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
-    behalf.**
+   An `agent_blocked` result means the agent already sits at an approval or question dialog and
+   the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
+   behalf.**
 
 10. **Report what exists now** — One row per issue: issue ID, agent name, pane ID, workspace ID,
     worktree path, and the state from `herdr agent get`. List any issue that failed in step 6, 7, 8
-    or 9, with the reason. Name the scratch branches, so the cleanup in step 12 is not a surprise.
+    or 9, with the reason — for a seed failure, name the command and its exit status. Name the scratch branches, so the cleanup in step 12 is not a surprise.
     Print the `herd.args` and the `herd.env` keys the run passed, verbatim, or say that it passed
     none. **Say what `herd.seed` copied, set and ran, or that it seeded nothing** — an
     unseeded herd looks identical until an agent trips over it. **Print the env keys and their values** — a herd on the wrong account is otherwise
@@ -267,6 +275,7 @@ Follow these steps:
   installed dependency, no local database name. With `herd.seed` empty, every agent finds that
   out on its own, and two of them can quietly settle on the same shared resource; a shared test
   database yields thousands of failures that look like a regression in the branch. Report what
-  was seeded.
+  was seeded. A `setup` command that fails takes its issue out of the herd rather than handing
+  an agent a half-built tree.
 - **Setup is not supervision.** Three prepped issues still mean three sets of questions, three
   plans to read, and three worktrees to merge or discard.
