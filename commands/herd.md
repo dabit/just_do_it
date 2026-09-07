@@ -56,7 +56,8 @@ Follow these steps:
 
    **Uncommitted work in this checkout does not reach the new worktrees.** Say so plainly; do not
    block on it. Every worktree is created from `origin/<default>`, which is the same freshness rule
-   `/jdi:prep` step 6 applies for exactly the same reason.
+   `/jdi:prep` step 6 applies for exactly the same reason. **Nothing gitignored reaches
+   them either** — `herd.seed` in step 7 is what puts it back.
 
 5. **Reserve the agent names** — Read `herdr agent list`. Build a name per issue from the
    lowercased issue ID. A Herdr agent name must match `[a-z][a-z0-9_-]{0,31}` and be unique among
@@ -81,7 +82,7 @@ Follow these steps:
    Read every identifier from the JSON response — `.result.worktree.path`,
    `.result.root_pane.pane_id`, `.result.workspace.workspace_id`, `.result.tab.tab_id`. **Do not
    predict an ID, and do not read one from the sidebar order.** The returned root pane is a fresh
-   shell in the worktree, which is exactly what step 7 needs; do not split anything.
+   shell in the worktree, which is what step 8 claims; do not split anything.
 
    **`worktree create` takes no `--env`, so `herd.env` needs one more pane.** When `herd.env` is
    empty, the worktree's own root pane is the pane for step 7. When it holds anything, create a tab
@@ -101,53 +102,118 @@ Follow these steps:
    When one worktree fails, record the failure, continue with the rest, and list it in step 9.
    A partial herd is useful; a silent one is not.
 
-7. **Start one agent per worktree** — Read `herd.args` for the kind in use. It is a list of the
-   agent CLI's own arguments, and it is empty by default.
+7. **Seed each worktree — `herd.seed`** — A worktree is created from `origin/<default>`, so
+   **nothing gitignored reaches it**: no `.env`, no installed dependency, no local database name.
+   An agent that discovers this repairs it mid-run, one worktree at a time and differently in
+   each — which is how two agents come to share one test database and manufacture thousands of
+   failures that read as a regression in the branch under test. Seed before the agent starts.
 
-   ```sh
-   herdr agent start <name> --kind <kind> --pane <root_pane_id> [-- <args for kind>]
+   **Run every seed step from JDI's own shell, with the worktree as the working directory. Do not
+   run it in the worktree's root pane** — `agent start` claims that pane in step 8, and it must be
+   a fresh shell when it does.
+
+   `herd.seed` has three optional keys, applied per worktree in this order:
+
+   ```yaml
+   herd:
+     seed:
+       copy: [<path>, ...]                # gitignored files to copy in from this checkout
+       set:  { <path>: { KEY: VALUE } }   # per-worktree values inside a dotenv-style file
+       run:  [<command>, ...]             # commands run with the worktree root as cwd
    ```
 
-   **Pass `--` only when the list has entries.** Everything after it goes to the agent CLI
-   untouched; everything before it belongs to Herdr. A kind with no entry starts with no arguments.
+   - **`copy`** — each path is relative to the repository root and is copied from *this* checkout
+     into the same place in the worktree. A path absent here is skipped with a note, never an
+     error: not every machine holds every local file.
+   - **`set`** — for each named file, replace the value of each key, appending the line where the
+     key is absent. It runs after `copy`, so it edits the copy and never your original.
+   - **`run`** — commands run in order. A non-zero exit is recorded, the remaining commands for
+     that worktree are skipped, and the herd continues with the other issues; report it in
+     step 10 against that issue.
 
-   **Take the list literally. Never add an argument JDI thinks is needed, and never translate one
-   between kinds** — each CLI has its own spelling, and a wrong flag either fails the start or
-   means something else entirely. This is where an unattended run gets its permission-bypass flag,
-   if the user wants one; that is the user's decision to record, not JDI's to infer.
+   **Placeholders** are substituted in every `set` value and every `run` command:
 
-   **Print the arguments in the step 9 report, verbatim.** They apply to every agent in the herd at
-   once. Where they turn approvals off, say so in plain words: a fresh worktree isolates the branch
-   and the working tree, and nothing else — the same credentials, the same network, and the same
-   machine stay in reach.
+   | Placeholder | Expands to |
+   |---|---|
+   | `{{n}}` | the worktree's 1-based index in this herd |
+   | `{{issue}}` | the issue ID, e.g. `JUT-3073` |
+   | `{{issue_lower}}` | the same, lowercased, e.g. `jut-3073` |
+   | `{{worktree}}` | absolute path to the new worktree |
+   | `{{repo_root}}` | absolute path to this checkout |
 
-   `agent start` returns only once Herdr sees the agent ready for input. An `agent_not_ready`
-   result still leaves the name usable: read the pane with `herdr agent read <name>` and report it
-   as blocked at startup. **A first-run trust or permission prompt is the usual cause, unless
-   `herd.args` turned approvals off.** Do not answer it.
+   **This is where a shared resource becomes a per-worktree one.** Anything concurrent runs would
+   otherwise collide on — a test database, a port, a cache directory, a container name — belongs
+   in `set` or `run` with `{{n}}` in it:
 
-8. **Send the prompts — do not wait** —
-
-   ```sh
-   herdr agent prompt <name> "/jdi:prep <ISSUE-ID>"
+   ```yaml
+   herd:
+     seed:
+       copy:
+         - apps/core/api/.env
+         - apps/core/frontend/.env
+       set:
+         apps/core/api/.env:
+           TEST_DATABASE: jute_testing_herd{{n}}
+       run:
+         - npm ci --prefix apps/core/frontend
+         - cd apps/core/api && bin/rails db:test:prepare
    ```
 
-   **Never pass `--wait` here.** A wait blocks until that agent settles, which would run the herd
-   one issue at a time and defeat the whole command. Send to every agent first, then read the
-   states once.
+   **JDI infers none of this.** It does not guess that a repo is Rails, that `.env` exists, or
+   which key names a database. An absent or empty `seed` block copies nothing and runs nothing,
+   which is exactly the behaviour before this key existed.
 
-   An `agent_blocked` result means the agent already sits at an approval or question dialog and
-   the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
-   behalf.**
+   Dependency installs are the slow part of a herd, and they run once per worktree. Where `run`
+   takes minutes each, say so before starting rather than after.
 
-9. **Report what exists now** — One row per issue: issue ID, agent name, pane ID, workspace ID,
-   worktree path, and the state from `herdr agent get`. List any issue that failed in step 6, 7, or
-   8, with the reason. Name the scratch branches, so the cleanup in step 11 is not a surprise.
-   Print the `herd.args` and the `herd.env` keys the run passed, verbatim, or say that it passed
-   none. **Print the env keys and their values** — a herd on the wrong account is otherwise
-   invisible until the plans land somewhere unexpected.
+8. **Start one agent per worktree** — Read `herd.args` for the kind in use. It is a list of the
+    agent CLI's own arguments, and it is empty by default.
 
-10. **Offer the watch loop — ask with `AskUserQuestion`** — A spawned agent that waits at a question
+    ```sh
+    herdr agent start <name> --kind <kind> --pane <root_pane_id> [-- <args for kind>]
+    ```
+
+    **Pass `--` only when the list has entries.** Everything after it goes to the agent CLI
+    untouched; everything before it belongs to Herdr. A kind with no entry starts with no arguments.
+
+    **Take the list literally. Never add an argument JDI thinks is needed, and never translate one
+    between kinds** — each CLI has its own spelling, and a wrong flag either fails the start or
+    means something else entirely. This is where an unattended run gets its permission-bypass flag,
+    if the user wants one; that is the user's decision to record, not JDI's to infer.
+
+    **Print the arguments in the step 9 report, verbatim.** They apply to every agent in the herd at
+    once. Where they turn approvals off, say so in plain words: a fresh worktree isolates the branch
+    and the working tree, and nothing else — the same credentials, the same network, and the same
+    machine stay in reach.
+
+    `agent start` returns only once Herdr sees the agent ready for input. An `agent_not_ready`
+    result still leaves the name usable: read the pane with `herdr agent read <name>` and report it
+    as blocked at startup. **A first-run trust or permission prompt is the usual cause, unless
+    `herd.args` turned approvals off.** Do not answer it.
+
+9. **Send the prompts — do not wait** —
+
+    ```sh
+    herdr agent prompt <name> "/jdi:prep <ISSUE-ID>"
+    ```
+
+    **Never pass `--wait` here.** A wait blocks until that agent settles, which would run the herd
+    one issue at a time and defeat the whole command. Send to every agent first, then read the
+    states once.
+
+    An `agent_blocked` result means the agent already sits at an approval or question dialog and
+    the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
+    behalf.**
+
+10. **Report what exists now** — One row per issue: issue ID, agent name, pane ID, workspace ID,
+    worktree path, and the state from `herdr agent get`. List any issue that failed in step 6, 7, 8
+    or 9, with the reason. Name the scratch branches, so the cleanup in step 12 is not a surprise.
+    Print the `herd.args` and the `herd.env` keys the run passed, verbatim, or say that it passed
+    none. **Say what `herd.seed` copied, set and ran, or that it seeded nothing** — an
+    unseeded herd looks identical until an agent trips over it. **Print the env keys and their values** — a herd on the wrong account is otherwise
+    invisible until the plans land somewhere unexpected.
+
+11. **Offer the watch loop — ask with `AskUserQuestion`** — A spawned agent that waits at a question
     holds its turn and runs no tools, so **it cannot call for help at the moment help is needed**.
     A poll is the only signal that covers that case, and it is also the only one that catches an
     agent blocked before it ever read its prompt.
@@ -176,10 +242,12 @@ Follow these steps:
 
     Where the harness has no loop facility, say so and stop at the sidebar advice.
 
-11. **Say how to clean up — clean nothing** — List, for each issue, the workspace ID, the worktree
+12. **Say how to clean up — clean nothing** — List, for each issue, the workspace ID, the worktree
     path, and the scratch branch, with the commands that remove them:
     `herdr worktree remove --workspace <id>`, then `git branch -D jdi-herd-scratch-<N>` once the
-    real feature branch exists. **Remove nothing yourself unless the user asks.**
+    real feature branch exists. A worktree that `herd.seed` wrote into is dirty, so its
+    removal needs `--force`; say that rather than let the plain command fail.
+    **Remove nothing yourself unless the user asks.**
 
 ## Limits worth stating in the report
 
@@ -195,5 +263,10 @@ Follow these steps:
   at — not this session's. **JDI itself must be installed there**, or `/jdi:prep` is not a command
   in that session and every agent stalls on an unknown input. Check that before the first herd on a
   new profile, and say plainly in the report which profile ran.
+- **An unseeded worktree is not a clean worktree.** It holds no gitignored file — no `.env`, no
+  installed dependency, no local database name. With `herd.seed` empty, every agent finds that
+  out on its own, and two of them can quietly settle on the same shared resource; a shared test
+  database yields thousands of failures that look like a regression in the branch. Report what
+  was seeded.
 - **Setup is not supervision.** Three prepped issues still mean three sets of questions, three
   plans to read, and three worktrees to merge or discard.

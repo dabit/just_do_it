@@ -93,6 +93,26 @@ herd:
   # env:
   #   CLAUDE_CONFIG_DIR: /Users/you/.claude-other
 
+  # What goes into each worktree before its agent starts. A worktree is created
+  # from origin/<default>, so nothing gitignored reaches it — no .env, no
+  # installed dependency, no local database name. Applied copy -> set -> run.
+  #
+  # Placeholders: {{n}} (1-based worktree index), {{issue}}, {{issue_lower}},
+  # {{worktree}}, {{repo_root}}. Put {{n}} in anything concurrent runs would
+  # otherwise share: two worktrees on one test database produce thousands of
+  # failures that read as a regression in the branch under test.
+  seed: {}
+  # seed:
+  #   copy:
+  #     - apps/core/api/.env
+  #     - apps/core/frontend/.env
+  #   set:
+  #     apps/core/api/.env:
+  #       TEST_DATABASE: myapp_test_herd{{n}}
+  #   run:
+  #     - npm ci --prefix apps/core/frontend
+  #     - cd apps/core/api && bin/rails db:test:prepare
+
 # Optional. Sibling repos or clients that consume this repo's public interfaces.
 # The Researcher sweeps these when a change alters an externally-consumed
 # contract, so "does a client need updating?" is never left unanswered.

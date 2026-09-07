@@ -147,6 +147,39 @@ herd:
   #     CLAUDE_CONFIG_DIR: /Users/you/.claude-other
   env: {}
 
+  # What to put into each new worktree before its agent starts. A worktree is
+  # created from origin/<default>, so nothing gitignored reaches it: no .env,
+  # no installed dependency, no local database name. Everything here is
+  # optional, and an empty block seeds nothing.
+  #
+  # Applied per worktree in the order copy -> set -> run, from JDI's own shell
+  # with the worktree as the working directory — never in the pane the agent
+  # is about to claim.
+  #
+  # Placeholders, substituted in every `set` value and every `run` command:
+  #   {{n}}            the worktree's 1-based index in this herd
+  #   {{issue}}        the issue ID, e.g. JUT-3073
+  #   {{issue_lower}}  the same, lowercased
+  #   {{worktree}}     absolute path to the new worktree
+  #   {{repo_root}}    absolute path to the checkout /jdi:herd ran in
+  #
+  # Use {{n}} for anything concurrent runs would otherwise share — a test
+  # database, a port, a cache directory, a container name. Two worktrees on
+  # one test database produce thousands of failures that read as a regression
+  # in the branch under test.
+  #
+  #   seed:
+  #     copy:                              # paths relative to the repo root,
+  #       - apps/core/api/.env             # copied from this checkout; a path
+  #       - apps/core/frontend/.env        # absent here is skipped, not an error
+  #     set:                               # dotenv-style key replacement, after copy
+  #       apps/core/api/.env:
+  #         TEST_DATABASE: jute_testing_herd{{n}}
+  #     run:                               # cwd is the worktree root; a non-zero
+  #       - npm ci --prefix apps/core/frontend   # exit skips the rest for that
+  #       - cd apps/core/api && bin/rails db:test:prepare   # worktree only
+  seed: {}
+
 # Optional. Sibling repositories or client codebases that consume this repo's
 # public interfaces (APIs, webhooks, tool surfaces, published packages). The
 # Researcher sweeps these when a change alters an externally-consumed contract,
@@ -185,6 +218,7 @@ models:                    models:                     models:
 | `herd.max_parallel` | `5` |
 | `herd.args` | empty — spawned agents start with no CLI arguments, so approvals stay on |
 | `herd.env` | empty — spawned agents inherit the environment Herdr gives a new pane |
+| `herd.seed` | empty — worktrees are created bare, with nothing gitignored copied in and nothing run |
 | `consumers` | empty |
 
 ## Notes
@@ -213,6 +247,11 @@ models:                    models:                     models:
   no such agent kind each end the run with the reason. It starts nothing, installs nothing, and
   never silently degrades to a sequential `/jdi:prep`: a herd that quietly became one prep looks
   exactly like a herd that worked.
+- **`herd.seed` is the only thing that puts gitignored state into a worktree.** A worktree comes
+  from `origin/<default>`, so `.env` files, installed dependencies and local database names are
+  simply absent. Left empty, each agent works that out for itself, differently — and two agents
+  that settle on the same test database produce thousands of failures that read as a regression.
+  Put `{{n}}` in anything concurrent runs would share.
 - **`herd.args` is passed through, never composed.** JDI adds no flag of its own and translates
   none between agent kinds. A permission-bypass flag is therefore a value the user wrote down, not
   a mode JDI decided to enter on their behalf.

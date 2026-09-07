@@ -5,7 +5,7 @@
 **`/jdi:herd` preps a list of issues in parallel — one git worktree, one agent, one `/jdi:prep` each.**
 
 - New `/jdi:herd` command and a new optional `herd` block in `.jdi/config.yml` — `kind`,
-  `max_parallel`, `args` and `env`, every one of them defaulted. A repo that sets none of them, or
+  `max_parallel`, `args`, `env` and `seed`, every one of them defaulted. A repo that sets none of them, or
   omits the block entirely, is unaffected: no other command reads it, and nothing about an existing
   workflow changes because the command now exists.
 - **One worktree per issue, on a scratch branch.** Parallel preps in a single checkout would fight
@@ -20,6 +20,13 @@
   each end the run with that reason. `/jdi:herd` starts no server, installs nothing, and never
   degrades to a sequential `/jdi:prep`: a herd that quietly became one prep is indistinguishable
   from a herd that worked.
+- **`herd.seed` puts the gitignored state back.** A worktree comes from `origin/<default>`, so
+  `.env` files, installed dependencies and local database names are simply absent from it. Left
+  empty, each agent discovers that mid-run and repairs it differently — and two agents that settle
+  on the same test database manufacture thousands of failures that read as a regression in the
+  branch under test. `seed.copy`, `seed.set` and `seed.run` are declarative and infer nothing: JDI
+  never guesses that a repo is Rails, that `.env` exists, or which key names a database. `{{n}}`
+  expands to the worktree index, which is how a shared resource becomes a per-worktree one.
 - **`herd.args` and `herd.env` are pass-through.** JDI composes no flag and translates none between
   agent kinds, so a permission-bypass flag is a value the user wrote down rather than a mode JDI
   entered on their behalf. `env` is enough to run a herd under a different account or profile —
