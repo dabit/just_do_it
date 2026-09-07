@@ -72,6 +72,49 @@ models:
   standard: ""
   fast: ""
 
+# Optional. Read only by /jdi:herd. `kind` must be an installed Herdr agent
+# kind; `max_parallel` is a spend guard, since each agent is a full session.
+herd:
+  kind: claude
+  max_parallel: 3
+
+  # Arguments for the agent CLI itself, keyed by agent kind. Empty by default,
+  # and JDI never adds one of its own. This is where an unattended herd gets
+  # its permission-bypass flag — with approvals off, nothing reviews what the
+  # spawned agents do, so set it deliberately.
+  args: {}
+  # args:
+  #   claude: ["--dangerously-skip-permissions"]
+
+  # Environment for the pane each agent starts in — a different account,
+  # provider, or CLI configuration than this session runs under. Values are
+  # verbatim, so write absolute paths; a leading "~" stays a literal tilde.
+  env: {}
+  # env:
+  #   CLAUDE_CONFIG_DIR: /Users/you/.claude-other
+
+  # What goes into each worktree before its agent starts. A worktree is created
+  # from origin/<default>, so nothing gitignored reaches it — no .env, no
+  # installed dependency, no local database name. Applied copy -> set -> setup.
+  # A setup command that exits non-zero disqualifies that worktree: no agent is
+  # started for it, and the herd continues with the others.
+  #
+  # Placeholders: {{n}} (1-based worktree index), {{issue}}, {{issue_lower}},
+  # {{worktree}}, {{repo_root}}. Put {{n}} in anything concurrent runs would
+  # otherwise share: two worktrees on one test database produce thousands of
+  # failures that read as a regression in the branch under test.
+  seed: {}
+  # seed:
+  #   copy:
+  #     - apps/core/api/.env
+  #     - apps/core/frontend/.env
+  #   set:
+  #     apps/core/api/.env:
+  #       TEST_DATABASE: myapp_test_herd{{n}}
+  #   setup:
+  #     - npm ci --prefix apps/core/frontend
+  #     - cd apps/core/api && bin/rails db:test:prepare
+
 # Optional. Sibling repos or clients that consume this repo's public interfaces.
 # The Researcher sweeps these when a change alters an externally-consumed
 # contract, so "does a client need updating?" is never left unanswered.

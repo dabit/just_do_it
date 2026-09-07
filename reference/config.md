@@ -110,6 +110,77 @@ models:
   standard: ""    # splitting, condensing, PR writing
   fast: ""        # orchestration, status, commits
 
+# Optional. Read only by /jdi:herd, which preps several issues in parallel,
+# one Herdr worktree and agent per issue.
+herd:
+  # Herdr agent kind to start. Must be one of the kinds the installed Herdr
+  # reports on the `kinds:` line of `herdr agent`.
+  kind: claude
+
+  # How many issues one /jdi:herd run may start without asking again. Each
+  # agent is a full session with a real token cost, so this is a spend guard,
+  # not a technical limit.
+  max_parallel: 5
+
+  # Arguments handed to the agent CLI itself, after Herdr's `--` separator.
+  # Keyed by agent kind, because every CLI has its own flags. A kind with no
+  # entry starts with no arguments, and JDI never adds one of its own.
+  #
+  # This is where an unattended herd gets its permission-bypass flag. Approvals
+  # are what make a spawned agent stop and wait for you, so turning them off
+  # means nothing reviews what the agent does. The worktree isolates the branch
+  # and the working tree, and nothing else: same credentials, same network,
+  # same machine. Set it deliberately.
+  #
+  #   args:
+  #     claude: ["--dangerously-skip-permissions"]
+  args: {}
+
+  # Environment variables set on the pane each agent starts in. Use it to run
+  # the herd under a different account, provider, or CLI configuration than
+  # this session uses.
+  #
+  # Values are passed verbatim, so write absolute paths: a leading "~" arrives
+  # as a literal tilde and the variable then points nowhere.
+  #
+  #   env:
+  #     CLAUDE_CONFIG_DIR: /Users/you/.claude-other
+  env: {}
+
+  # What to put into each new worktree before its agent starts. A worktree is
+  # created from origin/<default>, so nothing gitignored reaches it: no .env,
+  # no installed dependency, no local database name. Everything here is
+  # optional, and an empty block seeds nothing.
+  #
+  # Applied per worktree in the order copy -> set -> setup, from JDI's own shell
+  # with the worktree as the working directory — never in the pane the agent
+  # is about to claim.
+  #
+  # Placeholders, substituted in every `set` value and every `setup` command:
+  #   {{n}}            the worktree's 1-based index in this herd
+  #   {{issue}}        the issue ID, e.g. JUT-3073
+  #   {{issue_lower}}  the same, lowercased
+  #   {{worktree}}     absolute path to the new worktree
+  #   {{repo_root}}    absolute path to the checkout /jdi:herd ran in
+  #
+  # Use {{n}} for anything concurrent runs would otherwise share — a test
+  # database, a port, a cache directory, a container name. Two worktrees on
+  # one test database produce thousands of failures that read as a regression
+  # in the branch under test.
+  #
+  #   seed:
+  #     copy:                              # paths relative to the repo root,
+  #       - apps/core/api/.env             # copied from this checkout; a path
+  #       - apps/core/frontend/.env        # absent here is skipped, not an error
+  #     set:                               # dotenv-style key replacement, after copy
+  #       apps/core/api/.env:
+  #         TEST_DATABASE: jute_testing_herd{{n}}
+  #     setup:                             # cwd is the worktree root; a non-zero
+  #       - npm ci --prefix apps/core/frontend   # exit disqualifies that
+  #       - cd apps/core/api && bin/rails db:test:prepare   # worktree: no agent
+  #                                                        # is started for it
+  seed: {}
+
 # Optional. Sibling repositories or client codebases that consume this repo's
 # public interfaces (APIs, webhooks, tool surfaces, published packages). The
 # Researcher sweeps these when a change alters an externally-consumed contract,
@@ -144,6 +215,11 @@ models:                    models:                     models:
 | `docs.path` | `doc` |
 | `git.default_branch` | `auto` |
 | `models.*` | empty — every tier runs on the session's own model |
+| `herd.kind` | `claude` |
+| `herd.max_parallel` | `5` |
+| `herd.args` | empty — spawned agents start with no CLI arguments, so approvals stay on |
+| `herd.env` | empty — spawned agents inherit the environment Herdr gives a new pane |
+| `herd.seed` | empty — worktrees are created bare, with nothing gitignored copied in and nothing run |
 | `consumers` | empty |
 
 ## Notes
@@ -165,6 +241,21 @@ models:                    models:                     models:
   `enabled: false` is never turned on because a test folder happens to exist: running "on" against
   a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
   TDD at all.
+- **`herd` is read by `/jdi:herd` and by nothing else.** No other command changes behaviour because
+  the block exists, and a repo without Herdr never reaches a line that reads it. The whole block is
+  optional, and every key in it has a working default.
+- **`/jdi:herd` validates Herdr and stops; it never repairs.** No server, no binary, no socket, or
+  no such agent kind each end the run with the reason. It starts nothing, installs nothing, and
+  never silently degrades to a sequential `/jdi:prep`: a herd that quietly became one prep looks
+  exactly like a herd that worked.
+- **`herd.seed` is the only thing that puts gitignored state into a worktree.** A worktree comes
+  from `origin/<default>`, so `.env` files, installed dependencies and local database names are
+  simply absent. Left empty, each agent works that out for itself, differently — and two agents
+  that settle on the same test database produce thousands of failures that read as a regression.
+  Put `{{n}}` in anything concurrent runs would share.
+- **`herd.args` is passed through, never composed.** JDI adds no flag of its own and translates
+  none between agent kinds. A permission-bypass flag is therefore a value the user wrote down, not
+  a mode JDI decided to enter on their behalf.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

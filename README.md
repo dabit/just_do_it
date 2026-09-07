@@ -164,7 +164,7 @@ until you reinstall. The OpenCode sync has no such gate — it copies every time
 ## Set up a repository
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, and the docs folder
+/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, the docs folder, and — with Herdr installed — the herd defaults
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -172,7 +172,8 @@ more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
-should write tests first (TDD), where plans should live, and where architecture docs live. It
+should write tests first (TDD), where plans should live, where architecture docs live, and — only
+where Herdr is installed — the defaults a parallel herd runs under. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
@@ -215,6 +216,35 @@ Nothing about the history changes: tests and implementation still land in the sa
 task, and only the order they are written in is different. A task with no testable behaviour —
 documentation, prose, configuration — gets an announced skip rather than an invented test.
 
+### Preparing several issues at once
+
+`/jdi:herd ENG-1 ENG-2 ENG-3` preps a list of existing issues in parallel, and it needs
+[Herdr](https://herdr.dev) — a terminal multiplexer that starts, names, and reads coding agents in
+its panes. Each issue gets its **own git worktree** and its own agent running `/jdi:prep`, so the
+runs never share a branch or a working tree. The command sets the work up and hands it off: no
+research, no planning, no code.
+
+The `herd` block in `.jdi/config.yml` is optional and fully defaulted. `kind` names the agent to
+start, `max_parallel` is a spend guard rather than a technical limit, `args` passes flags to the
+agent CLI itself, keyed by kind, and `env` sets the environment each agent starts in — enough to
+run the herd under a different account or profile than the session that launched it.
+
+`seed` is what puts the gitignored state back. A worktree is created from `origin/<default>`, so
+nothing gitignored reaches it — no `.env`, no installed dependency, no local database name. Left
+empty, every agent works that out mid-run and fixes it differently, and two that settle on the
+same test database manufacture thousands of failures that read as a regression in the branch under
+test. `seed.copy` names files to copy in from your checkout, `seed.set` rewrites keys in a dotenv
+file, and `seed.setup` runs the commands that finish the tree — a failing one takes that issue
+out of the herd rather than handing an agent a half-built worktree. `{{n}}` expands to the worktree index, which is
+how a shared resource becomes a per-worktree one. JDI infers none of it: it never guesses that a
+repo is Rails, that `.env` exists, or which key names a database.
+
+Herdr is validated before anything is created — the pane, the binary, the server socket, and the
+agent kind — and a failure ends the run with the reason. `/jdi:herd` repairs nothing and never
+degrades to a sequential `/jdi:prep`. It is a setup command, not a supervisor: a spawned agent that
+stops to ask you something holds its turn and cannot call for help, so the command offers to poll
+them and report which one is waiting, and says what it created so you can clean it up.
+
 ## Use it
 
 ```sh
@@ -240,7 +270,7 @@ Command names above use the Claude Code prefix; substitute your harness's from t
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 16 workflow commands. Each one is written to the orchestrator |
+| `commands/` | The 17 workflow commands. Each one is written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |

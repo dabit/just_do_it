@@ -22,6 +22,7 @@ The commands are:
 | `commands/init.md` | Set JDI up for a repo — writes `.jdi/config.yml` |
 | `commands/help.md` | Print the workflow's command table and flow |
 | `commands/prep.md` | Start, research, plan, and split in one pass |
+| `commands/herd.md` | Prep several issues in parallel, one Herdr worktree and agent each |
 | `commands/start.md` | Create the branch and the initial plan |
 | `commands/research.md` | Find or write the architecture docs for the area |
 | `commands/plan.md` | Write the implementation plan |

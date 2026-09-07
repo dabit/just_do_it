@@ -1,5 +1,56 @@
 # Changelog
 
+## 1.0.5
+
+**`/jdi:herd` seeds each worktree before its agent starts.**
+
+- **New optional `herd.seed` block.** A herd worktree is created from `origin/<default>`, so nothing
+  gitignored reaches it: no `.env`, no installed dependency, no local database name. Left to find
+  that out mid-run, each agent repairs it differently — and on the run that prompted this, two
+  agents settled on the same test database and manufactured 4,006 then 5,040 phantom failures that
+  read as a regression in the branch under test.
+- **Three keys, applied per worktree as `copy` → `set` → `setup`.** `copy` brings gitignored files
+  in from the checkout `/jdi:herd` ran in; `set` rewrites keys inside a dotenv-style file, after the
+  copy, so it never touches your original; `setup` runs the commands that finish the tree. They run
+  from JDI's own shell rather than the pane `agent start` is about to claim.
+- **`{{n}}` is how a shared resource becomes a per-worktree one.** It expands to the worktree's
+  index, and substitutes into every `set` value and every `setup` command, alongside `{{issue}}`,
+  `{{issue_lower}}`, `{{worktree}}` and `{{repo_root}}`.
+- **A failing `setup` command fails closed.** The remaining commands are skipped, no agent is
+  started for that worktree, and the issue is reported with the command and its exit status. The
+  rest of the herd continues: an agent turned loose in a half-built worktree flounders on a missing
+  dependency or database and reports the wreckage as a finding about the branch.
+- **It infers nothing.** JDI never guesses that a repo is Rails, that `.env` exists, or which key
+  names a database. An absent or empty block behaves exactly as 1.0.4 did.
+- The report now says what was seeded, so an unseeded herd is visible rather than assumed, and the
+  cleanup step notes that a seeded worktree is dirty and needs `--force` to remove.
+
+## 1.0.4
+
+**`/jdi:herd` preps a list of issues in parallel — one git worktree, one agent, one `/jdi:prep` each.**
+
+- New `/jdi:herd` command and a new optional `herd` block in `.jdi/config.yml` — `kind`,
+  `max_parallel`, `args` and `env`, every one of them defaulted. A repo that sets none of them, or
+  omits the block entirely, is unaffected: no other command reads it, and nothing about an existing
+  workflow changes because the command now exists.
+- **One worktree per issue, on a scratch branch.** Parallel preps in a single checkout would fight
+  over the branch `/jdi:prep` creates at its step 6. The scratch branch deliberately does **not**
+  name the issue, because `/jdi:prep` keeps a branch that already names the work — a scratch branch
+  carrying the issue ID would be adopted, and the plan would lose its **T6** slug.
+- **It sets work up; it does not supervise it.** A spawned agent that stops at a question holds its
+  turn and runs no tools, so it cannot call for help at the moment help is needed. The command
+  offers a poll instead, reports which agent is waiting and what it asked, and names every worktree,
+  workspace and scratch branch it created so they can be cleaned up.
+- **Validates, never repairs.** No Herdr pane, no binary, no server socket, or no such agent kind
+  each end the run with that reason. `/jdi:herd` starts no server, installs nothing, and never
+  degrades to a sequential `/jdi:prep`: a herd that quietly became one prep is indistinguishable
+  from a herd that worked.
+- **`herd.args` and `herd.env` are pass-through.** JDI composes no flag and translates none between
+  agent kinds, so a permission-bypass flag is a value the user wrote down rather than a mode JDI
+  entered on their behalf. `env` is enough to run a herd under a different account or profile —
+  which also means the agents read *that* profile's settings, plugins and credentials, and JDI must
+  be installed there for `/jdi:prep` to exist at all.
+
 ## 1.0.3
 
 **Opt in and the Executor writes the failing test first — once the suite has been watched to run.**

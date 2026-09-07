@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, and where plans and docs live."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, where plans and docs live, and, where Herdr is installed, the herd defaults."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -109,16 +109,25 @@ Follow these steps:
    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
    sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-10. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+10. **Ask about the herd — only if Herdr is installed** — `/jdi:herd` preps several issues at once,
+    one worktree and one agent each, and it runs only under [Herdr](https://herdr.dev). Run
+    `command -v herdr`. **Skip this question entirely when that finds nothing**, write no `herd`
+    block, and do not mention it: a question about a tool the machine does not have cannot be
+    meaningfully answered. Where Herdr is present, ask which agent kind to start (offer the
+    `kinds:` line from `herdr agent`) and how many issues one run may start without asking again.
+    Leave `args` and `env` unset unless the user raises them — both are pass-through, and a flag
+    JDI proposed is a flag nobody chose.
+
+11. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
     the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
     empty scaffolding.
 
-11. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+12. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own
     `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
     states them and the user told you what they are, offer to add them there. Do not write to those
     files without saying you are about to.
 
-12. **Report and point at the next step** — Show the config you wrote, name anything you
+13. **Report and point at the next step** — Show the config you wrote, name anything you
     deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
     `/jdi:help` for the tour.
