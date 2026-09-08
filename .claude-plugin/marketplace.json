@@ -7,7 +7,7 @@
     {
       "name": "jdi",
       "description": "A structured, agent-driven dev workflow: idea to research to plan to tasks to code to PR. Tracker- and plan-store-agnostic.",
-      "version": "1.0.4.1",
+      "version": "1.0.5",
       "author": { "name": "David Padilla" },
       "source": "./",
       "category": "workflow",

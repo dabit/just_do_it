@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.4.1
+## 1.0.5
 
 **The pair can talk to each other — in a shape that cannot be waffled.**
 
