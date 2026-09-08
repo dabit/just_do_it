@@ -13,6 +13,7 @@ pipe is present. Where the value is `|` or `>`, this module asserts the next
 line instead.
 """
 
+import re
 import unittest
 
 import jdi_files
@@ -95,6 +96,44 @@ class FrontmatterTest(unittest.TestCase):
                     "%s has frontmatter but no body; there is nothing for an agent to follow"
                     % path,
                 )
+
+
+class SkillFrontmatterTest(unittest.TestCase):
+    def test_run_is_the_only_bundled_skill(self):
+        self.assertEqual(
+            jdi_files.skill_files(),
+            ["skills/run/SKILL.md"],
+            "the Codex package must expose exactly one bundled dispatcher skill",
+        )
+
+    def test_run_skill_has_valid_matching_frontmatter_and_body(self):
+        path = "skills/run/SKILL.md"
+        self.assertIn(
+            path,
+            jdi_files.skill_files(),
+            "%s is missing; the jdi:run dispatcher cannot be discovered" % path,
+        )
+        split = jdi_files.split_frontmatter(jdi_files.read(path))
+        self.assertIsNotNone(split, "%s has no well-formed frontmatter" % path)
+        frontmatter, body = split
+        scalars = jdi_files.frontmatter_scalars(frontmatter)
+        self.assertEqual(
+            set(scalars),
+            {"name", "description"},
+            "%s should use only the required Agent Skills frontmatter" % path,
+        )
+        name = scalars["name"]
+        self.assertEqual(name, "run")
+        self.assertEqual(name, path.split("/")[-2], "skill name must match its directory")
+        self.assertRegex(name, r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+        self.assertLessEqual(len(name), 64)
+        description = scalars["description"]
+        self.assertTrue(description.strip(), "skill description is empty")
+        self.assertLessEqual(len(description), 1024)
+        self.assertRegex(description, re.compile(r"\bJDI\b", re.IGNORECASE))
+        self.assertRegex(description, re.compile(r"\bworkflow\b", re.IGNORECASE))
+        self.assertRegex(description, re.compile(r"\bdispatch", re.IGNORECASE))
+        self.assertTrue(body.strip(), "%s has no dispatcher instructions" % path)
 
 
 if __name__ == "__main__":

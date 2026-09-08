@@ -25,19 +25,21 @@ the results, and decides when to hand off. Every JDI command is written to the B
 
 ## How to delegate
 
+Delegation follows observed runtime capability, not the harness name.
+
 When a command says *"delegate to the **Planner** role at the **deep** tier"*, do whichever of
 these the current harness supports, in this order:
 
-**1. The harness has first-class subagents** (Claude Code's Agent tool, OpenCode's subagent mode).
-Spawn one, using the role's definition file as its instructions and the tier's model from the
-config. Pass it exactly the inputs the role's *What it receives* section lists — no more. This is
-the preferred path: the role gets a clean context window, and the orchestrator's context is not
-flooded by the role's reading.
+**1. The harness has first-class subagents** (Claude Code's Agent tool, Codex subagents, OpenCode's
+subagent mode). Prefer a matching JDI role already registered by the harness — `jdi:researcher`,
+`jdi-researcher`, or similar — because its instructions are already loaded. Spawn it using the
+tier's model from the config.
 
-Most harnesses register the files in `agents/` as agent types of their own, under a name that
-matches the role — `jdi:researcher`, `jdi-researcher`, or similar. **If one is already registered,
-spawn that** rather than re-reading the definition file into a generic subagent: the harness has
-already loaded the role's instructions, and passing them twice is waste.
+When no matching JDI role is registered, spawn a suitable generic subagent and give it the
+installed `agents/<role>.md` definition as its instructions, the tier's model from the config, and
+exactly the inputs the role's *What it receives* section declares — no more. This remains the
+preferred path: the role gets a clean context window, and the orchestrator's context is not flooded
+by the role's reading.
 
 **2. The harness has no subagents, but can run a second session** (a CLI you can invoke
 non-interactively). Shell out to it with the role file and the inputs as the prompt, and read back
@@ -52,6 +54,10 @@ Path 3 is a first-class fallback, not a failure. It costs a shared context windo
 tier separation; it keeps every other property of the workflow. **Do not silently skip a role
 because delegation is unavailable** — a phase that never ran is the failure, not the mechanism it
 ran through.
+
+Subagents and fallback sessions stay inside the active sandbox, approval policy, and authorization
+boundaries. Delegation never grants additional authority. Any external mutation must still be
+allowed by the active command and the Butler's rules.
 
 ## Tiers
 

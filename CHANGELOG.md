@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.4
+
+**JDI now installs as a native Codex skill without changing its Claude Code or OpenCode workflows.**
+
+- Codex discovers the bundled `jdi:run` skill through `/skills` and `$` completion. Its supported
+  interface is `$jdi:run <command> [arguments]`; invoking `$jdi:run` without a command runs help.
+- **Dispatch fails closed.** The skill accepts only the exact canonical command allowlist, rejects
+  unknown and path-like tokens before constructing a path or mutating the working repository, and
+  resolves commands, roles, agents, and references from the installed plugin snapshot rather than
+  the user's current repository or the original marketplace checkout.
+- **Arguments stay opaque.** Every original `$ARGUMENTS` occurrence in a canonical command body is
+  replaced globally, literally, and exactly once. Whitespace and punctuation are preserved, and
+  replacement text is never rescanned, including commands such as `feedback` with two occurrences.
+- Codex delegation follows observed capability: use an available matching or generic subagent with
+  the installed role instructions and exactly its declared inputs, then a second non-interactive
+  session or announced inline adoption when subagents are unavailable.
+- Existing Claude Code `/jdi:<command>` and OpenCode `/jdi-<command>` interfaces are unchanged. The
+  Codex manifest and dispatcher are additive; canonical `commands/*.md` remain the sole source of
+  workflow behavior for every harness.
+
 ## 1.0.3
 
 **Opt in and the Executor writes the failing test first — once the suite has been watched to run.**
