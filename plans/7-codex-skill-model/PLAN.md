@@ -235,4 +235,4 @@ Additional dispatcher UAT:
 - [x] 02 — Make delegation and manual substitution guidance capability-based (depends on: 01)
 - [x] 03 — Document the supported Codex interface (depends on: 01)
 - [x] 04 — Release the adapter with synchronized metadata (depends on: 01, 02, 03)
-- [ ] 05 — UAT the installed adapter across harnesses (depends on: 01, 02, 03, 04)
+- [x] 05 — UAT the installed adapter across harnesses (depends on: 01, 02, 03, 04)

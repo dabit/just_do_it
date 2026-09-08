@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 05 — UAT the installed adapter across harnesses
 
 Depends on: 01, 02, 03, 04
@@ -168,6 +168,32 @@ visible in a natural-language TUI. Their structural tests prove the shipped inst
 compliance. Any clause lacking runtime observability must remain explicitly unverified in the PR's
 UAT record and be repeated in the next release-qualification run on a host exposing the needed
 trace; it must not be silently upgraded to passed.
+
+## Results
+
+Agent-run smoke test on 2026-09-08:
+
+- **PASS:** Codex CLI 0.151.0 installed `jdi@just-do-it` 1.0.4 into an isolated home. The cached
+  snapshot contained the native manifest, `skills/run/SKILL.md`, all 16 commands, all seven agents,
+  the Butler, and all five reference files.
+- **PASS:** OpenCode 1.18.25 global and project syncs retained 16 commands and seven agents,
+  project-mode paths remained portable, Codex packaging was not copied, and `/jdi-help` produced
+  canonical help in both modes.
+- **PASS:** Manual zero/one/multiple-placeholder substitution preserved introduced literal
+  `$ARGUMENTS` text under the global, literal, single-pass rule.
+- **PASS:** `python3 -m unittest discover -s tests -v` ran 47 tests successfully;
+  `claude plugin validate .` and `git diff --check` also passed.
+- **UNVERIFIED:** Fresh Codex `/skills`, `$` completion, help, prep, rejection, root-isolation, and
+  delegation behavior could not run because the isolated home was unauthenticated; non-interactive
+  attempts stopped at HTTP 401 before model dispatch.
+- **UNVERIFIED:** Claude `/jdi:help` could not execute in the isolated unauthenticated configuration.
+  Plugin installation succeeded and reported 17 skills (16 commands plus additive `run`) and seven
+  agents, proving package inventory but not live command behavior.
+- **UNVERIFIED:** Exact hidden child inputs, byte-for-byte payload receipt, and pre-read ordering
+  were not observable. Structural tests are mechanism evidence only, not a live pass.
+
+No implementation failure was observed. The unverified clauses must be repeated during PR user
+acceptance from authenticated Codex and Claude sessions.
 
 ## Files
 - No implementation files
