@@ -237,5 +237,87 @@ class ManualInvocationGuidanceTest(unittest.TestCase):
         )
 
 
+class ReadmeCodexDocumentationTest(unittest.TestCase):
+    def setUp(self):
+        self.readme = jdi_files.read("README.md")
+
+    def normalized_section(self, heading):
+        return " ".join("\n".join(jdi_files.section(self.readme, heading)).split())
+
+    def test_harness_table_uses_jdi_run_and_preserves_other_harnesses(self):
+        install = self.normalized_section("## Install")
+        self.assertIn(
+            "| Codex | `$jdi:run <command> [arguments]` | supplied by the plugin and skill names |",
+            install,
+        )
+        self.assertIn("| Claude Code | `/jdi:prep`, `/jdi:yolo`, … |", install)
+        self.assertIn("| OpenCode | `/jdi-prep`, `/jdi-yolo`, … |", install)
+
+    def test_install_requires_a_fresh_session_and_skill_discovery(self):
+        codex = self.normalized_section("### Codex")
+        self.assertIn("start a fresh Codex session", codex)
+        self.assertIn("`/skills` lists `jdi:run`", codex)
+        self.assertIn("Type `$`", codex)
+        self.assertIn("complete `jdi:run`", codex)
+
+    def test_examples_cover_default_help_prep_yolo_and_pr(self):
+        usage_lines = jdi_files.section(self.readme, "## Use it")
+        usage = self.normalized_section("## Use it")
+        for example in (
+            "$jdi:run",
+            "$jdi:run help",
+            "$jdi:run prep 4",
+            "$jdi:run yolo",
+            "$jdi:run pr",
+        ):
+            with self.subTest(example=example):
+                self.assertIn(example, usage_lines)
+        self.assertIn("/jdi:prep", usage)
+        self.assertIn("/jdi:yolo", usage)
+        self.assertIn("/jdi:pr", usage)
+        self.assertIn("/jdi-help", usage)
+
+    def test_codex_does_not_claim_bare_jdi_or_custom_slash_commands(self):
+        codex = self.normalized_section("### Codex")
+        self.assertNotIn("`$jdi`", codex)
+        self.assertNotIn("$jdi:prep", codex)
+        self.assertNotIn("$jdi:yolo", codex)
+        self.assertNotIn("Type `/`", codex)
+        self.assertNotIn("commands it registered", codex)
+        self.assertIn(
+            "The canonical `commands/*.md` files do not register as arbitrary Codex custom slash commands.",
+            codex,
+        )
+
+    def test_scope_snapshot_and_capability_delegation_are_accurate(self):
+        codex = self.normalized_section("### Codex")
+        updating = self.normalized_section("### Updating")
+        roles = self.normalized_section("### Roles and tiers, not agents and models")
+        self.assertIn("no project scope", codex)
+        self.assertIn("for the whole machine", codex)
+        self.assertIn("installed snapshot", updating)
+        self.assertIn("`git pull` does not refresh that cached copy", updating)
+        self.assertIn("Delegation follows observed runtime capability", roles)
+        self.assertIn("a suitable generic subagent", roles)
+        self.assertIn("adopt the role inline and announce the switch", roles)
+
+    def test_structure_lists_manifest_and_run_skill(self):
+        structure = self.normalized_section("## How it is put together")
+        self.assertIn("| `.codex-plugin/plugin.json` |", structure)
+        self.assertIn("| `skills/run/SKILL.md` |", structure)
+
+    def test_release_guidance_names_every_version_authority(self):
+        updating = self.normalized_section("### Updating")
+        for authority in (
+            ".claude-plugin/plugin.json",
+            ".codex-plugin/plugin.json",
+            ".claude-plugin/marketplace.json",
+            "newest `CHANGELOG.md` heading",
+        ):
+            with self.subTest(authority=authority):
+                self.assertIn(authority, updating)
+        self.assertIn("all four version authorities must match", updating)
+
+
 if __name__ == "__main__":
     unittest.main()

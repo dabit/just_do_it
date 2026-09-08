@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 03 — Document the supported Codex interface
 
 Depends on: 01

@@ -21,13 +21,13 @@ First, get the code. Everything below assumes this path — substitute your own 
 git clone <this-repo-url> ~/git/just_do_it
 ```
 
-Claude Code and Codex both read the plugin format directly from that checkout, so there is nothing
-to build. OpenCode has no plugin loader and gets a synced copy instead.
+Claude Code and Codex can install the plugin directly from that checkout, so there is nothing to
+build. OpenCode has no plugin loader and gets a synced copy instead.
 
 | Harness | You type | Prefix |
 |---|---|---|
 | Claude Code | `/jdi:prep`, `/jdi:yolo`, … | supplied by the plugin name |
-| Codex | the JDI commands, discoverable with `/` in the TUI | supplied by Codex |
+| Codex | `$jdi:run <command> [arguments]` | supplied by the plugin and skill names |
 | OpenCode | `/jdi-prep`, `/jdi-yolo`, … | added by the sync script |
 
 ### Choosing a scope
@@ -79,23 +79,31 @@ table. The seven roles register as spawnable agents — `jdi:researcher`, `jdi:p
 
 ### Codex
 
-Codex consumes the same plugin manifest:
+Codex consumes the same marketplace entry and the native Codex manifest bundled with the plugin:
 
 ```sh
 codex plugin marketplace add ~/git/just_do_it
 codex plugin add jdi@just-do-it
 ```
 
-Verify: `codex plugin list` shows `jdi@just-do-it` installed and enabled. Type `/` in the Codex TUI
-to see the commands it registered — Codex owns the naming, so check the list rather than assuming a
-prefix.
+After installing or refreshing JDI, start a fresh Codex session. Verify that `codex plugin list`
+shows `jdi@just-do-it` installed and enabled, then check that `/skills` lists `jdi:run`. Type `$` and
+complete `jdi:run` to select it. The supported invocation is `$jdi:run <command> [arguments]`;
+invoking `$jdi:run` with no command runs help.
+
+The canonical `commands/*.md` files do not register as arbitrary Codex custom slash commands. They
+remain the source of workflow behavior, and the single `jdi:run` skill validates the command name
+and dispatches to the selected file.
 
 Codex has **no project scope**: `codex plugin add` takes no `--scope`, and the install is recorded
 in `~/.codex/config.toml` for the whole machine. A repo that wants JDI available to Codex users
 should say so in its own `AGENTS.md` and point at the install commands above.
 
-Codex has no subagents, so the roles are adopted inline instead of spawned. That path is designed
-for, not tolerated: every phase still runs, sharing one context window. See
+Delegation follows the capabilities available in the current Codex session. When subagents are
+enabled, an already registered matching role can be used; otherwise a suitable generic subagent
+receives the installed `agents/<role>.md` instructions and exactly the inputs that role declares.
+If subagents are unavailable, JDI uses a second non-interactive session when possible, or the main
+session will adopt the role inline and announce the switch. Every phase still runs. See
 `reference/delegation.md`.
 
 ### OpenCode
@@ -138,7 +146,8 @@ See `AGENTS.md`. JDI is markdown with no harness machinery in the command bodies
 
 ### Updating
 
-All three install a **copy**, so `git pull` here does not update them:
+Each adapter has an update step. A `git pull` alone does not refresh the Claude Code or Codex
+installed snapshots or regenerate OpenCode's command and agent copies:
 
 ```sh
 cd ~/git/just_do_it && git pull
@@ -148,10 +157,16 @@ codex plugin add jdi@just-do-it         # Codex — re-adding refreshes the snap
 ./bin/sync-opencode.sh                  # OpenCode (add --project, from the repo, for that scope)
 ```
 
+Codex runs the installed snapshot. Re-adding the plugin refreshes it; `git pull` does not refresh
+that cached copy by itself. After a refresh, start a fresh Codex session so skill discovery uses the
+new snapshot.
+
 **`claude plugin update` compares versions, not content.** It reports "already at the latest
 version" and does nothing if `version` in `.claude-plugin/plugin.json` has not moved — so editing a
-JDI prompt and pulling is not enough. Either bump the version in `plugin.json` **and**
-`marketplace.json` (they must match), or reinstall:
+JDI prompt and pulling is not enough. For a release, `.claude-plugin/plugin.json`,
+`.codex-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and the newest `CHANGELOG.md` heading
+together are all four version authorities; all four version authorities must match. For an
+unpublished local change, reinstall instead:
 
 ```sh
 claude plugin uninstall jdi@just-do-it && claude plugin install jdi@just-do-it
@@ -162,6 +177,9 @@ own `.claude/`, an installed plugin's prompts are a cached copy, and the edit do
 until you reinstall. The OpenCode sync has no such gate — it copies every time.
 
 ## Set up a repository
+
+This section uses Claude Code command spellings. For the first command, Codex uses `$jdi:run init`
+and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
 /jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, and the docs folder
@@ -217,13 +235,35 @@ documentation, prose, configuration — gets an announced skip rather than an in
 
 ## Use it
 
+Claude Code:
+
 ```sh
 /jdi:prep "Add presence indicators to pages"   # research + plan + split, in one pass
 /jdi:yolo                                      # execute every task, stopping on a real failure
 /jdi:pr                                        # condense the plan, push, open the PR
 ```
 
-Or one phase at a time, stopping wherever you like:
+Codex uses one dispatcher skill. The first form defaults to help; the second requests help
+explicitly:
+
+```text
+$jdi:run
+$jdi:run help
+$jdi:run prep 4
+$jdi:run yolo
+$jdi:run pr
+```
+
+OpenCode:
+
+```text
+/jdi-prep "Add presence indicators to pages"
+/jdi-yolo
+/jdi-pr
+/jdi-help
+```
+
+In Claude Code, run one phase at a time and stop wherever you like:
 
 ```
 /jdi:start → /jdi:research → /jdi:plan → /jdi:split → /jdi:execute ⇄ /jdi:done → /jdi:pr
@@ -233,16 +273,18 @@ Or one phase at a time, stopping wherever you like:
 critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`
 and `/jdi:reresearch` throw a phase away and redo it.
 
-Command names above use the Claude Code prefix; substitute your harness's from the table in
-**Install**.
+The three harnesses use the distinct interfaces shown above and in **Install**. Claude Code keeps
+`/jdi:<command>`, OpenCode keeps `/jdi-<command>`, and Codex passes the command after `$jdi:run`.
 
 ## How it is put together
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 16 workflow commands. Each one is written to the orchestrator |
+| `commands/` | The 16 workflow commands. These canonical files are written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
+| `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |
+| `skills/run/SKILL.md` | The Codex `$jdi:run` dispatcher; command behavior stays in `commands/*.md` |
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
@@ -262,11 +304,15 @@ python3 -m unittest discover -s tests -v
 ### Roles and tiers, not agents and models
 
 Commands say *"delegate to the **Planner** role at the **deep** tier"*. What that becomes depends on
-the harness:
+the capabilities observed in the current session. Delegation follows observed runtime capability,
+not a fixed assumption about the harness:
 
-- **Subagents available** → spawn one with the role file as its instructions.
-- **No subagents** → adopt the role inline: read the file, announce the switch, follow it for the
-  phase, then return to orchestrator voice.
+- **A matching role is registered** → spawn it with exactly the inputs its role definition declares.
+- **Generic subagents are available** → spawn a suitable generic subagent with the installed role
+  file as its instructions and exactly its declared inputs.
+- **No subagents are available** → use a second non-interactive session where possible; otherwise
+  adopt the role inline and announce the switch, follow it for the phase, then return to
+  orchestrator voice.
 
 Three tiers — **deep** (research, planning, implementation, review), **standard** (splitting,
 condensing, PR writing), **fast** (orchestration, status, commits) — map to real models in
