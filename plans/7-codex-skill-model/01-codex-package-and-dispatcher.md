@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 01 — Add the Codex package and safe dispatcher
 
 Depends on: None

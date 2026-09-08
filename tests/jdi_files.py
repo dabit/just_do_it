@@ -32,6 +32,14 @@ def markdown_files(directory):
     )
 
 
+def skill_files():
+    """Every bundled `skills/*/SKILL.md`, relative to the repository root, sorted."""
+    return sorted(
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "skills").glob("*/SKILL.md")
+    )
+
+
 def split_frontmatter(text):
     """Split a command or role file into (frontmatter lines, body text).
 
@@ -45,6 +53,47 @@ def split_frontmatter(text):
         if lines[index].rstrip() == "---":
             return lines[1:index], "\n".join(lines[index + 1 :])
     return None
+
+
+_FRONTMATTER_SCALAR = re.compile(
+    r"^(?P<key>[A-Za-z0-9_.\-]+):\s*(?P<value>.*?)\s*$"
+)
+
+
+def frontmatter_scalars(lines):
+    """Return the simple, top-level scalar values in frontmatter.
+
+    Skills only need plain `name` and `description` scalars. Keeping this parser
+    deliberately small preserves the suite's dependency-free character and
+    makes unsupported YAML fail rather than pretending to parse it.
+    """
+    scalars = {}
+    for number, line in enumerate(lines, start=1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if line[:1].isspace():
+            raise ValueError(
+                "line %d is indented; frontmatter_scalars only reads top-level scalars: %r"
+                % (number, line)
+            )
+        match = _FRONTMATTER_SCALAR.match(line)
+        if not match:
+            raise ValueError(
+                "line %d is not a simple frontmatter scalar: %r" % (number, line)
+            )
+        key = match.group("key")
+        value = match.group("value")
+        if value in ("|", ">") or value[:1] in ("|", ">"):
+            raise ValueError(
+                "line %d uses a block scalar; frontmatter_scalars does not support it: %r"
+                % (number, line)
+            )
+        if key in scalars:
+            raise ValueError("line %d repeats frontmatter key %r" % (number, key))
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        scalars[key] = value
+    return scalars
 
 
 _KEY = re.compile(r"^(?P<indent> *)(?P<key>[A-Za-z0-9_.\-]+):(?: .*)?$")
@@ -161,6 +210,16 @@ def defaults_table_keys():
 def plugin_version():
     """The version in `.claude-plugin/plugin.json`."""
     return json.loads(read(".claude-plugin/plugin.json"))["version"]
+
+
+def codex_manifest():
+    """The parsed native Codex plugin manifest."""
+    return json.loads(read(".codex-plugin/plugin.json"))
+
+
+def codex_plugin_version():
+    """The version in `.codex-plugin/plugin.json`."""
+    return codex_manifest()["version"]
 
 
 def marketplace_version():

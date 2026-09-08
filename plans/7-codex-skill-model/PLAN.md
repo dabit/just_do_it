@@ -231,7 +231,7 @@ Additional dispatcher UAT:
 
 ## Tasks
 
-- [ ] 01 — Add the Codex package and safe dispatcher (depends on: none)
+- [x] 01 — Add the Codex package and safe dispatcher (depends on: none)
 - [ ] 02 — Make delegation and manual substitution guidance capability-based (depends on: 01)
 - [ ] 03 — Document the supported Codex interface (depends on: 01)
 - [ ] 04 — Release the adapter with synchronized metadata (depends on: 01, 02, 03)
