@@ -234,5 +234,5 @@ Additional dispatcher UAT:
 - [x] 01 — Add the Codex package and safe dispatcher (depends on: none)
 - [x] 02 — Make delegation and manual substitution guidance capability-based (depends on: 01)
 - [x] 03 — Document the supported Codex interface (depends on: 01)
-- [ ] 04 — Release the adapter with synchronized metadata (depends on: 01, 02, 03)
+- [x] 04 — Release the adapter with synchronized metadata (depends on: 01, 02, 03)
 - [ ] 05 — UAT the installed adapter across harnesses (depends on: 01, 02, 03, 04)

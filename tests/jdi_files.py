@@ -222,9 +222,14 @@ def codex_plugin_version():
     return codex_manifest()["version"]
 
 
+def marketplace_manifest():
+    """The parsed Claude-compatible plugin marketplace catalog."""
+    return json.loads(read(".claude-plugin/marketplace.json"))
+
+
 def marketplace_version():
     """The version the marketplace records for the `jdi` plugin."""
-    marketplace = json.loads(read(".claude-plugin/marketplace.json"))
+    marketplace = marketplace_manifest()
     for plugin in marketplace["plugins"]:
         if plugin["name"] == "jdi":
             return plugin["version"]

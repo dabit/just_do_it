@@ -1,13 +1,13 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "just-do-it",
-  "description": "The Just Do It (JDI) engineering workflow for Claude Code",
+  "description": "The Just Do It (JDI) engineering workflow across agent harnesses",
   "owner": { "name": "David Padilla" },
   "plugins": [
     {
       "name": "jdi",
       "description": "A structured, agent-driven dev workflow: idea to research to plan to tasks to code to PR. Tracker- and plan-store-agnostic.",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": { "name": "David Padilla" },
       "source": "./",
       "category": "workflow",

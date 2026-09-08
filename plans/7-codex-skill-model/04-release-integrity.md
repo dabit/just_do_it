@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 04 — Release the adapter with synchronized metadata
 
 Depends on: 01, 02, 03
