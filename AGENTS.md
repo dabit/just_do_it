@@ -9,11 +9,14 @@ markdown and edit files can run JDI without any installation at all.
 JDI's commands are plain markdown files with no harness-specific machinery in their bodies. To run
 one, tell your agent:
 
-> Read `<path-to-this-repo>/commands/prep.md` and follow it. Where it says `$ARGUMENTS`, use:
+> Read `<path-to-this-repo>/commands/prep.md` and follow it. Replace every original literal
+> `$ARGUMENTS` occurrence with:
 > "Add presence indicators to pages".
 
-That is the whole mechanism. `$ARGUMENTS` is the only substitution, and it appears at most once per
-command.
+That is the whole mechanism. `$ARGUMENTS` is the only substitution. `$ARGUMENTS` may appear zero,
+one, or multiple times. Replace every literal `$ARGUMENTS` occurrence in the original command body
+exactly once. The replacement is global, literal, and single-pass, so text introduced by the
+replacement is not scanned again. With zero occurrences, no substitution is needed.
 
 The commands are:
 

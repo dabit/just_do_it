@@ -16,7 +16,7 @@
   implementation, and acceptance criteria.
 - `docs/harness-adapter-architecture.md` - canonical sources, Codex packaging and namespacing,
   dispatcher contract, compatibility effects, and verification requirements.
-- `AGENTS.md:7-71` - manual invocation, command inventory, and adapter portability rules.
+- `AGENTS.md:7-74` - manual invocation, command inventory, and adapter portability rules.
 - `README.md:24-31`, `README.md:80-99` - stale Codex discovery and delegation claims that must be
   corrected.
 - `reference/delegation.md:26-54` and `roles/butler.md:10-25` - capability-based delegation and
@@ -232,7 +232,7 @@ Additional dispatcher UAT:
 ## Tasks
 
 - [x] 01 — Add the Codex package and safe dispatcher (depends on: none)
-- [ ] 02 — Make delegation and manual substitution guidance capability-based (depends on: 01)
+- [x] 02 — Make delegation and manual substitution guidance capability-based (depends on: 01)
 - [ ] 03 — Document the supported Codex interface (depends on: 01)
 - [ ] 04 — Release the adapter with synchronized metadata (depends on: 01, 02, 03)
 - [ ] 05 — UAT the installed adapter across harnesses (depends on: 01, 02, 03, 04)

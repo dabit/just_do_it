@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 02 — Make delegation and manual substitution guidance capability-based
 
 Depends on: 01

@@ -170,5 +170,72 @@ class DispatcherContractTest(DispatcherTestCase):
         )
 
 
+class DelegationGuidanceTest(unittest.TestCase):
+    def guidance(self):
+        return " ".join(jdi_files.read("reference/delegation.md").split())
+
+    def assertGuidanceContains(self, *fragments):
+        guidance = self.guidance()
+        for fragment in fragments:
+            with self.subTest(fragment=fragment):
+                self.assertIn(" ".join(fragment.split()), guidance)
+
+    def test_codex_is_a_first_class_subagent_example(self):
+        self.assertGuidanceContains(
+            "Delegation follows observed runtime capability, not the harness name.",
+            "Claude Code's Agent tool, Codex subagents, OpenCode's subagent mode",
+        )
+
+    def test_unregistered_role_uses_installed_definition_and_declared_inputs(self):
+        self.assertGuidanceContains(
+            "When no matching JDI role is registered, spawn a suitable generic subagent",
+            "the installed `agents/<role>.md` definition as its instructions",
+            "exactly the inputs the role's *What it receives* section declares — no more",
+        )
+
+    def test_fallback_order_and_authorization_boundaries_are_preserved(self):
+        guidance = self.guidance()
+        first = guidance.index("**1. The harness has first-class subagents**")
+        second = guidance.index("**2. The harness has no subagents, but can run a second session**")
+        third = guidance.index("**3. Neither.** **Adopt the role inline.**")
+        self.assertLess(first, second)
+        self.assertLess(second, third)
+        self.assertGuidanceContains(
+            "the tier's model from the config",
+            "Shell out to it with the role file and the inputs as the prompt",
+            "announce the switch",
+            "Subagents and fallback sessions stay inside the active sandbox, approval policy, and authorization boundaries.",
+            "Delegation never grants additional authority.",
+        )
+
+
+class ManualInvocationGuidanceTest(unittest.TestCase):
+    def guidance(self):
+        return " ".join(jdi_files.read("AGENTS.md").split())
+
+    def assertGuidanceContains(self, *fragments):
+        guidance = self.guidance()
+        for fragment in fragments:
+            with self.subTest(fragment=fragment):
+                self.assertIn(" ".join(fragment.split()), guidance)
+
+    def test_arguments_replace_zero_one_or_many_original_occurrences_once(self):
+        self.assertGuidanceContains(
+            "`$ARGUMENTS` may appear zero, one, or multiple times.",
+            "Replace every literal `$ARGUMENTS` occurrence in the original command body exactly once.",
+            "The replacement is global, literal, and single-pass",
+            "text introduced by the replacement is not scanned again",
+        )
+
+    def test_opencode_adapter_portability_rules_are_preserved(self):
+        self.assertGuidanceContains(
+            "`bin/sync-opencode.sh` is the template.",
+            "The bodies are never touched",
+            "`--global` points the synced files at the JDI checkout",
+            "`--project` copies the reference files into the target repo and rewrites every path **repo-relative**",
+            "carries no absolute paths and can be committed",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
