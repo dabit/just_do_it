@@ -41,7 +41,7 @@ The commands are:
 
 ## What the commands will ask of your harness
 
-**Delegation.** Commands say "delegate to the *Researcher* role at the *deep* tier". If your harness
+**Delegation.** Commands say "delegate to the *Researcher* role". If your harness
 has no subagents, the fallback is written into `reference/delegation.md` and it is a first-class
 path: read the role file in `agents/`, announce the switch, follow it for that phase, then return
 to orchestrator voice. The phases still run; they share one context window.

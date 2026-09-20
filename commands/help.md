@@ -1,5 +1,5 @@
 ---
-description: "Explain the Just Do It (JDI) workflow — the commands, the roles, the tiers, and the typical flow."
+description: "Explain the Just Do It (JDI) workflow — the commands, the roles, and the typical flow."
 ---
 
 # JDI: Help
@@ -8,8 +8,9 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
-split pieces become, whether TDD is on, and whether `.jdi/config.yml` exists at all. If it does not,
-say `/jdi:init` writes it, and that JDI works without it by asking as it goes.
+split pieces become, whether TDD is on, which roles have a model configured and whether any of them
+runs in another agent CLI, and whether `.jdi/config.yml` exists at all. If it does not, say
+`/jdi:init` writes it, and that JDI works without it by asking as it goes.
 
 ---
 
@@ -20,23 +21,23 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 ### Commands
 
-| Command | Roles | Tier | What it does |
-|---|---|---|---|
-| `/jdi:init` | Butler | fast | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder. Writes `.jdi/config.yml`. |
-| `/jdi:prep` | Butler + Researcher + Planner + Splitter | fast + deep + standard | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
-| `/jdi:start` | Butler | fast | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
-| `/jdi:research` | Researcher | deep | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
-| `/jdi:plan` | Butler + Planner | deep | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
-| `/jdi:split` | Splitter | standard | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so. |
-| `/jdi:execute` | Butler + Executor | deep | Implement the next pending task. Shows the diff and asks for your feedback. Proves the test suite runs, once per plan, when `tdd.enabled` is on. |
-| `/jdi:done` | Butler | fast | Mark the current task complete, update the checklist, and commit. |
-| `/jdi:next` | Butler + Executor | deep | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
-| `/jdi:yolo` | Butler + Executor | deep | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
-| `/jdi:status` | Butler | fast | Show progress on the current plan. |
-| `/jdi:pr` | Butler + Synthesizer + PR Writer | standard | Condense the plan, push, and open the pull request. |
-| `/jdi:feedback` | Butler + Feedbacker | deep | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. |
-| `/jdi:replan` | Butler + Planner | deep | Throw the plan away and write a fresh one. |
-| `/jdi:reresearch` | Butler + Researcher | deep | Throw the research away and look again. |
+| Command | Roles | What it does |
+|---|---|---|
+| `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder, models. Writes `.jdi/config.yml`. |
+| `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
+| `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
+| `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
+| `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
+| `/jdi:split` | Splitter | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so. |
+| `/jdi:execute` | Butler + Executor | Implement the next pending task. Shows the diff and asks for your feedback. Proves the test suite runs, once per plan, when `tdd.enabled` is on. |
+| `/jdi:done` | Butler | Mark the current task complete, update the checklist, and commit. |
+| `/jdi:next` | Butler + Executor | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
+| `/jdi:yolo` | Butler + Executor | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
+| `/jdi:status` | Butler | Show progress on the current plan. |
+| `/jdi:pr` | Butler + Synthesizer + PR Writer | Condense the plan, push, and open the pull request. |
+| `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. |
+| `/jdi:replan` | Butler + Planner | Throw the plan away and write a fresh one. |
+| `/jdi:reresearch` | Butler + Researcher | Throw the research away and look again. |
 
 **On the Feedbacker:** it reviews on demand only. It is not a gate on the producing commands —
 invoke it deliberately with `/jdi:feedback` when you want an output or a prompt audited. It never
@@ -110,12 +111,17 @@ announces the skip and implements normally. A test invented to satisfy the mode 
 no test at all: it produces a green suite and a red-run transcript that prove nothing while looking
 precisely like proof.
 
-### Tiers, not models
+### Roles and models
 
-JDI names three tiers instead of models, so it runs anywhere: **deep** (research, planning,
-implementation, review), **standard** (splitting, condensing, PR writing), and **fast**
-(orchestration, status, commits). Map them to real models in `.jdi/config.yml`, or leave them
-unset and run everything on the session's own model — both are fully supported.
+JDI's prose names roles, never models, so it runs anywhere. `.jdi/config.yml` maps each of the seven
+delegatable roles — Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker —
+to the model it runs on, and optionally to the agent CLI it runs in, so one role can sit on Codex or
+OpenCode while the rest stay here. Leave the `models` block out and everything runs on the session's
+own model — that is fully supported, not a degraded mode.
+
+A harness or a model that cannot be honoured is **announced once** and the phase still runs. JDI
+falls back into this session rather than skipping a phase, and never substitutes a different model
+of its own choosing.
 
 Where the harness has no subagents, roles are adopted inline instead of spawned. The phases still
 run; they just share one context window.

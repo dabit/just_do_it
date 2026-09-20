@@ -9,9 +9,10 @@ JDI is deliberately boring about three things other workflows hardcode:
   tracker step is capability-detected and skippable, and "no tracker" is a first-class mode.
 - **Where your plans live.** A folder in the repository (preferred — the plan is versioned and
   travels with the branch), or an external service like Obsidian, recuerd0, or Notion.
-- **Which model, and which agent harness.** JDI names *roles* and *reasoning tiers*, never models
-  or vendors. It runs under Claude Code, Codex, and OpenCode today, and degrades cleanly to a
-  single-session workflow on any harness with no subagents at all.
+- **Which model, and which agent harness.** The workflow prose names *roles*, never a model or a
+  vendor; the model each role runs on — and the agent CLI it runs in — lives in `.jdi/config.yml`.
+  JDI runs under Claude Code, Codex, and OpenCode today, and degrades cleanly to a single-session
+  workflow on any harness with no subagents at all.
 
 ## Install
 
@@ -182,7 +183,7 @@ This section uses Claude Code command spellings. For the first command, Codex us
 and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, and the docs folder
+/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, the docs folder, and models
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -190,7 +191,8 @@ more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
-should write tests first (TDD), where plans should live, and where architecture docs live. It
+should write tests first (TDD), where plans should live, where architecture docs live, and which
+model each role runs on. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
@@ -285,11 +287,11 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |
 | `skills/run/SKILL.md` | The Codex `$jdi:run` dispatcher; command behavior stays in `commands/*.md` |
-| `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example tier mappings |
+| `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example model mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
-| `reference/delegation.md` | How a role and a tier become an actual model on your harness |
+| `reference/delegation.md` | How each role becomes an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
 | `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |
@@ -301,11 +303,11 @@ third-party packages. Run it from the repository root:
 python3 -m unittest discover -s tests -v
 ```
 
-### Roles and tiers, not agents and models
+### Roles and models, not agents and vendors
 
-Commands say *"delegate to the **Planner** role at the **deep** tier"*. What that becomes depends on
-the capabilities observed in the current session. Delegation follows observed runtime capability,
-not a fixed assumption about the harness:
+Commands say *"delegate to the **Planner** role"*. What that becomes depends on the capabilities
+observed in the current session. Delegation follows observed runtime capability, not a fixed
+assumption about the harness:
 
 - **A matching role is registered** → spawn it with exactly the inputs its role definition declares.
 - **Generic subagents are available** → spawn a suitable generic subagent with the installed role
@@ -314,13 +316,20 @@ not a fixed assumption about the harness:
   adopt the role inline and announce the switch, follow it for the phase, then return to
   orchestrator voice.
 
-Three tiers — **deep** (research, planning, implementation, review), **standard** (splitting,
-condensing, PR writing), **fast** (orchestration, status, commits) — map to real models in
-`.jdi/config.yml`. Leave them unset and everything runs on the session's own model. That is a
-supported configuration, not a degraded one.
+Each of the seven delegatable roles has its own entry in `.jdi/config.yml`: `models.<role>.model`
+names the model it runs on, written exactly as the harness that will run it accepts — an alias
+under Claude Code, a full identifier under Codex or OpenCode. Leave a role empty, or leave the block
+out altogether, and it runs on the session's own model. That is a supported configuration, not a
+degraded one.
 
-Concrete model names and tool allowlists live only in YAML frontmatter, which each adapter strips
-or rewrites. The body of every file is shared verbatim across harnesses.
+`models.<role>.harness` optionally names a different agent CLI for that role, so a Claude Code
+session can put the Researcher on Codex and the Splitter on OpenCode without leaving the workflow.
+A harness or a model that cannot be honoured is announced once and the phase still runs —
+`reference/delegation.md` has the ladder.
+
+Tool allowlists live only in YAML frontmatter, which each adapter strips or rewrites. Model names
+live in `.jdi/config.yml`, never in a role file's frontmatter. The body of every file is shared
+verbatim across harnesses.
 
 ## The parts worth keeping
 

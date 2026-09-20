@@ -314,7 +314,7 @@ class ReadmeCodexDocumentationTest(unittest.TestCase):
     def test_scope_snapshot_and_capability_delegation_are_accurate(self):
         codex = self.normalized_section("### Codex")
         updating = self.normalized_section("### Updating")
-        roles = self.normalized_section("### Roles and tiers, not agents and models")
+        roles = self.normalized_section("### Roles and models, not agents and vendors")
         self.assertIn("no project scope", codex)
         self.assertIn("for the whole machine", codex)
         self.assertIn("installed snapshot", updating)

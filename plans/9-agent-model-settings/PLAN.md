@@ -674,7 +674,7 @@ ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the on
       `roles/butler.md:3`, the `bin/sync-opencode.sh` comment. T-D red-first, T-E characterization.
 - [x] `04-command-handoff-sites.md` — the 25 mechanical edits across eleven `commands/*.md`, plus
       `commands/prep.md:23`'s config-block list. `commands/status.md` excluded, reason recorded.
-- [ ] `05-init-help-readme-agents.md` — `commands/init.md`, `commands/help.md`, `README.md`,
+- [x] `05-init-help-readme-agents.md` — `commands/init.md`, `commands/help.md`, `README.md`,
       `AGENTS.md:44`. Brings `models` to the nine-file floor it never reached. T-G in place.
 - [ ] `06-architecture-docs-and-citation-sweep.md` — both architecture docs, the second half of the
       authorization correction, the citation-rot sweep, and T-H, written green here.

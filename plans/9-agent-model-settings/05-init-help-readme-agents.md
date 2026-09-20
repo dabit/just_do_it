@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 05 — init, help, README, AGENTS.md: the nine-file floor
 
 Depends on: 04
@@ -67,11 +67,12 @@ harness has no subagents...` — the same hand-off phrasing removed from `comman
     `ManualInvocationGuidanceTest` (which reads `AGENTS.md`) checks `$ARGUMENTS` replacement rules
     and the OpenCode adapter portability rules, not this sentence.
 
-**Tests, same commit.** `tests/test_codex_plugin.py:295` calls
+**Tests, same commit.** `tests/test_codex_plugin.py:317` calls
 `normalized_section("### Roles and tiers, not agents and models")`, and
 `tests/jdi_files.py:150-153` **raises** `AssertionError` when the heading is absent — this is
-**T-G**. Update the call to the new heading from step 12 above, in this same commit. Re-check
-`:300-302`'s three fragment assertions (`"Delegation follows observed runtime capability"`, `"a
+**T-G**. (An earlier draft cited `:295`; that line is inside a different test method.) Update the
+call to the new heading from step 12 above, in this same commit. Re-check the three fragment
+assertions that follow it (`"Delegation follows observed runtime capability"`, `"a
 suitable generic subagent"`, `"adopt the role inline and announce the switch"`) against the
 rewritten `README.md:304-323` — confirm they still appear rather than assuming they do.
 
@@ -83,8 +84,9 @@ rewritten `README.md:304-323` — confirm they still appear rather than assuming
 - `tests/test_codex_plugin.py`
 
 ## Verification
-- `python3 -m unittest discover -s tests -v` — expect **at least 51 tests, OK** (unchanged from
-  task 04 — T-G is a rewrite-in-place, not a new test), 0 failures, 0 errors.
+- `python3 -m unittest discover -s tests -v` — expect **53 tests, OK**, unchanged from task 04:
+  T-G is a rewrite-in-place, not a new test. (An earlier draft said "at least 51", written before
+  task 03 added T-D and T-E.) 0 failures, 0 errors.
 - `grep -n "step [0-9]" commands/init.md` — read every hit and confirm none needs renumbering; step
   8's own text changed but no step number moved.
 - `grep -riE '\btiers?\b' README.md AGENTS.md commands/init.md commands/help.md` — expect **no output**.
