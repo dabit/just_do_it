@@ -111,7 +111,7 @@ easy to half-update.
 
 **All three JSON release files carry a version, and they must match.**
 `.claude-plugin/plugin.json:3`, `.codex-plugin/plugin.json:3`, and
-`.claude-plugin/marketplace.json:10` are all `1.0.4` right now. The reason is in
+`.claude-plugin/marketplace.json:10` are all `1.0.5` right now. The reason is in
 `README.md:164-168`: `claude plugin update` compares versions rather than content, so a prompt edit
 shipped without a version bump silently does nothing on Claude's installed copy. The newest
 `CHANGELOG.md` heading is the fourth version authority and must carry that same release number.
@@ -253,7 +253,7 @@ Inline the ladder in the command when it is short and has exactly one caller —
 `reference/*.md` when **several commands must perform the same operation**, which is precisely
 when the repeat-in-place rule would otherwise force you to copy the whole ladder N times. T7 and
 T8 earned their place because five commands invoke them by name: `split.md` and `prep.md` call T7,
-`done.md`, `next.md` and `yolo.md` call T8 (`CHANGELOG.md:87-89`).
+`done.md`, `next.md` and `yolo.md` call T8 (`CHANGELOG.md:127-129`).
 
 **A new reference file is not free.** The OpenCode adapter handles it automatically —
 `bin/sync-opencode.sh:66` copies the whole `reference/` directory, so no adapter edit is needed.
@@ -342,7 +342,7 @@ There are **no git tags** in this repository. A release is exactly: three JSON v
 CHANGELOG entry, and a commit whose subject carries the version. Nothing else.
 
 **Three version files, and they must match.** `.claude-plugin/plugin.json:3`,
-`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.4`.
+`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.5`.
 `README.md:164-168` is the why: cached plugin releases use versioned metadata, and
 `claude plugin update` specifically compares versions rather than content. An unbumped release is
 invisible to installed copies — a workflow change that no user receives. The newest
@@ -356,18 +356,18 @@ digit. The repo has made no minor or major bump, so there is no observed rule fo
 removing a key or changing what an existing value means, decide it deliberately and say so in the
 CHANGELOG rather than reading a convention out of these two data points.
 
-**The CHANGELOG entry shape** (`CHANGELOG.md:76-97` is the configuration-key reference):
+**The CHANGELOG entry shape** (`CHANGELOG.md:116-137` is the configuration-key reference):
 
 - `## <version>` heading.
 - A **bold one-line headline** stating the user-visible outcome, not the mechanism —
-  `CHANGELOG.md:78`: "**The splitter is configurable: pieces become subtickets, tracker tasks, or
+  `CHANGELOG.md:118`: "**The splitter is configurable: pieces become subtickets, tracker tasks, or
   just commits.**"
 - A blank line, then bullets. The load-bearing ones open with a **bold lead-in**:
-  `CHANGELOG.md:90` — "**Degrades down, never up.**"; `CHANGELOG.md:81` — "**in addition to**".
+  `CHANGELOG.md:130` — "**Degrades down, never up.**"; `CHANGELOG.md:121` — "**in addition to**".
 - Every key, mode and command in backticks: `split.pieces`, `commits`, `/jdi:done`,
   `reference/tracker.md`.
 - The first bullet describes the key and **says what happens to a repo that does not set it**
-  (`CHANGELOG.md:82-83`: "an existing repo with no such key behaves exactly as it did"). Backward
+  (`CHANGELOG.md:122-123`: "an existing repo with no such key behaves exactly as it did"). Backward
   compatibility is stated, never left to be inferred.
 - Entries are newest-first; the version's own bullets say what changed, not how it was built.
 

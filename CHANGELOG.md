@@ -1,5 +1,45 @@
 # Changelog
 
+## 1.0.5
+
+**Every role's model is named in settings — and no file under `agents/` names a model at all.**
+
+- New `models:` block in `.jdi/config.yml`, keyed by **role**: `researcher`, `planner`, `splitter`,
+  `executor`, `synthesizer`, `pr-writer`, `feedbacker`. Each entry carries a `model` and an
+  optional `harness`. **A repo with no `models:` block behaves exactly as it did** — every role
+  runs in this session's harness on the session's own model, silently, because nothing was skipped.
+  Such a repo's 1.0.5 run is indistinguishable from its 1.0.4 one.
+- **The three pre-1.0.5 keys are gone.** `models.deep`, `models.standard` and `models.fast` are no
+  longer read by anything. A `models:` block still keyed that way names no role, so **nothing in it
+  is read**: JDI says so once, names `reference/config.md` as the current schema, and runs every
+  role on the session's own model for that run. Nothing breaks, and nothing is silently
+  reinterpreted as a role.
+- **`models` is the only place a role's model is named.** No file under `agents/` carries a
+  `model:` key any more — a model is a fact about the user's account and the harness that will run
+  the role, not a fact about a file that ships to every repository. `/jdi:init` offers a model per
+  role, proposing rather than asking from zero, and offers to rewrite a `deep`/`standard`/`fast`
+  block per role rather than keep one that has no effect.
+- **New `harnesses:` block** — per-CLI `args` and `env`, keyed by the kind that a
+  `models.<role>.harness` names (`claude`, `codex`, `opencode`). Both are passed to that CLI
+  **verbatim**: JDI composes, merges and translates nothing between kinds and adds no flag of its
+  own, in particular no approval- or sandbox-affecting one, so any such flag is one the user typed
+  — and JDI prints it back before it spawns anything. Write absolute paths; a leading `~` arrives
+  as a literal tilde.
+- **Degrades down, never up.** A model the named harness cannot express is announced, and the role
+  runs on that harness's own default — never silently swapped, and never promoted to a stronger or
+  costlier model because that one happened to be reachable. An unreachable CLI, an unresolvable
+  role instruction, or a transport that never reported means the role runs in this session instead,
+  announced once. The phase is never skipped, and a role never lands somewhere less supervised than
+  this session.
+- **A documentation correction on a security-relevant claim.**
+  `docs/harness-adapter-architecture.md` said delegation does not widen authorization because
+  subagents inherit the active sandbox and approval environment. That holds for an in-harness
+  subagent and for inline adoption; it does **not** hold for a separately spawned CLI, which is
+  another process resolving its own sandbox, approval policy and credentials from its own
+  configuration — which may be broader or narrower than this session's. A user reading the old
+  sentence would have believed a spawned CLI inherited this session's approval policy. It does not.
+  That document and `reference/delegation.md` now carry the same invariant.
+
 ## 1.0.4
 
 **JDI now installs as a native Codex skill without changing its Claude Code or OpenCode workflows.**

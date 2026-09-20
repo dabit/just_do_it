@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 07 — Release 1.0.5
 
 Depends on: 06

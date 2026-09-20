@@ -678,7 +678,7 @@ ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the on
       `AGENTS.md:44`. Brings `models` to the nine-file floor it never reached. T-G in place.
 - [x] `06-architecture-docs-and-citation-sweep.md` — both architecture docs, the second half of the
       authorization correction, the citation-rot sweep, and T-H, written green here.
-- [ ] `07-release.md` — 1.0.5 across the three JSON manifests, the CHANGELOG entry stating the key
+- [x] `07-release.md` — 1.0.5 across the three JSON manifests, the CHANGELOG entry stating the key
       removal deliberately, dogfood re-verified.
 - [ ] `08-uat.md` — fifteen scenarios and the acceptance-criteria map against the live issue #9.
 
