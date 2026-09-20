@@ -194,7 +194,7 @@ files from the user's project, use an unvalidated token in a path, depend on
 required files are a diagnostic failure, not a reason to fall back to another copy.
 
 Claude continues to use `${CLAUDE_PLUGIN_ROOT}`. OpenCode rewrites that reference during sync at
-`bin/sync-opencode.sh:118-130`.
+`bin/sync-opencode.sh:120-132`.
 
 ## Dispatcher Grammar
 
@@ -241,7 +241,7 @@ Delegation follows observed runtime capability, not a permanent claim about a ha
 uses the order in `reference/delegation.md`:
 
 1. Use a first-class subagent, preferring an already registered JDI role.
-2. Use a second non-interactive session if available.
+2. Run a second non-interactive session — selected by `models.<role>.harness`, not only a fallback.
 3. Adopt the role inline, announce the switch, and return to Butler voice afterward.
 
 The delegated phase is never skipped merely because the preferred mechanism is unavailable.
@@ -253,8 +253,14 @@ a suitable generic subagent, gives it the installed `agents/<role>.md` instructi
 role's declared inputs, and announces the normal fallback when subagents are unavailable. See
 [Codex subagents](https://developers.openai.com/codex/agent-configuration/subagents.md).
 
-Delegation does not widen authorization. Subagents inherit the active sandbox and approval
-environment, and external mutations remain governed by the active command and Butler rules.
+Delegation never grants additional authority, and JDI never composes any. An in-harness subagent
+and an inline adoption run inside this session's own sandbox and approval policy.
+A separately spawned CLI does not — it is another process that resolves its own sandbox, approval
+policy and credentials from its own configuration, which may be broader or narrower than this
+session's. JDI composes no authority-affecting flag and translates none between kinds: every flag
+a spawned CLI receives is a literal value the user wrote in `harnesses.<kind>.args`, passed
+through verbatim and printed back before the spawn. Any external mutation must still be allowed by
+the active command and the Butler's rules.
 
 ## Compatibility Effects
 

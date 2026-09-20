@@ -676,7 +676,7 @@ ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the on
       `commands/prep.md:23`'s config-block list. `commands/status.md` excluded, reason recorded.
 - [x] `05-init-help-readme-agents.md` — `commands/init.md`, `commands/help.md`, `README.md`,
       `AGENTS.md:44`. Brings `models` to the nine-file floor it never reached. T-G in place.
-- [ ] `06-architecture-docs-and-citation-sweep.md` — both architecture docs, the second half of the
+- [x] `06-architecture-docs-and-citation-sweep.md` — both architecture docs, the second half of the
       authorization correction, the citation-rot sweep, and T-H, written green here.
 - [ ] `07-release.md` — 1.0.5 across the three JSON manifests, the CHANGELOG entry stating the key
       removal deliberately, dogfood re-verified.

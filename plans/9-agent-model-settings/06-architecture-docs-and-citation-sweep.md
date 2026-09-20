@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 06 — The two architecture docs, the citation sweep, and the vocabulary guard
 
 Depends on: 05

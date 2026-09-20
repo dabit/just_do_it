@@ -130,14 +130,14 @@ different layouts and share no derivation rule, and
 
 ## What delegation does not grant
 
-Delegation never grants additional authority, and JDI never composes any. An in-harness subagent and
-an inline adoption run inside this session's own sandbox and approval policy. **A separately spawned
-CLI does not** — it is another process that resolves its own sandbox, approval policy and
-credentials from its own configuration, which may be broader or narrower than this session's. JDI
-composes no authority-affecting flag and translates none between kinds: every flag a spawned CLI
-receives is a literal value the user wrote in `harnesses.<kind>.args`, passed through verbatim and
-**printed back before the spawn**. Any external mutation must still be allowed by the active command
-and the Butler's rules.
+Delegation never grants additional authority, and JDI never composes any. An in-harness subagent
+and an inline adoption run inside this session's own sandbox and approval policy.
+**A separately spawned CLI does not** — it is another process that resolves its own sandbox,
+approval policy and credentials from its own configuration, which may be broader or narrower than
+this session's. JDI composes no authority-affecting flag and translates none between kinds: every
+flag a spawned CLI receives is a literal value the user wrote in `harnesses.<kind>.args`, passed
+through verbatim and **printed back before the spawn**. Any external mutation must still be
+allowed by the active command and the Butler's rules.
 
 ## When the configuration cannot be honoured
 

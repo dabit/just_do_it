@@ -179,9 +179,10 @@ def paragraph_starting_with(text, prefix):
 def schema_block():
     """The YAML lines inside the first fenced block under `## Schema`.
 
-    Scoped to that section on purpose: `## Example tier mappings` carries a
-    second ```yaml fence whose three side-by-side `models:` columns would
-    otherwise be read as schema keys.
+    Scoped to that section on purpose: `## Example model mappings` carries a
+    second ```yaml fence whose three side-by-side `models:` columns — each role
+    in them nesting its own `model:` and `harness:` keys — would otherwise be
+    read as schema keys.
     """
     lines = section(read("reference/config.md"), "## Schema")
     try:

@@ -16,6 +16,10 @@ editing both enumerations leaves the repo describing itself incorrectly.
 
 Every check here is bidirectional. A stale row naming a file that no longer
 exists is the same class of wrong as a missing one.
+
+A retired word is the same kind of hand-maintained consistency: nothing notices
+when one document keeps a vocabulary the rest of the repo has stopped using, so
+the tier scan below belongs here too.
 """
 
 import re
@@ -168,6 +172,41 @@ class ReadmeCountTest(unittest.TestCase):
             stated,
             actual,
             "README.md says %d delegatable roles; agents/ holds %d" % (stated, actual),
+        )
+
+
+class TierVocabularyTest(unittest.TestCase):
+    """The three-tier vocabulary is gone from everything a reader is served.
+
+    JDI named `deep` / `standard` / `fast` tiers until 1.0.5, when each role
+    gained its own `models.<role>` entry. The word survives in two places on
+    purpose and is not scanned: `CHANGELOG.md`, whose 1.0.0 note describes what
+    1.0.0 actually shipped, and `plans/`, which is a historical record. `tests/`
+    is out too — this docstring names the word it bans.
+    """
+
+    SCANNED_DIRECTORIES = ("commands", "agents", "reference", "roles", "docs")
+    SCANNED_FILES = ("README.md", "AGENTS.md", "bin/sync-opencode.sh")
+
+    def scanned_paths(self):
+        paths = []
+        for directory in self.SCANNED_DIRECTORIES:
+            paths.extend(jdi_files.markdown_files(directory))
+        paths.extend(self.SCANNED_FILES)
+        return sorted(paths)
+
+    def test_no_document_still_names_a_reasoning_tier(self):
+        pattern = re.compile(r"\btiers?\b", re.IGNORECASE)
+        hits = []
+        for path in self.scanned_paths():
+            for number, line in enumerate(jdi_files.read(path).split("\n"), 1):
+                if pattern.search(line):
+                    hits.append("%s:%d" % (path, number))
+        self.assertEqual(
+            [],
+            hits,
+            "a role's model is named per role in `.jdi/config.yml`, not by tier; "
+            "these sites still say it: %s" % ", ".join(hits),
         )
 
 
