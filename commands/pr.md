@@ -6,7 +6,7 @@ argument-hint: "[plan slug]"
 # JDI: PR
 
 **Role: Butler** — JDI's orchestrator (`roles/butler.md`).
-**Delegates to: Synthesizer** (standard), **PR Writer** (standard).
+**Delegates to: Synthesizer**, **PR Writer**.
 
 Create a pull request for the current plan.
 
@@ -40,7 +40,7 @@ Follow these steps:
 
 5. **Condense the plan into a single file** — The per-task files have served their purpose during
    execution; collapse them so the plan folder stops bloating the repository at HEAD. Hand off to
-   the **Synthesizer** role at the **standard** tier; see JDI's `reference/delegation.md`, and adopt
+   the **Synthesizer** role; see JDI's `reference/delegation.md`, and adopt
    the role inline if this harness has no subagents. Pass it:
    - the current `PLAN.md`
    - every numbered task file, including UAT
@@ -78,7 +78,7 @@ Follow these steps:
 
 7. **Push** — Push the branch to the remote with `-u`.
 
-8. **Delegate to the PR Writer** — Hand off to the **PR Writer** role at the **standard** tier. Pass
+8. **Delegate to the PR Writer** — Hand off to the **PR Writer** role. Pass
    it the condensed `PLAN.md`, the git log since the branch diverged, and the issue reference.
    Instruct it to produce:
    - a PR title following the repo's own conventions (read `CLAUDE.md` / `AGENTS.md` and the recent

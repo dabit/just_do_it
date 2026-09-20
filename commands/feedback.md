@@ -5,7 +5,7 @@ argument-hint: "[what to review, e.g. \"the plan\", \"the last diff\", \"the res
 
 # JDI: Feedback
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Feedbacker** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Feedbacker**.
 
 Have the Feedbacker — JDI's standing quality authority — critique an output on demand.
 
@@ -28,7 +28,7 @@ Follow these steps:
 2. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` for context.
 
-3. **Delegate to the Feedbacker** — Hand off to the **Feedbacker** role at the **deep** tier; see
+3. **Delegate to the Feedbacker** — Hand off to the **Feedbacker** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
    Where the config maps more than one model, **pick a different model from the one that produced
    the output** — a model reviewing its own work confirms it. If only one is available, run the

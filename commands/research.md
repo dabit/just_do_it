@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Research
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Researcher** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Researcher**.
 
 Find or create architecture documentation for the area we are about to change.
 
@@ -15,7 +15,8 @@ Follow these steps:
    in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
-   Everything below refers to `tracker`, `plans`, `docs`, and `consumers` from that config.
+   Everything below refers to `tracker`, `plans`, `docs`, `consumers`, `models`, and
+   `harnesses` from that config.
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` to understand what we are working on. If several plans
@@ -31,7 +32,7 @@ Follow these steps:
    matches HEAD, say so, and treat **every** existing citation as needing re-verification against
    the new base — including those under `## References`, not only the sections being rewritten.
 
-3. **Delegate to the Researcher** — Hand off to the **Researcher** role at the **deep** tier; see
+3. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md` for how to delegate under this harness, and adopt the role
    inline if it has no subagents. Give it the task description from `PLAN.md`, the `docs.path`, the
    plan store location, and the `consumers` list, and instruct it to:
@@ -54,7 +55,7 @@ Follow these steps:
    - If **no relevant doc exists**, tell the user and ask whether to write one.
 
 5. **Write the missing doc (if approved)** — If the user agrees, delegate to the **Researcher**
-   again at the **deep** tier to explore the codebase and understand the current architecture:
+   again to explore the codebase and understand the current architecture:
    - the key data models and their relationships
    - the important controllers, services, handlers, or use cases involved
    - how data flows through the system

@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Next
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor**.
 
 Mark the current task as complete, then immediately execute the next one. This is `/jdi:done`
 followed by `/jdi:execute`, in a single step.
@@ -50,7 +50,7 @@ followed by `/jdi:execute`, in a single step.
 8. **Verify the dependencies** — Confirm every dependency has `status: done`. If not, tell the user
    which ones are blocking, and stop.
 
-9. **Delegate to the Executor** — Hand off to the **Executor** role at the **deep** tier; see JDI's
+9. **Delegate to the Executor** — Hand off to the **Executor** role; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it
    the task file content, `PLAN.md` for context, and the referenced architecture docs. Read the
    `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the

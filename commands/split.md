@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Split
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Splitter** (standard).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Splitter**.
 
 Break the current plan into atomic, actionable tasks.
 
@@ -54,7 +54,7 @@ Follow these steps:
    piece in a separate repository, or one the plan explicitly defers, may earn its own task file;
    that is not over-splitting.
 
-   **(b) Splitter path.** Hand off to the **Splitter** role at the **standard** tier; see JDI's
+   **(b) Splitter path.** Hand off to the **Splitter** role; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it
    the full `PLAN.md`, the referenced architecture docs, and the plan folder path, and instruct it
    to:

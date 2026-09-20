@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Plan
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Planner** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Planner**.
 
 Write the implementation plan from the research and context gathered so far.
 
@@ -60,8 +60,8 @@ Follow these steps:
    **Do not guess or assume.** Get clarity first, then plan. Ask only what materially changes the
    output; for the rest, pick the obvious default and say which one you picked.
 
-6. **Delegate to the Planner** — Once the ambiguities are resolved, hand off to the **Planner** role
-   at the **deep** tier; see JDI's `reference/delegation.md`, and adopt the role inline if this
+6. **Delegate to the Planner** — Once the ambiguities are resolved, hand off to the **Planner**
+   role; see JDI's `reference/delegation.md`, and adopt the role inline if this
    harness has no subagents. Pass it:
    - the full `PLAN.md` content, including the references
    - the referenced architecture docs

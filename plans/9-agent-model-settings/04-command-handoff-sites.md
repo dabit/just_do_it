@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 04 — The command hand-off sites
 
 Depends on: 03

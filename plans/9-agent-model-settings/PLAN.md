@@ -672,7 +672,7 @@ ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the on
       T-F rewritten in place, same commit.
 - [x] `03-frontmatter-removal.md` — the seven `model:` lines out of `agents/*.md`,
       `roles/butler.md:3`, the `bin/sync-opencode.sh` comment. T-D red-first, T-E characterization.
-- [ ] `04-command-handoff-sites.md` — the 25 mechanical edits across eleven `commands/*.md`, plus
+- [x] `04-command-handoff-sites.md` — the 25 mechanical edits across eleven `commands/*.md`, plus
       `commands/prep.md:23`'s config-block list. `commands/status.md` excluded, reason recorded.
 - [ ] `05-init-help-readme-agents.md` — `commands/init.md`, `commands/help.md`, `README.md`,
       `AGENTS.md:44`. Brings `models` to the nine-file floor it never reached. T-G in place.
