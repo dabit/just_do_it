@@ -14,7 +14,6 @@ description: |
   PR phase of the JDI workflow.
   </commentary>
   </example>
-model: sonnet
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 

@@ -76,8 +76,10 @@ src, oc, ref = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3]
 COMMAND_KEYS = {"description", "agent", "model", "variant", "subtask"}
 
 # OpenCode resolves models through its own provider config, and its `tools`
-# schema differs from Claude's. Drop both and let OpenCode decide; JDI's tiers
-# live in prose and in .jdi/config.yml, not in this frontmatter.
+# schema differs from Claude's. Drop both and let OpenCode decide. A role's
+# model is resolved from .jdi/config.yml by the Butler and never appears in a
+# role file's frontmatter, so dropping `model` strips nothing today; it stays
+# in the set as a guard against a role file reacquiring the key.
 AGENT_DROP = {"model", "tools"}
 
 

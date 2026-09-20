@@ -126,5 +126,43 @@ class OpenCodeSyncIsolationTest(unittest.TestCase):
                     )
 
 
+class OpenCodeAgentFrontmatterTest(unittest.TestCase):
+    """Characterization, not a red-first guard: this passed before the source
+    files stopped carrying `model:`, because `AGENT_DROP` already stripped the
+    key. It is here to pin that drop as intentional now that nothing in
+    `agents/*.md` names a model.
+    """
+
+    def test_synced_agents_carry_no_model_frontmatter(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project = pathlib.Path(temporary)
+            result = run_sync("--project", str(project))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            synced = sorted((project / ".opencode" / "agent").glob("*.md"))
+            self.assertEqual(
+                {path.name for path in synced},
+                expected_agents(),
+                "the synced agent/ directory is incomplete; "
+                "this assertion would otherwise pass vacuously",
+            )
+            for path in synced:
+                with self.subTest(agent=path.name):
+                    split = jdi_files.split_frontmatter(path.read_text(encoding="utf-8"))
+                    self.assertIsNotNone(
+                        split, "%s has no well-formed `---` frontmatter" % path.name
+                    )
+                    frontmatter, _ = split
+                    named = [line for line in frontmatter if line.startswith("model:")]
+                    self.assertEqual(
+                        named,
+                        [],
+                        "%s reached OpenCode naming a model (%s). OpenCode resolves "
+                        "models through its own provider config, so `model` stays in "
+                        "bin/sync-opencode.sh's AGENT_DROP as a guard against a role "
+                        "file reacquiring the key — do not tidy the set down to "
+                        '{"tools"}.' % (path.name, ", ".join(named)),
+                    )
+
+
 if __name__ == "__main__":
     unittest.main()

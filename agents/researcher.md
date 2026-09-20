@@ -15,7 +15,6 @@ description: |
   Research phase of the JDI workflow — the Researcher is the agent for it.
   </commentary>
   </example>
-model: opus
 tools: ["Read", "Glob", "Grep", "Bash", "WebFetch", "WebSearch"]
 ---
 

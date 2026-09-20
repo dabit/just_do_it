@@ -14,7 +14,6 @@ description: |
   Execution phase of the JDI workflow — one task per spawn.
   </commentary>
   </example>
-model: opus
 ---
 
 # Executor

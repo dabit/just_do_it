@@ -97,6 +97,26 @@ class FrontmatterTest(unittest.TestCase):
                     % path,
                 )
 
+    def test_no_agent_frontmatter_names_a_model(self):
+        for path in jdi_files.markdown_files("agents"):
+            with self.subTest(path=path):
+                split = jdi_files.split_frontmatter(jdi_files.read(path))
+                self.assertIsNotNone(
+                    split, "%s has no well-formed `---` frontmatter" % path
+                )
+                frontmatter, _ = split
+                named = [line for line in frontmatter if line.startswith("model:")]
+                self.assertEqual(
+                    named,
+                    [],
+                    "%s names a model in its frontmatter (%s). A role's model is "
+                    "resolved from `.jdi/config.yml`'s `models:` block and nowhere "
+                    "else. Note the asymmetry: nothing in this suite ever asserted "
+                    "`model:` was *present*, which is exactly why the two-place "
+                    "arrangement drifted for four releases."
+                    % (path, ", ".join(named)),
+                )
+
 
 class SkillFrontmatterTest(unittest.TestCase):
     def test_run_is_the_only_bundled_skill(self):

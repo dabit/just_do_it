@@ -14,7 +14,6 @@ description: |
   Splitting phase of the JDI workflow.
   </commentary>
   </example>
-model: sonnet
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash"]
 ---
 
