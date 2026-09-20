@@ -666,7 +666,7 @@ ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the on
 - [x] `01-config-schema-and-dogfood.md` — the per-role `models:` and new `harnesses:` schema in
       `reference/config.md`, the worked `jdi.config.example.yml`, and the `.jdi/config.yml` dogfood.
       Tests T-A, T-B red-first. **Must precede task 03** or JDI regresses on itself mid-branch.
-- [ ] `02-delegation-rewrite.md` — `reference/delegation.md`: the roles table, the recast
+- [x] `02-delegation-rewrite.md` — `reference/delegation.md`: the roles table, the recast
       "what each role wants from a model", rung 2 promoted from fallback to chosen path, the new
       "Where a role runs" and the twelve-rung ladder, and the authorization correction.
       T-F rewritten in place, same commit.

@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 02 — `reference/delegation.md`: the ladder, the authorization correction, the recast
 
 Depends on: 01
