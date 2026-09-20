@@ -1,5 +1,5 @@
 # .jdi/config.yml — JDI workflow configuration
-# Schema, defaults, and example tier mappings: reference/config.md
+# Schema, defaults, and example model mappings: reference/config.md
 
 tracker:
   # linear | jira | github | none
@@ -53,3 +53,24 @@ git:
 
   # Optional branch prefix. Left empty to follow the repo's AGENTS.md.
   branch_prefix: ""
+
+# Claude Code's Agent tool takes a model alias, not a full identifier, so
+# these are aliases — the same values agents/*.md frontmatter carried before
+# 1.0.5. No `harness:` is set: every role runs in whatever harness this
+# session is. Another harness will say once that it cannot express these and
+# run the role on the session's own model.
+models:
+  researcher:
+    model: opus
+  planner:
+    model: opus
+  splitter:
+    model: sonnet
+  executor:
+    model: opus
+  synthesizer:
+    model: sonnet
+  pr-writer:
+    model: sonnet
+  feedbacker:
+    model: opus

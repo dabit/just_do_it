@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 01 — Config schema: per-role `models`, `harnesses`, and the dogfood
 
 Depends on: None

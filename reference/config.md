@@ -101,14 +101,60 @@ git:
   # Leave empty to follow whatever the repo's CLAUDE.md prescribes.
   branch_prefix: ""
 
-# Optional. Maps JDI's three reasoning tiers onto concrete models for whichever
-# harness and provider you are running. Leave a tier empty — or omit the whole
-# block — to run that tier on whatever model the session is already using.
-# See reference/delegation.md for what each tier is for.
+# Optional. Names the model each role runs on, and optionally the agent CLI
+# it runs in. A role with no entry — or a whole block that is absent — runs
+# in this session's harness on whatever model the session is already using.
+# That is a supported configuration, not a degraded one.
+# See reference/delegation.md for what each role wants from a model and for
+# what happens when an entry cannot be honoured.
 models:
-  deep: ""        # research, planning, implementation, review
-  standard: ""    # splitting, condensing, PR writing
-  fast: ""        # orchestration, status, commits
+  researcher:
+    model: ""
+    harness: ""
+  planner:
+    model: ""
+    harness: ""
+  splitter:
+    model: ""
+    harness: ""
+  executor:
+    model: ""
+    harness: ""
+  synthesizer:
+    model: ""
+    harness: ""
+  pr-writer:
+    model: ""
+    harness: ""
+  feedbacker:
+    model: ""
+    harness: ""
+
+# Optional. Per-CLI settings, keyed by the kind that a `models.<role>.harness`
+# names. `args` are handed to that CLI verbatim, after its own flags; `env` is
+# set on the process — or, under Herdr, on the pane — that runs it.
+#
+# Both are passed through exactly as written. JDI never composes, merges, or
+# translates them between kinds, and adds no flag of its own — in particular
+# no approval- or sandbox-affecting one. Anything of that kind is a value you
+# wrote here, and JDI prints it back before it spawns anything.
+#
+# Write absolute paths: a leading "~" arrives as a literal tilde.
+#
+#   harnesses:
+#     codex:
+#       args: ["--sandbox", "workspace-write"]
+#       env: {CODEX_HOME: /home/you/.codex-other}
+harnesses:
+  claude:
+    args: []
+    env: {}
+  codex:
+    args: []
+    env: {}
+  opencode:
+    args: []
+    env: {}
 
 # Optional. Sibling repositories or client codebases that consume this repo's
 # public interfaces (APIs, webhooks, tool surfaces, published packages). The
@@ -117,17 +163,37 @@ models:
 consumers: []
 ```
 
-## Example tier mappings
+## Example model mappings
 
-None of these is a default — pick what your harness and account actually have. Any tier left empty
-falls back to the session's own model, which is always a valid configuration.
+None of these is a default — pick what your harness and account actually have. The value is handed
+to the harness that will run the role, exactly as written — so write the identifier that harness
+accepts: Claude Code's Agent tool takes an alias, while Codex and OpenCode take full identifiers.
+A role left empty falls back to the session's own model, which is always a valid configuration.
 
 ```yaml
-# Anthropic                # OpenAI                    # Local / mixed
-models:                    models:                     models:
-  deep: claude-opus-5        deep: gpt-5.1-codex-max      deep: claude-opus-5
-  standard: claude-sonnet-5  standard: gpt-5.1            standard: qwen3-coder
-  fast: claude-haiku-4-5     fast: gpt-5.1-mini           fast: qwen3-coder
+# Claude Code — aliases      # Codex / OpenAI — full IDs    # Mixed — a role elsewhere
+models:                      models:                        models:
+  researcher:                  researcher:                    researcher:
+    model: opus                  model: gpt-5.1-codex-max       model: gpt-5.1-codex-max
+    harness: ""                  harness: ""                    harness: codex
+  planner:                     planner:                       planner:
+    model: opus                  model: gpt-5.1-codex-max       model: opus
+    harness: ""                  harness: ""                    harness: ""
+  splitter:                    splitter:                      splitter:
+    model: sonnet                model: gpt-5.1                 model: qwen3-coder
+    harness: ""                  harness: ""                    harness: opencode
+  executor:                    executor:                      executor:
+    model: opus                  model: gpt-5.1-codex-max       model: opus
+    harness: ""                  harness: ""                    harness: ""
+  synthesizer:                 synthesizer:                   synthesizer:
+    model: sonnet                model: gpt-5.1-mini            model: sonnet
+    harness: ""                  harness: ""                    harness: ""
+  pr-writer:                   pr-writer:                     pr-writer:
+    model: sonnet                model: gpt-5.1-mini            model: sonnet
+    harness: ""                  harness: ""                    harness: ""
+  feedbacker:                  feedbacker:                    feedbacker:
+    model: opus                  model: gpt-5.1                 model: gpt-5.1
+    harness: ""                  harness: ""                    harness: codex
 ```
 
 ## Defaults when nothing is configured
@@ -143,7 +209,8 @@ models:                    models:                     models:
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |
 | `git.default_branch` | `auto` |
-| `models.*` | empty — every tier runs on the session's own model |
+| `models.*` | empty — every role runs in this session's harness, on the session's own model |
+| `harnesses.*` | empty — a CLI JDI spawns receives no arguments and no extra environment |
 | `consumers` | empty |
 
 ## Notes
@@ -165,6 +232,19 @@ models:                    models:                     models:
   `enabled: false` is never turned on because a test folder happens to exist: running "on" against
   a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
   TDD at all.
+- **`models` is the only place a role's model is named.** No file under `agents/` carries a
+  `model:` key. A role with no entry runs on the session's own model.
+- **A value in `models` is passed to the named harness verbatim.** Write the identifier that
+  harness accepts: Claude Code's Agent tool takes an alias (`opus`, `sonnet`, `haiku`), while Codex
+  and OpenCode take full identifiers. A model the harness cannot express is **announced** and the
+  role runs on that harness's own default; it is never silently swapped for a different one.
+- **`harness` degrades down, never up.** An unreachable CLI, an unresolvable role instruction, or a
+  transport that never reported means the role runs here instead, announced once. It never means
+  the phase is skipped, never means JDI acquires a flag the user did not write, and never means the
+  role lands somewhere less supervised than this session.
+- **There is no `models.butler`.** The Butler is the session you are already in, and no harness
+  lets a config file change the model of a session that is already running. Its absence is
+  deliberate, not an omission.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.

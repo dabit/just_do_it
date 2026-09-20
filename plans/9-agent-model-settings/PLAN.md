@@ -663,7 +663,7 @@ Negative cases are chosen for what is genuinely true on this machine (verified: 
 Nine tasks, strictly ordered — each depends on the one before it. One commit per task; every commit
 ends with `python3 -m unittest discover -s tests -v` green (47 tests plus the ones each task adds).
 
-- [ ] `01-config-schema-and-dogfood.md` — the per-role `models:` and new `harnesses:` schema in
+- [x] `01-config-schema-and-dogfood.md` — the per-role `models:` and new `harnesses:` schema in
       `reference/config.md`, the worked `jdi.config.example.yml`, and the `.jdi/config.yml` dogfood.
       Tests T-A, T-B red-first. **Must precede task 03** or JDI regresses on itself mid-branch.
 - [ ] `02-delegation-rewrite.md` — `reference/delegation.md`: the roles table, the recast
