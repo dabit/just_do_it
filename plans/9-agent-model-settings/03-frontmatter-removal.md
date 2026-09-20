@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 03 — The frontmatter comes out
 
 Depends on: 02
@@ -45,8 +45,10 @@ whole change is named for.
   contains a frontmatter `model:` line. This is a **characterization test, not red-first** — it
   passes today because `bin/sync-opencode.sh:81`'s `AGENT_DROP` already strips `model` before
   writing. Add it anyway: it pins the drop as *intentional* once the source files no longer carry
-  the key, so a later contributor tidying `AGENT_DROP` down to `{"tools"}` gets a failing test that
-  explains why `model` stays as a guard.
+  the key, so a contributor who tidies `AGENT_DROP` down to `{"tools"}` **and** lets a role file
+  reacquire `model:` gets a failing test explaining why `model` stayed in the set. Note the honest
+  limit: with the sources now clean, tidying the set **alone** leaves this test green — it guards
+  the pair, not the set on its own. An earlier draft of this task overstated its reach.
 
 ## Files
 - `agents/researcher.md`, `agents/planner.md`, `agents/executor.md`, `agents/feedbacker.md`,
@@ -61,8 +63,9 @@ whole change is named for.
   errors (49 from task 02, plus T-D and T-E). If the count is lower, one of the two new tests did
   not get added; if it errors instead of failing red-then-green, check `split_frontmatter` usage.
 - `grep -rn "^model:" agents/*.md` — expect **no output**. Control: `grep -rn "^tools:" agents/*.md`
-  — expect **seven hits**, one per file, proving the deletion was scoped to `model:` only and did
-  not touch adjacent frontmatter keys.
+  — expect **six hits**, proving the deletion was scoped to `model:` only and did not touch
+  adjacent frontmatter keys. **Six, not seven**: `agents/executor.md` has no `tools:` key and never
+  had one (verified against base commit `815dfae`). An earlier draft of this task said seven.
 - `grep -ciE '\btiers?\b' roles/butler.md` — expect `0`. (Case-insensitive matters: the line being
   deleted is `**Tier: fast …**`, capital T — a case-sensitive `grep -c tier` would read `0` even
   before the edit and tell you nothing.)
