@@ -69,10 +69,10 @@ documented but never asked about, or asked about but never shipped.
 ### The multi-site ones — where a change gets half-done
 
 **`reference/config.md` takes three edits, not one.** The YAML block under `## Schema`
-(`reference/config.md:17-118`; `split:` occupies `:42-55`), a row in the
-`## Defaults when nothing is configured` table (`reference/config.md:133-147`; `split.pieces` is
-`:139`), and at least one **bolded invariant bullet** under `## Notes` (`:149-170`;
-`split.pieces` earns two, at `:153-156` and `:157-160`). The schema block alone is the most common
+(`reference/config.md:17-164`; `split:` occupies `:42-55`), a row in the
+`## Defaults when nothing is configured` table (`reference/config.md:199-214`; `split.pieces` is
+`:205`), and at least one **bolded invariant bullet** under `## Notes` (`:216-250`;
+`split.pieces` earns two, at `:220-223` and `:224-227`). The schema block alone is the most common
 half-finish: the key is documented, and then a command asks "what is the default?" and the table
 does not say.
 
@@ -89,7 +89,7 @@ renumbers every step after it.
 Inserting a step **renumbers everything after it**, and steps refer to each other by number —
 `commands/init.md:100` says "propose whatever step 2 found". After renumbering, grep the file for
 `step [0-9]` and fix the back-references. Nothing outside `init.md` references its steps by
-number today, but other command files do reference each other's: `commands/prep.md:154` says
+number today, but other command files do reference each other's: `commands/prep.md:155` says
 "Follow `/jdi:split` steps 2 through 5", and `commands/replan.md:19` says "`/jdi:plan` step 2". If
 you renumber a *different* command, grep `commands/` for references to it before you finish.
 
@@ -98,20 +98,20 @@ when it cannot apply ("Skip this question entirely when the tracker is `none`") 
 written anyway. A question that cannot be meaningfully answered is not asked.
 
 **`commands/help.md` takes three edits.** The instruction for the closing line that names what
-this repo is configured for (`commands/help.md:9-12`), the `/jdi:init` row in the command table,
-which lists init's questions a second time (`commands/help.md:25`), and a `###` prose subsection
-explaining the key (`commands/help.md:82-89`). If the key changes what a specific command does,
+this repo is configured for (`commands/help.md:9-13`), the `/jdi:init` row in the command table,
+which lists init's questions a second time (`commands/help.md:26`), and a `###` prose subsection
+explaining the key (`commands/help.md:83-90`). If the key changes what a specific command does,
 that command's row in the same table needs a clause too — `/jdi:split`'s row gained "Mirrors them
-to the tracker if `split.pieces` says so" (`commands/help.md:30`).
+to the tracker if `split.pieces` says so" (`commands/help.md:31`).
 
 **`README.md` states init's questions twice.** Once in the comment on the `/jdi:init` snippet
-(`README.md:185`) and once in the prose immediately below it (`README.md:192-198`), plus a `###`
-section describing the key (`README.md:200-214`). The two enumerations are close together and are
+(`README.md:186`) and once in the prose immediately below it (`README.md:193-200`), plus a `###`
+section describing the key (`README.md:202-216`). The two enumerations are close together and are
 easy to half-update.
 
 **All three JSON release files carry a version, and they must match.**
 `.claude-plugin/plugin.json:3`, `.codex-plugin/plugin.json:3`, and
-`.claude-plugin/marketplace.json:10` are all `1.0.4` right now. The reason is in
+`.claude-plugin/marketplace.json:10` are all `1.0.5` right now. The reason is in
 `README.md:164-168`: `claude plugin update` compares versions rather than content, so a prompt edit
 shipped without a version bump silently does nothing on Claude's installed copy. The newest
 `CHANGELOG.md` heading is the fourth version authority and must carry that same release number.
@@ -121,7 +121,7 @@ shipped without a version bump silently does nothing on Claude's installed copy.
 Nine is the floor now. `git show --stat c83963b` touched seventeen files before the Codex manifest
 existed; beyond that release's eight-file floor, its extra nine were the ones the key's *behaviour*
 reached: `reference/tracker.md` (two new operations),
-`reference/plan-store.md:17-19`, `agents/splitter.md:48-51`, and the command files that now branch
+`reference/plan-store.md:17-19`, `agents/splitter.md:47-50`, and the command files that now branch
 on the key — `split.md`, `prep.md`, `done.md`, `next.md`, `yolo.md`, `pr.md`.
 
 There is no list for this, because it depends on the key. **Grep the key's own name when you think
@@ -150,7 +150,7 @@ in order, to the orchestrator in the second person.
 
 A new key almost always lands in the command files. It lands in a role file only when the
 behaviour is the role's own discipline regardless of which command spawned it — and even then, the
-role usually gets a *constraint* rather than the key. `agents/splitter.md:48-51` is the pattern:
+role usually gets a *constraint* rather than the key. `agents/splitter.md:47-50` is the pattern:
 the Splitter is told it never writes to the tracker and that the Butler adds the `Ticket:` line
 afterwards, so it should write task bodies that read well in a ticket. It is told the consequence
 of `split.pieces`; it never reads the key.
@@ -165,8 +165,8 @@ of `split.pieces`; it never reads the key.
 This makes the hand-off contract explicit and auditable in both directions. **A new fact a role
 needs is therefore either added to that role's "What it receives" section, or resolved by the
 Butler and passed as an already-decided value.** The Researcher shows the full loop:
-`agents/researcher.md:70-71` lists "The resolved JDI config (plan store path, docs path,
-consumers)", and `commands/prep.md:106-107` is the Butler handing over exactly those.
+`agents/researcher.md:69-70` lists "The resolved JDI config (plan store path, docs path,
+consumers)", and `commands/prep.md:107-108` is the Butler handing over exactly those.
 
 Prefer the second form. Passing a *resolved* value ("write the doc to `docs/`") rather than the
 key ("read `docs.path`") keeps config resolution in one place — the Butler, at step 0 — and keeps
@@ -253,7 +253,7 @@ Inline the ladder in the command when it is short and has exactly one caller —
 `reference/*.md` when **several commands must perform the same operation**, which is precisely
 when the repeat-in-place rule would otherwise force you to copy the whole ladder N times. T7 and
 T8 earned their place because five commands invoke them by name: `split.md` and `prep.md` call T7,
-`done.md`, `next.md` and `yolo.md` call T8 (`CHANGELOG.md:87-89`).
+`done.md`, `next.md` and `yolo.md` call T8 (`CHANGELOG.md:127-129`).
 
 **A new reference file is not free.** The OpenCode adapter handles it automatically —
 `bin/sync-opencode.sh:66` copies the whole `reference/` directory, so no adapter edit is needed.
@@ -266,20 +266,20 @@ Neither states a number; each states a count by listing one. Adding a file witho
 leaves the repo describing itself incorrectly, in the two documents a newcomer reads first — which
 is exactly what `reference/testing.md` had to do when it arrived, editing both in the same
 commit. Note also the README row naming "The eight tracker operations (T1–T8)"
-(`README.md:289`) — a count that had to move when T7 and T8 arrived. Counts in prose are citations
+(`README.md:291`) — a count that had to move when T7 and T8 arrived. Counts in prose are citations
 too; if you add an operation, grep for the old number.
 
 ## 5. What must never become a config key
 
 Three categories are permanently out of scope. The reasoning for each is already in the repo.
 
-**Repo conventions the team already writes down.** `reference/config.md:168-169`:
+**Repo conventions the team already writes down.** `reference/config.md:248-249`:
 
 > **Branch and commit message conventions are not configured here.** They come from the repo's own
 > `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 
 Duplicating them into `.jdi/config.yml` creates a second source of truth that silently diverges
-from the one humans and every other tool already read. `commands/init.md:116-120` turns this into
+from the one humans and every other tool already read. `commands/init.md:140-144` turns this into
 behaviour: init explicitly does **not** configure them, and instead offers to write them into
 `CLAUDE.md` / `AGENTS.md` if they are missing. `git.branch_prefix` is the deliberate seam —
 `reference/config.md:100-102`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —
@@ -290,13 +290,18 @@ an override, not a home.
 > The bodies are never touched — if an adapter needs to rewrite a body, that body has a harness
 > assumption in it that belongs in frontmatter or in `.jdi/config.yml` instead.
 
-Every command and role **body** is shared verbatim across Claude Code, Codex and OpenCode. Concrete
-model names and tool allowlists live only in YAML frontmatter, which each adapter strips or
-rewrites (`README.md:322-323`). A key that only means something on one harness — a tool name, a
-subagent flag, a vendor's API shape — belongs in frontmatter, and the adapter's job is to remove
-it. The `models` block (`reference/config.md:104-111`) is the sanctioned exception, and note its
-shape: it maps JDI's own vocabulary (`deep` / `standard` / `fast`) onto the harness's, so the
-bodies still name only tiers.
+Every command and role **body** is shared verbatim across Claude Code, Codex and OpenCode. A
+**tool allowlist** lives only in YAML frontmatter, which each adapter strips or rewrites
+(`README.md:330-332`): it says what the *file* needs from whatever harness runs it, and it is the
+same for every user who runs that role. A key that only means something on one harness — a tool
+name, a subagent flag, a vendor's API shape — belongs there too, and the adapter's job is to
+remove it.
+
+**A model name is not one of those, and does not belong in frontmatter.** It is a fact about the
+user's account and the harness they paired it with — which model they actually have, spelled the
+way that CLI accepts — so it has no single right answer and nothing to gain from being committed
+into a file every user shares. That is why `models` (`reference/config.md:104-131`) is a
+configuration block and not frontmatter, and why no file under `agents/` carries a `model:` key.
 
 **Anything with a right answer.** If one setting is correct for every repo, hardcode it. A config
 key is a promise to support every value of it forever, in every command that reads it, on every
@@ -319,13 +324,25 @@ Ask, in order:
 
 Only a "yes, no, no, yes, yes" earns a key.
 
+`models.<role>` is the worked example, and the reason the harness-specifics rule above points at
+`.jdi/config.yml` rather than at frontmatter. **Yes** — two sensible repos answer differently,
+because the model a role runs on depends on the account paying for it. **No** — no repo writes its
+model choices down in prose humans read, so there is no level-2 source to defer to. **No** — it is
+not a harness fact in the frontmatter sense: frontmatter carries what the *file* needs from *any*
+harness, while a model name is what *this user* has on *this* harness. **Yes** — "unset" is a safe
+default that needs nothing from the environment; every role then runs on the session's own model,
+which is exactly what happened before the key existed. **Yes** — the ladder was written before the
+feature: `reference/delegation.md`'s twelve rungs say what happens when the named CLI is absent,
+when a role's instructions cannot be resolved for it, and when a model cannot be expressed or
+reached.
+
 ## 6. Release mechanics
 
 There are **no git tags** in this repository. A release is exactly: three JSON version edits, a
 CHANGELOG entry, and a commit whose subject carries the version. Nothing else.
 
 **Three version files, and they must match.** `.claude-plugin/plugin.json:3`,
-`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.4`.
+`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.5`.
 `README.md:164-168` is the why: cached plugin releases use versioned metadata, and
 `claude plugin update` specifically compares versions rather than content. An unbumped release is
 invisible to installed copies — a workflow change that no user receives. The newest
@@ -339,18 +356,18 @@ digit. The repo has made no minor or major bump, so there is no observed rule fo
 removing a key or changing what an existing value means, decide it deliberately and say so in the
 CHANGELOG rather than reading a convention out of these two data points.
 
-**The CHANGELOG entry shape** (`CHANGELOG.md:76-97` is the configuration-key reference):
+**The CHANGELOG entry shape** (`CHANGELOG.md:116-137` is the configuration-key reference):
 
 - `## <version>` heading.
 - A **bold one-line headline** stating the user-visible outcome, not the mechanism —
-  `CHANGELOG.md:78`: "**The splitter is configurable: pieces become subtickets, tracker tasks, or
+  `CHANGELOG.md:118`: "**The splitter is configurable: pieces become subtickets, tracker tasks, or
   just commits.**"
 - A blank line, then bullets. The load-bearing ones open with a **bold lead-in**:
-  `CHANGELOG.md:90` — "**Degrades down, never up.**"; `CHANGELOG.md:81` — "**in addition to**".
+  `CHANGELOG.md:130` — "**Degrades down, never up.**"; `CHANGELOG.md:121` — "**in addition to**".
 - Every key, mode and command in backticks: `split.pieces`, `commits`, `/jdi:done`,
   `reference/tracker.md`.
 - The first bullet describes the key and **says what happens to a repo that does not set it**
-  (`CHANGELOG.md:82-83`: "an existing repo with no such key behaves exactly as it did"). Backward
+  (`CHANGELOG.md:122-123`: "an existing repo with no such key behaves exactly as it did"). Backward
   compatibility is stated, never left to be inferred.
 - Entries are newest-first; the version's own bullets say what changed, not how it was built.
 
@@ -395,12 +412,12 @@ The nine mandatory files:
 
 Behaviour:
 
-- [ ] `commands/prep.md:23` — the literal list of config block names includes the new block.
+- [ ] `commands/prep.md:23-24` — the literal list of config block names includes the new block.
 - [ ] Every command whose behaviour changes has the instruction **written out in place**, not
       cross-referenced. Count the sites first.
 - [ ] Any role that needs the fact has it in its "What it receives" — or, preferably, is passed the
       resolved value by the Butler.
-- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:288-292`
+- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:290-294`
       and `AGENTS.md:49-53` are both updated, and any prose count is corrected.
 - [ ] `commands/status.md` was considered and deliberately excluded or included.
 

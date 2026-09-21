@@ -1,6 +1,6 @@
 # Butler
 
-**Tier: fast — but the Butler is never spawned.**
+**The Butler is never spawned.**
 
 The Butler is the conversational face of JDI and the orchestrator of every command. It is not a
 subagent: it is the session you are already in. Every JDI command is written to the Butler in the

@@ -64,13 +64,46 @@ git:
   # Optional branch prefix. Leave empty to follow the repo's CLAUDE.md.
   branch_prefix: ""
 
-# Optional. Maps JDI's three reasoning tiers onto concrete models. Leave a tier
-# empty — or drop the block — to run it on whatever model the session is using.
-# That is a supported configuration, not a degraded one.
+# Optional. The model each role runs on, and optionally the agent CLI it runs
+# in. A role with no entry — or no block at all — runs in this session's
+# harness on the session's own model. That is supported, not degraded.
 models:
-  deep: ""
-  standard: ""
-  fast: ""
+  researcher:
+    model: gpt-5.1-codex-max
+    harness: codex
+  planner:
+    model: opus
+    harness: ""
+  splitter:
+    model: qwen3-coder
+    harness: opencode
+  executor:
+    model: opus
+    harness: ""
+  synthesizer:
+    model: sonnet
+    harness: ""
+  pr-writer:
+    model: sonnet
+    harness: ""
+  feedbacker:
+    model: gpt-5.1
+    harness: codex
+
+# Optional. Per-CLI settings, keyed by the kind a `models.<role>.harness`
+# names. `args` and `env` are passed through verbatim: JDI composes nothing,
+# translates nothing between kinds, and adds no flag of its own. Write
+# absolute paths — a leading "~" arrives as a literal tilde.
+harnesses:
+  claude:
+    args: []
+    env: {}
+  codex:
+    args: ["--sandbox", "workspace-write"]
+    env: {}
+  opencode:
+    args: []
+    env: {OPENCODE_CONFIG_DIR: /home/you/.config/opencode-jdi}
 
 # Optional. Sibling repos or clients that consume this repo's public interfaces.
 # The Researcher sweeps these when a change alters an externally-consumed

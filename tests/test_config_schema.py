@@ -11,6 +11,7 @@ the default, the example shows a configured repo — so this module compares onl
 the set of key paths, never a value.
 """
 
+import pathlib
 import unittest
 
 import jdi_files
@@ -98,6 +99,58 @@ class ConfigSchemaTest(unittest.TestCase):
                         "the defaults table row `%s` names a key that is not in "
                         "reference/config.md's schema" % key,
                     )
+
+
+class ModelsBlockTest(unittest.TestCase):
+    """The `models:` block names roles, one per `agents/*.md`, each with a shape.
+
+    `reference/config.md` is the only place a role's model is named, so the block
+    has to stay in step with the set of roles that exist. A role that gains a
+    definition and never gains a key is a role nobody can configure; a key left
+    behind by a role that was renamed or removed is a key nobody can use.
+    """
+
+    def setUp(self):
+        self.schema_keys = jdi_files.key_paths(jdi_files.schema_block())
+        self.role_stems = {
+            pathlib.Path(path).stem for path in jdi_files.markdown_files("agents")
+        }
+        self.assertTrue(self.schema_keys, "no keys parsed out of reference/config.md's schema")
+        self.assertTrue(self.role_stems, "no role definitions found under agents/")
+
+    def test_models_names_exactly_the_agent_roles(self):
+        configured = {
+            key.split(".")[1]
+            for key in self.schema_keys
+            if key.startswith("models.") and key.count(".") == 1
+        }
+        self.assertEqual(
+            configured,
+            self.role_stems,
+            "reference/config.md's `models:` block and agents/ disagree about which "
+            "roles exist. Only in the schema: %s. Only in agents/: %s. There is "
+            "deliberately no `models.butler` — the Butler is the session you are "
+            "already in and is never spawned."
+            % (
+                ", ".join(sorted(configured - self.role_stems)) or "none",
+                ", ".join(sorted(self.role_stems - configured)) or "none",
+            ),
+        )
+
+    def test_every_role_carries_a_model_and_a_harness(self):
+        for stem in sorted(self.role_stems):
+            with self.subTest(role=stem):
+                expected = {"models.%s.model" % stem, "models.%s.harness" % stem}
+                missing = sorted(expected - self.schema_keys)
+                self.assertEqual(
+                    missing,
+                    [],
+                    "reference/config.md's `models.%s` entry is missing %s. Every "
+                    "role carries both keys: `model` is what it runs on, `harness` "
+                    "is the agent CLI it runs in. Write them as a two-space-indented "
+                    "block, not a flow mapping — a flow mapping loses its children "
+                    "silently." % (stem, ", ".join(missing)),
+                )
 
 
 if __name__ == "__main__":

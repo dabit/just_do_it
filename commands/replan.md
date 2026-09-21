@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Re-Plan
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Planner** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Planner**.
 
 Re-write the implementation plan from scratch, even though one already exists. This forces a fresh
 planning pass — use it when the research has changed, when a decision has been reversed, or when

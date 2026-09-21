@@ -15,7 +15,6 @@ description: |
   Deliberate, on-demand critique — the Feedbacker never runs as an automatic gate.
   </commentary>
   </example>
-model: opus
 tools: ["Read", "Glob", "Grep", "Bash", "WebFetch"]
 ---
 

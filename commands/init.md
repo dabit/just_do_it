@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, and where plans and docs live."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, where plans and docs live, and which model each role runs on."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -10,7 +10,7 @@ argument-hint: "[optional notes about how this repo works]"
 Set JDI up for this repository by writing `.jdi/config.yml`. Additional context from the user:
 $ARGUMENTS
 
-The full schema, the defaults, and example tier mappings are in JDI's `reference/config.md` — in the
+The full schema, the defaults, and example model mappings are in JDI's `reference/config.md` — in the
 JDI plugin's own directory (`${CLAUDE_PLUGIN_ROOT}/reference/config.md`, or, if that variable does
 not resolve, `reference/` one level up from this command file). Read it before asking anything.
 
@@ -99,11 +99,35 @@ Follow these steps:
 7. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
    architecture documents into. Default `doc`; propose whatever step 2 found.
 
-8. **Ask about model tiers — optional, and say that it is optional** — JDI runs three tiers: `deep`
-   (research, planning, implementation, review), `standard` (splitting, condensing, PR writing), and
-   `fast` (orchestration, status, commits). Offer to map them to concrete models for whatever
-   harness and provider the user runs, and make clear that leaving them empty is fully supported:
-   every tier then runs on the session's own model and nothing about the workflow changes.
+8. **Ask which model each role runs on — optional, and say that it is optional** — JDI has seven
+   delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, and
+   Feedbacker. Offer to name a model for each (`models.<role>.model`), **proposing rather than
+   asking from zero**: `reference/delegation.md` says what each phase wants from a model, and this
+   session already knows what harness it is. Make clear that leaving a role empty — or skipping the
+   whole block — is fully supported: that role then runs on the session's own model and nothing
+   about the workflow changes.
+
+   **The value is handed to the harness that will run the role, exactly as written**, so write the
+   identifier that harness accepts: Claude Code's Agent tool takes an alias (`opus`, `sonnet`,
+   `haiku`), while Codex and OpenCode take full identifiers. A model a harness cannot express is
+   announced and the role runs on that harness's own default; it is never silently swapped.
+
+   Then ask whether any role should run in a **different agent CLI** (`models.<role>.harness` —
+   `claude`, `codex`, or `opencode`). Naming none is the normal answer, and it is the one to
+   propose.
+
+   **Only if the user named another harness for at least one role**, ask about the `harnesses:`
+   block for the kinds they named: the `args` handed to that CLI and the `env` set on the process
+   that runs it. Say plainly that both are passed through exactly as written — JDI composes,
+   merges and translates nothing, and adds no flag of its own, so an approval- or sandbox-affecting
+   flag is one the user typed and JDI prints it back before it spawns anything — and that paths
+   must be absolute, because a leading `~` arrives as a literal tilde. Skip this question entirely
+   when no role names another harness: there is no CLI to configure.
+
+   **If the file already carries a `models:` block keyed by `deep`, `standard`, and `fast`, say
+   so.** That is the pre-1.0.5 shape: it names no role, so nothing in it is read. Offer to rewrite
+   it per role rather than keep a block that has no effect — this is the one place step 1's "keep
+   every value the user does not change" would otherwise preserve something dead.
 
 9. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher

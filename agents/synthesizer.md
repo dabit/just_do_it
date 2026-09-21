@@ -13,7 +13,6 @@ description: |
   Plan condensation step of the JDI PR phase.
   </commentary>
   </example>
-model: sonnet
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 

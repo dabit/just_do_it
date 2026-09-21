@@ -6,7 +6,7 @@ argument-hint: "<what you are about to build>"
 # JDI: Prep
 
 **Role: Butler** — JDI's orchestrator (`roles/butler.md`).
-**Delegates to: Researcher** (deep), **Planner** (deep), **Splitter** (standard).
+**Delegates to: Researcher**, **Planner**, **Splitter**.
 
 Prepare a new JDI task end to end, without writing implementation code. This combines
 `/jdi:start`, `/jdi:research`, `/jdi:plan`, and `/jdi:split` into one flow. The user wants to work
@@ -20,7 +20,8 @@ Follow these steps:
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
-   Everything below refers to `tracker`, `split`, `plans`, `docs`, and `consumers` from it.
+   Everything below refers to `tracker`, `split`, `plans`, `docs`, `consumers`, `models`, and
+   `harnesses` from it.
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
@@ -101,7 +102,7 @@ Follow these steps:
 
    Leave the sections empty for now.
 
-8. **Delegate to the Researcher** — Hand off to the **Researcher** role at the **deep** tier; see
+8. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
    Give it the task description from `PLAN.md`, the `docs.path`, the plan store location, and the
    `consumers` list. Instruct it to return:
@@ -117,7 +118,7 @@ Follow these steps:
    every later step.
 
 10. **Draft a missing architecture doc when one is needed** — If no useful architecture doc exists,
-    do not stop just to ask permission. Delegate to the **Researcher** again at the **deep** tier,
+    do not stop just to ask permission. Delegate to the **Researcher** again,
     have it draft a suitable architecture document, write that draft to `<docs.path>/` with a
     descriptive filename, and add it to `## References`. Stop only if a real ambiguity prevents a
     reasonable draft. An architecture doc goes in the repository and is committed with the code, in
@@ -133,7 +134,7 @@ Follow these steps:
     continue.** Ask only what materially changes the output; for the rest, pick the obvious default
     and say which one you picked.
 
-13. **Delegate to the Planner** — Hand off to the **Planner** role at the **deep** tier. Pass it the
+13. **Delegate to the Planner** — Hand off to the **Planner** role. Pass it the
     current `PLAN.md`, the referenced docs, and the clarified answers. Instruct it to produce:
     - a detailed implementation plan
     - a testing strategy
@@ -152,8 +153,8 @@ Follow these steps:
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
 16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
-    it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**
-    at the **standard** tier. State the decision and the reason. The final task is always UAT, and
+    it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**.
+    State the decision and the reason. The final task is always UAT, and
     it maps every clause of the issue's acceptance criteria to the scenario or test that proves it.
 
     Then materialise the pieces per `split.pieces`: `commits` (the default) writes nothing to the

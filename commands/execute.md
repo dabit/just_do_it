@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Execute
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor**.
 
 Execute the next pending task from the plan.
 
@@ -58,7 +58,7 @@ Follow these steps:
 4. **Verify the dependencies** — Confirm every task listed as a dependency has `status: done`. If
    not, tell the user which ones must be completed first, and stop.
 
-5. **Delegate to the Executor** — Hand off to the **Executor** role at the **deep** tier; see JDI's
+5. **Delegate to the Executor** — Hand off to the **Executor** role; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it:
    - the task file content
    - `PLAN.md` for the overall context

@@ -193,19 +193,41 @@ class DelegationGuidanceTest(unittest.TestCase):
             "exactly the inputs the role's *What it receives* section declares — no more",
         )
 
-    def test_fallback_order_and_authorization_boundaries_are_preserved(self):
+    def test_ladder_order_and_corrected_authorization_invariant(self):
         guidance = self.guidance()
         first = guidance.index("**1. The harness has first-class subagents**")
-        second = guidance.index("**2. The harness has no subagents, but can run a second session**")
+        second = guidance.index("**2. A second non-interactive session**")
         third = guidance.index("**3. Neither.** **Adopt the role inline.**")
         self.assertLess(first, second)
         self.assertLess(second, third)
         self.assertGuidanceContains(
-            "the tier's model from the config",
-            "Shell out to it with the role file and the inputs as the prompt",
+            "the role's model from the config",
+            "Prefer the CLI's own non-interactive mode",
+            "codex exec -m <model> -o <file>",
             "announce the switch",
-            "Subagents and fallback sessions stay inside the active sandbox, approval policy, and authorization boundaries.",
-            "Delegation never grants additional authority.",
+            "A separately spawned CLI does not",
+            "JDI composes no authority-affecting flag and translates none between kinds",
+            "Delegation never grants additional authority",
+        )
+
+    def test_harness_is_a_first_class_value_in_both_directions(self):
+        self.assertGuidanceContains(
+            "`harness: claude` is a first-class value",
+            "herdr pane split",
+            "Not `herdr agent start`",
+        )
+
+    def test_degradation_ladder_runs_from_the_first_rung_to_the_floor(self):
+        guidance = self.guidance()
+        top = guidance.index("**No `harness:` for this role.**")
+        floor = guidance.index("**The floor.**")
+        self.assertLess(top, floor)
+        self.assertGuidanceContains(
+            "one announcement, not two",
+            "**The phase always runs.**",
+            "Never skip the phase.",
+            "Never acquire a flag the user did not write.",
+            "herdr pane close",
         )
 
 
@@ -292,7 +314,7 @@ class ReadmeCodexDocumentationTest(unittest.TestCase):
     def test_scope_snapshot_and_capability_delegation_are_accurate(self):
         codex = self.normalized_section("### Codex")
         updating = self.normalized_section("### Updating")
-        roles = self.normalized_section("### Roles and tiers, not agents and models")
+        roles = self.normalized_section("### Roles and models, not agents and vendors")
         self.assertIn("no project scope", codex)
         self.assertIn("for the whole machine", codex)
         self.assertIn("installed snapshot", updating)

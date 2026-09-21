@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: YOLO
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor**.
 
 Automatically mark the current task done and execute every remaining task in the plan, one by one,
 without stopping for feedback.
@@ -74,7 +74,7 @@ unchecked task:
 2. **Verify the dependencies** — confirm every dependency has `status: done`. If one is unmet, skip
    this task and try the next eligible one. If no task is eligible, **stop** and tell the user which
    dependencies are blocking.
-3. **Delegate to the Executor** — hand off to the **Executor** role at the **deep** tier; see JDI's
+3. **Delegate to the Executor** — hand off to the **Executor** role; see JDI's
    `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it
    the task file content, `PLAN.md` for context, and the referenced architecture docs. Read the
    `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the

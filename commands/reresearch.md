@@ -5,7 +5,7 @@ argument-hint: "[plan slug]"
 
 # JDI: Re-Research
 
-**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Researcher** (deep).
+**Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Researcher**.
 
 Re-run research from scratch, even though research has already been done. This forces a fresh look
 at the codebase and the docs — use it when the tree has moved, when the scope has changed, or when

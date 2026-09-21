@@ -15,7 +15,6 @@ description: |
   Planning phase of the JDI workflow.
   </commentary>
   </example>
-model: opus
 tools: ["Read", "Glob", "Grep", "Bash", "WebFetch", "WebSearch"]
 ---
 
