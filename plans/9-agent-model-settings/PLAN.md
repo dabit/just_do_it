@@ -159,10 +159,10 @@ Deferred and Remaining work).
   UNVERIFIED live.** Deleting `agents/*.md`'s `model:` removed the one mechanism that actually
   reached Claude Code before; the ladder's rung 10 is detectable before the spawn from the harness's
   own schema, and the floor sentence and announcement rules are pinned by test. But the one scenario
-  written specifically to exercise this live — UAT scenario 6 — was explicitly marked
+  written specifically to exercise this live — UAT scenario 7 — was explicitly marked
   "not deferrable" and **was not run**, because UAT as a whole was skipped. Detection signal if this
   regresses: a role silently running on the session's own model with no announcement, in a repo
-  whose config names a model the harness cannot express. Remedy: run UAT scenario 6 (see Remaining
+  whose config names a model the harness cannot express. Remedy: run UAT scenario 7 (see Remaining
   work) before relying on this in a harness other than Claude Code.
 - **An accepted, visible UX change on this repo, ships as designed.** The dogfood writes Claude
   Code aliases into `.jdi/config.yml`. Under Claude Code that is exact parity with before. Under
@@ -174,11 +174,11 @@ Deferred and Remaining work).
 - **An existing user's pre-1.0.5 `models:` block (`deep`/`standard`/`fast`) is handled by a
   detect-and-say-once sentence, not by interpretation** — JDI never invents a mapping the user did
   not write. This is proven only by reading the prose — no test pins the old-shape detection
-  sentence itself; UAT scenario 8, which would have exercised it live, did not run.
+  sentence itself; UAT scenario 9, which would have exercised it live, did not run.
 - **Prose correctness is unverifiable by the test suite** for the whole change — the ladder, the
   exec-first/Herdr-second resolution, and the authorization boundary are markdown instructions to an
   agent. The suite is a regression guard on structure only. With UAT skipped, this remains true for
-  every scenario, not only scenario 6.
+  every scenario, not only scenario 7.
 
 ## Remaining work
 
