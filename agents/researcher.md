@@ -64,10 +64,20 @@ understanding of the area being changed. It reads; it does not write code.
   at runtime, say which environment you measured and name the check that would settle it for the
   environment that actually matters
 
+**When the Butler says Jev is available**, perform **J1** from JDI's `reference/jev.md` to rank the
+candidate architecture docs before reading them, and **J2** to screen the `consumers` list. Both
+only reorder work that was already yours: read the *Required* and *Useful* documents in full, list
+the ones scored *Irrelevant* as considered-and-not-read rather than dropping them, and investigate
+every consumer the screen flags. A rank that does not arrive, or a confidence below 0.5, means you
+read the candidate yourself — the fallback is always the sweep you would have done with Jev off.
+Never mark a consumer clear on a screen that did not run, and never let a score stand in for a
+citation: every `file:line` you report is still one you read.
+
 ## What it receives
 
 - The task description from `PLAN.md`
 - The resolved JDI config (plan store path, docs path, consumers)
+- Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
 
 ## What it returns
 

@@ -8,8 +8,8 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
-split pieces become, whether TDD is on, which roles have a model configured and whether any of them
-runs in another agent CLI, and whether `.jdi/config.yml` exists at all. If it does not, say
+split pieces become, whether TDD is on, whether Jev is on, which roles have a model configured
+and whether any of them runs in another agent CLI, and whether `.jdi/config.yml` exists at all. If it does not, say
 `/jdi:init` writes it, and that JDI works without it by asking as it goes.
 
 ---
@@ -23,19 +23,19 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 | Command | Roles | What it does |
 |---|---|---|
-| `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, plan store, docs folder, models. Writes `.jdi/config.yml`. |
+| `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, Jev, plan store, docs folder, models. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
 | `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
-| `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. |
+| `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. Ranks the candidate docs and screens `consumers` with Jev when `jev.enabled` is on. |
 | `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
-| `/jdi:split` | Splitter | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so. |
+| `/jdi:split` | Splitter | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so, and checks the split is really atomic with Jev when `jev.enabled` is on. |
 | `/jdi:execute` | Butler + Executor | Implement the next pending task. Shows the diff and asks for your feedback. Proves the test suite runs, once per plan, when `tdd.enabled` is on. |
 | `/jdi:done` | Butler | Mark the current task complete, update the checklist, and commit. |
 | `/jdi:next` | Butler + Executor | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
 | `/jdi:yolo` | Butler + Executor | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
 | `/jdi:status` | Butler | Show progress on the current plan. |
 | `/jdi:pr` | Butler + Synthesizer + PR Writer | Condense the plan, push, and open the pull request. |
-| `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. |
+| `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. Orders the findings with Jev when `jev.enabled` is on. |
 | `/jdi:replan` | Butler + Planner | Throw the plan away and write a fresh one. |
 | `/jdi:reresearch` | Butler + Researcher | Throw the research away and look again. |
 
@@ -110,6 +110,27 @@ Where a task has no testable behaviour — documentation, prose, configuration �
 announces the skip and implements normally. A test invented to satisfy the mode would be worse than
 no test at all: it produces a green suite and a red-run transcript that prove nothing while looking
 precisely like proof.
+
+### Typed judgments with Jev
+
+Off by default, and **silent** when off: with `jev.enabled` unset or `false`, no role sends
+anything anywhere and no command mentions it — not even to say it is off. Set it to `true` and five
+named operations become available (`reference/jev.md`, J1–J5): the Researcher ranks candidate
+architecture docs so the constraining ones are read first and screens `consumers` for contract
+breakage, the tracker operations resolve an idiosyncratic workflow state name by role, the Splitter
+checks a fresh split is really atomic, and the Feedbacker orders its findings by consequence.
+
+Jev is TypeSafe's System One model. It returns a probability or a chosen option rather than prose,
+it sees no tools and writes no files, and **it narrows a list a role already has — it never
+decides**. It is never the reason a step is skipped, a tracker is written, a commit is made, or a
+pull request is opened. Those stay the role's judgment and your approval, exactly as they are with
+the key off.
+
+It **degrades to more work, never less**. No key, no network, a failed request, or a state too big
+for one request all mean the role reads every candidate itself — which is what it does with the key
+off. The Butler runs that ladder once, before it delegates anything, and announces the fallback a
+single time rather than at every step. The key is read from `$TYPESAFE_API_KEY` or
+`~/.config/typesafe/api_key`; it never belongs in `.jdi/config.yml`, which is a committed file.
 
 ### Roles and models
 

@@ -183,7 +183,7 @@ This section uses Claude Code command spellings. For the first command, Codex us
 and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, the plan store, the docs folder, and models
+/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, and models
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -191,13 +191,14 @@ more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
-should write tests first (TDD), where plans should live, where architecture docs live, and which
-model each role runs on. It
+should write tests first (TDD), whether roles may ask Jev for typed judgments, where plans should
+live, where architecture docs live, and which model each role runs on. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
-whether the runner runs here before the setting is written rather than at the first task. The
-setting is recorded either way, and JDI re-proves the runner at the start of every plan.
+whether the runner runs here before the setting is written rather than at the first task, and on a
+yes to Jev it sends one throwaway question to prove the key works. The setting is recorded either
+way, and JDI re-proves both at the start of every plan.
 
 ### What a split piece becomes
 
@@ -234,6 +235,37 @@ tried and what came back, because a red run against a runner nobody watched is f
 Nothing about the history changes: tests and implementation still land in the same commit, one per
 task, and only the order they are written in is different. A task with no testable behaviour —
 documentation, prose, configuration — gets an announced skip rather than an invented test.
+
+### Typed judgments with Jev
+
+`jev` in `.jdi/config.yml` says whether JDI's roles may ask [Jev](https://typesafe.ai) — TypeSafe's
+System One model — for a typed judgment instead of eyeballing a list:
+
+| `jev` | What you get |
+|---|---|
+| `enabled: false` (default) | Nothing changes, and nothing is said. No role sends anything anywhere, and no command mentions Jev — not even to note it is off |
+| `enabled: true` | Five named operations become available (`reference/jev.md`, J1–J5) at the points where a role would otherwise skim a list |
+
+Jev returns a probability, a chosen option, or a position on a described scale — never prose. It
+sees no tools and writes no files. JDI uses it in five places: the Researcher **ranks candidate
+architecture docs** so the ones that constrain the change are read first and in full, and
+**screens `consumers`** for contract breakage; the tracker operations **resolve a workflow state by
+role** rather than hardcoding a team's idiosyncratic status names; the Splitter **checks a fresh
+split is really atomic**; and the Feedbacker **orders its findings** by what happens if they ship.
+
+The rule that governs all five: **Jev narrows, it never decides.** It may reorder a list, flag a
+candidate, or pre-select one option from a set the caller already enumerated. It is never the
+reason a step is skipped, a tracker is written, a commit is made, or a pull request is opened —
+those stay the role's judgment and your approval, exactly as with the key off.
+
+It also **degrades to more work, never less**. No key, no network, a failed request, or a state
+too large for one request all mean the role reads every candidate itself. Dropping a consumer
+sweep because an optional model was unavailable would be a worse failure than never having asked,
+so the fallback is always the un-Jev'd path. The Butler runs that ladder once, before it delegates
+anything, and announces the fallback a single time rather than at every step.
+
+The key is read from `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`. It never goes in
+`.jdi/config.yml` — that file is committed.
 
 ## Use it
 
@@ -290,6 +322,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example model mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
+| `reference/jev.md` | The five Jev operations (J1–J5) that `jev.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How each role becomes an actual model on your harness |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |

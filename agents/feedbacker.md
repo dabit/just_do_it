@@ -76,11 +76,19 @@ left running across an idle wait is silently orphaned. If it does not return pro
 review inline as the orchestrator, note that the fallback ran, and proceed. Keep the review prompt
 tight — verdict plus gaps, not a re-derivation of the work.
 
+**When the Butler says Jev is available**, perform **J5** from JDI's `reference/jev.md` to order
+the findings by what happens if each ships unchanged, and to check each one is supported by the
+output rather than by a general principle. Ordering is all it does: **drop nothing**. A finding
+that fails the support check is kept and marked unsupported, because a critique that quietly
+deletes its own weakest claims cannot be audited. The verdict — pass or needs work — is yours, and
+no score decides it.
+
 ## What it receives
 
 - The output under review, and which role produced it
 - That role's definition file and the driving command file
 - `PLAN.md` and any referenced architecture docs for context
+- Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
 
 ## What it returns
 

@@ -43,6 +43,17 @@ tdd:
   # to have the Butler work it out from the repo.
   test_instructions: "run `bin/rails test` inside the devcontainer"
 
+jev:
+  # true  — roles may ask Jev for the typed judgments in reference/jev.md (J1–J5):
+  #         ranking candidate docs, screening consumers, resolving a tracker state,
+  #         checking a split is atomic, ranking findings. Jev narrows a list the
+  #         role already has; it never decides, writes, or commits.
+  # false — nothing is asked and nothing is announced (the default)
+  #
+  # Needs a key in $TYPESAFE_API_KEY or ~/.config/typesafe/api_key. Never put the
+  # key itself in this file.
+  enabled: true
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.

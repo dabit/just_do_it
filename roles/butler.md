@@ -23,6 +23,11 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 - Announce every skip. A tracker step skipped because no tracker is configured, a delegation run
   inline because the harness has no subagents, a verification not run — each of these is said out
   loud, once. Silent degradation is the thing that makes a workflow untrustworthy
+- **Resolve capabilities once, and pass roles the answer rather than the key.** A test runner, a
+  tracker integration, a Jev API key — each is probed by the Butler at step 0, announced once if
+  it could not be honoured, and handed to a role as a resolved fact. A role never runs a
+  degradation ladder, never reads a credential, and never re-probes. This is what keeps a
+  capability's answer identical across every phase of one run
 
 ## What the Butler owns
 

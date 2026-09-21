@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.0.6
+
+**JDI can ask Jev for a typed judgment where a role would otherwise skim a list.**
+
+- New `jev:` block in `.jdi/config.yml` with one key, `enabled`. **A repo that does not set it
+  behaves exactly as it did** — no role sends anything anywhere, and no command mentions Jev, not
+  even to say it is off. Silence is the point: a degradation is announced because something was
+  asked for and not delivered, and with the key off nothing was asked for.
+- **Five named operations**, defined in the new `reference/jev.md` as J1–J5 and called by name the
+  way the tracker's T1–T8 are. The Researcher ranks the candidate architecture docs (**J1**) so the
+  ones that constrain the change are read first and in full, and screens `consumers` for contract
+  breakage (**J2**); **J3** resolves a tracker's idiosyncratic workflow state names by role, which
+  is what `reference/tracker.md`'s universal rule 3 already demanded and could only do by reading;
+  the Splitter checks a fresh split is really atomic (**J4**); the Feedbacker orders its findings
+  by what happens if they ship (**J5**).
+- **Jev narrows, it never decides.** It may reorder a list, flag a candidate, or pre-select one
+  option from a set the caller already enumerated. It is never the reason a step is skipped, a
+  tracker is written, a commit is made, or a pull request is opened. `/jdi:status`, `/jdi:done`,
+  `/jdi:execute` and `/jdi:yolo` therefore rank nothing of their own, and `reference/jev.md`
+  carries the five-question filter a new one has to pass — including why **T5** and **T8** are
+  deliberately not J3 callers.
+- **Degrades to more work, never less.** No key, no network, a failed request, or a state too large
+  for one request all mean the role reads every candidate itself — precisely what it does with the
+  key off. Dropping a consumer sweep because an optional model was unavailable would be a worse
+  failure than never having asked, so the fallback is always the un-Jev'd path. A confidence below
+  0.5 is treated as no answer.
+- **The Butler probes once and passes a resolved fact.** The ladder runs at step 0 of `/jdi:prep`,
+  `/jdi:research`, `/jdi:split`, `/jdi:feedback`, `/jdi:plan` and `/jdi:pr`; roles receive "Jev
+  is available" or nothing,
+  and never read the key or re-probe. Capability is **proven** — a key that exists is not proof and
+  the absence of an error is not proof; only a real answer to a real request is. `roles/butler.md`
+  now states that as a standing duty covering the test runner and the tracker too.
+- **The key never lands in the repository.** It is read from `$TYPESAFE_API_KEY` or
+  `~/.config/typesafe/api_key` and passed by reference. `/jdi:init` looks for it, sends one
+  throwaway question to prove it works, and reports which source it found without printing the
+  value.
+
 ## 1.0.5
 
 **Every role's model is named in settings — and no file under `agents/` names a model at all.**

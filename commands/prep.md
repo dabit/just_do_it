@@ -20,8 +20,18 @@ Follow these steps:
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
-   Everything below refers to `tracker`, `split`, `plans`, `docs`, `consumers`, `models`, and
-   `harnesses` from it.
+   Everything below refers to `tracker`, `split`, `plans`, `docs`, `consumers`, `jev`, `models`,
+   and `harnesses` from it.
+
+   **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
+   `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
+   `~/.config/typesafe/api_key`), and send one throwaway question against a couple of sentences of
+   state. Jev is available for this run only once a real request has come back with a real answer —
+   a key that exists is not proof and the absence of an error is not proof. On the first rung that
+   fails, say so **once**, with what you tried and what came back, and treat this whole prep as
+   `jev.enabled: false` from there on. Prep runs three phases in one pass, so this probe happens
+   here and the Researcher and Splitter are each handed the resolved answer; neither re-probes.
+   **With `jev.enabled` false or absent, say nothing at all** — nothing was skipped.
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
@@ -104,8 +114,8 @@ Follow these steps:
 
 8. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
-   Give it the task description from `PLAN.md`, the `docs.path`, the plan store location, and the
-   `consumers` list. Instruct it to return:
+   Give it the task description from `PLAN.md`, the `docs.path`, the plan store location, the
+   `consumers` list, and whether Jev is available. Instruct it to return:
    - related past plans
    - relevant docs
    - key code findings, with citations
@@ -153,9 +163,10 @@ Follow these steps:
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
 16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
-    it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**.
-    State the decision and the reason. The final task is always UAT, and
-    it maps every clause of the issue's acceptance criteria to the scenario or test that proves it.
+    it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**,
+    passing it whether Jev is available along with the plan. State the decision and the reason. The
+    final task is always UAT, and it maps every clause of the issue's acceptance criteria to the
+    scenario or test that proves it.
 
     Then materialise the pieces per `split.pieces`: `commits` (the default) writes nothing to the
     tracker, while `tasks` and `subtickets` mirror each task file onto the issue via **T7** from

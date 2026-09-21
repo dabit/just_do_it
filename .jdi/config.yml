@@ -37,6 +37,13 @@ tdd:
   # execute. Empty means the Butler works it out from the repo.
   test_instructions: "python3 -m unittest discover -s tests -v, from the repository root. No install step and no third-party packages."
 
+jev:
+  # Roles may ask Jev for the typed judgments in reference/jev.md (J1–J5). Jev
+  # narrows a list a role already has; it never decides, writes, or commits, and
+  # an unavailable Jev means the role reads every candidate itself.
+  # The key lives in $TYPESAFE_API_KEY or ~/.config/typesafe/api_key, never here.
+  enabled: true
+
 plans:
   # repo     — plans are files in this repository, committed with the code.
   # external — plans live in a note service; nothing plan-shaped is committed.

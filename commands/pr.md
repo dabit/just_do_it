@@ -17,6 +17,16 @@ Follow these steps:
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
 
+   **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
+   `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
+   `~/.config/typesafe/api_key`), and send one throwaway question against a couple of sentences of
+   state. Jev is available for this run only once a real request has come back with a real answer —
+   a key that exists is not proof and the absence of an error is not proof. On the first rung that
+   fails, say so **once**, with what you tried and what came back, and treat this run as
+   `jev.enabled: false` from there on. This command ranks nothing of its own; the resolved answer
+   exists so that **T4**'s state lookup can use **J3**. **With `jev.enabled` false or absent, say
+   nothing at all** — nothing was skipped.
+
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` for the full scope and the issue reference.
 
