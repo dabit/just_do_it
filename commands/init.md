@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, where plans and docs live, and which model each role runs on."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, whether roles may ask Jev for typed judgments, where plans and docs live, and which model each role runs on."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -84,7 +84,41 @@ Follow these steps:
    Ask this question every time. Unlike the split pieces, TDD does not depend on a tracker, so there
    is no configuration in which it is skipped.
 
-6. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
+6. **Ask whether roles may ask Jev for typed judgments** — Off by default, and off means nothing
+   changes: no role sends anything anywhere and no command mentions it, not even to say it is off.
+   Ask whether they want it on (`jev.enabled`).
+
+   Say what it actually buys before they answer, because it is an optimisation rather than a
+   feature: Jev is TypeSafe's System One model, and it returns a probability or a chosen option
+   rather than prose. JDI uses it in five places — ranking candidate architecture docs so the
+   constraining ones are read first, screening `consumers` for contract breakage, resolving a
+   tracker's idiosyncratic workflow state names by role, checking a fresh split is really atomic,
+   and ordering the Feedbacker's findings. All five are named in `reference/jev.md` as J1–J5.
+   **Jev narrows a list a role already has; it never decides, writes, commits, or opens anything**,
+   and when it cannot answer the role reads every candidate itself. The failure mode is a slower
+   run, never a skipped step.
+
+   On a yes, **find the key rather than asking for it**. It is read from `$TYPESAFE_API_KEY`, or
+   from `~/.config/typesafe/api_key`. Check whether either exists and say which one you found —
+   **never print the value, and never write it into `.jdi/config.yml`**, which is a committed file.
+   If neither exists, say so and give the one line that fixes it (`export TYPESAFE_API_KEY=...`,
+   from <https://typesafe.ai>).
+
+   **Then actually try it once**, with a throwaway question against a couple of sentences of state.
+   This is step 3's integration check pointed at an API: prove the capability, do not record an
+   aspiration. **Read the body, not the exit code** — proof is a JSON `answers` object with a
+   number in it. A 401, a 422, a rate-limit, a timeout, or HTML from a captive portal is not proof,
+   whatever curl exited with. Say what you sent and what came back.
+
+   **If it did not answer, say so and record the setting anyway** when that is still what the user
+   wants. The config records the intent; the Butler re-runs the ladder once per plan, and a key it
+   cannot prove degrades that run to off out loud rather than pretending. Writing the setting down
+   before the key is exported loses nothing.
+
+   Ask this question every time. Like TDD and unlike the split pieces, it depends on no tracker, so
+   there is no configuration in which it is skipped.
+
+7. **Ask where plans should live** — Two modes, from `reference/plan-store.md`:
    - **`repo`** (recommended, the default) — plans are files in this repository, committed with the
      code they describe. Ask for the folder; default `plans`.
    - **`external`** — plans live in a note service (Obsidian, recuerd0, Notion, a wiki). Ask which
@@ -96,10 +130,10 @@ Follow these steps:
    them, and the plan is silently gone on a fresh clone. If it is ignored, say so plainly and offer
    to un-ignore it, pick a different folder, or switch to `external`.
 
-7. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
+8. **Ask where architecture docs live** — The folder `/jdi:research` reads from and writes new
    architecture documents into. Default `doc`; propose whatever step 2 found.
 
-8. **Ask which model each role runs on — optional, and say that it is optional** — JDI has seven
+9. **Ask which model each role runs on — optional, and say that it is optional** — JDI has seven
    delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, and
    Feedbacker. Offer to name a model for each (`models.<role>.model`), **proposing rather than
    asking from zero**: `reference/delegation.md` says what each phase wants from a model, and this
@@ -129,20 +163,20 @@ Follow these steps:
    it per role rather than keep a block that has no effect — this is the one place step 1's "keep
    every value the user does not change" would otherwise preserve something dead.
 
-9. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
-   repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
-   sweeps these when a change alters an externally-consumed contract. Skip if there are none.
+10. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
+    repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
+    sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-10. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+11. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
     the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
     empty scaffolding.
 
-11. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+12. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own
     `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
     states them and the user told you what they are, offer to add them there. Do not write to those
     files without saying you are about to.
 
-12. **Report and point at the next step** — Show the config you wrote, name anything you
+13. **Report and point at the next step** — Show the config you wrote, name anything you
     deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
     `/jdi:help` for the tour.

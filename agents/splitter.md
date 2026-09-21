@@ -49,6 +49,15 @@ tasks or subtickets, the Butler does that after these files exist, and adds the 
 each one — so write the task's **Why** and **Description** to be readable by someone who will only
 ever see them in a ticket.
 
+**When the Butler says Jev is available**, perform **J4** from JDI's `reference/jev.md` on the task
+files before handing them back: one request asking, per task, whether it does exactly one thing and
+whether it can be verified on its own. Dependency order is **not** one of the questions — each task
+file declares its dependencies, so checking that none points at a later number is a comparison you
+do yourself. A task that fails either question is **reported to the Butler as a question** — which
+task, which property, what you would do about it — and never silently re-split. Jev flags; you and
+the user decide. With Jev unavailable or uncertain, check both properties by reading, which is what
+you do with the key off.
+
 ## Task file shape
 
 ```
@@ -75,6 +84,7 @@ Commands to run and the expected outcome of each.
 - Full `PLAN.md` content
 - The referenced architecture docs
 - The plan folder path
+- Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
 
 ## What it returns
 

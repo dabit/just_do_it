@@ -13,7 +13,10 @@ file says what each one means and how to carry it out against whichever tracker
    server, CLI, or API reachable in this session, tell the user, then continue with whatever
    metadata they provided by hand. Warn; never fail.
 3. **Never hardcode a status ID or name.** Always list the tracker's states for the relevant
-   team/project and resolve the one you want by role. Workflow states differ per team.
+   team/project and resolve the one you want by role. Workflow states differ per team. Where
+   `jev.enabled` is on and the Butler resolved Jev as available, **J3** in
+   `reference/jev.md` does this resolution over the states you just listed — but only above
+   0.9 confidence, and it still never writes. Below that, ask the user which state to use.
 4. **Never create an issue without explicit user confirmation.**
 5. **Never claim a tracker write succeeded without seeing it succeed.** "No error" is not proof;
    read the value back where the tracker offers a read.
@@ -56,7 +59,9 @@ when the pull request opens.
 
 - Resolve the destination state by listing the team's workflow states and picking the one whose
   role matches (`started` for In Progress, the review-type started state for In Review). Do not
-  hardcode a name or an ID.
+  hardcode a name or an ID. With Jev available, **J3** picks among the states you listed when
+  a team's names are idiosyncratic ("Baking", "On deck"); it is advisory, gated at 0.9
+  confidence, and universal rule 5 still applies — read the value back after the write.
 - If the issue is already at or past the target state, leave it alone.
 - Skip silently-but-audibly when there is no issue.
 

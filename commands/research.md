@@ -15,8 +15,17 @@ Follow these steps:
    in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
-   Everything below refers to `tracker`, `plans`, `docs`, `consumers`, `models`, and
+   Everything below refers to `tracker`, `plans`, `docs`, `consumers`, `jev`, `models`, and
    `harnesses` from that config.
+
+   **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
+   `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
+   `~/.config/typesafe/api_key`), and send **J1** for the first candidate document. Jev is available
+   for this run only once a real request has come back with a real answer — a key that exists is not
+   proof and the absence of an error is not proof. On the first rung that fails, say so **once**,
+   with what you tried and what came back, and treat this run as `jev.enabled: false` from there on.
+   Then hand the role "Jev is available" or nothing as a resolved fact; it never reads the key or
+   re-probes. **With `jev.enabled` false or absent, say nothing at all** — nothing was skipped.
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` to understand what we are working on. If several plans
@@ -35,7 +44,8 @@ Follow these steps:
 3. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md` for how to delegate under this harness, and adopt the role
    inline if it has no subagents. Give it the task description from `PLAN.md`, the `docs.path`, the
-   plan store location, and the `consumers` list, and instruct it to:
+   plan store location, the `consumers` list, and whether Jev is available, and instruct it
+   to:
 
    a. **Search for past plans** — Search the plan store for previous plans that touched the same
       area or a related feature. Read their `PLAN.md` files and note the relevant ones.

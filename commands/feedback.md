@@ -20,6 +20,16 @@ Follow these steps:
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
 
+   **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
+   `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
+   `~/.config/typesafe/api_key`), and send one throwaway question against a couple of sentences of
+   state. Jev is available for this run only once a real request has come back with a real answer —
+   a key that exists is not proof and the absence of an error is not proof. On the first rung that
+   fails, say so **once**, with what you tried and what came back, and treat this run as
+   `jev.enabled: false` from there on. Then hand the role "Jev is available" or nothing as a
+   resolved fact; it never reads the key or re-probes. **With `jev.enabled` false or absent, say
+   nothing at all** — nothing was skipped.
+
 1. **Determine what to review** — If `$ARGUMENTS` names an output, a role, or a plan ("the plan",
    "the last diff", "the researcher's prompt"), target that. Otherwise default to the most recent
    producing-role output in this session: the research findings, the plan, the task split, the
@@ -38,6 +48,7 @@ Follow these steps:
    - the output under review
    - which role produced it, and that role's definition file
    - the driving command file, `PLAN.md`, and any referenced docs
+   - whether Jev is available
 
    Instruct it to return a verdict — **pass** or **needs work** — the specific gaps, and, when
    relevant, both an **output fix** (re-run instructions for the producing role) and a **prompt

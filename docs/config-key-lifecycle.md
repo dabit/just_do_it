@@ -69,10 +69,10 @@ documented but never asked about, or asked about but never shipped.
 ### The multi-site ones — where a change gets half-done
 
 **`reference/config.md` takes three edits, not one.** The YAML block under `## Schema`
-(`reference/config.md:17-164`; `split:` occupies `:42-55`), a row in the
-`## Defaults when nothing is configured` table (`reference/config.md:199-214`; `split.pieces` is
-`:205`), and at least one **bolded invariant bullet** under `## Notes` (`:216-250`;
-`split.pieces` earns two, at `:220-223` and `:224-227`). The schema block alone is the most common
+(`reference/config.md:17-179`; `split:` occupies `:42-55`), a row in the
+`## Defaults when nothing is configured` table (`reference/config.md:214-230`; `split.pieces` is
+`:220`), and at least one **bolded invariant bullet** under `## Notes` (`:232-281`;
+`split.pieces` earns two, at `:236-239` and `:240-243`). The schema block alone is the most common
 half-finish: the key is documented, and then a command asks "what is the default?" and the table
 does not say.
 
@@ -87,9 +87,9 @@ default teaches nothing. Match the convention — set the example to the interes
 is inserted among the existing steps (`split.pieces` is step 4; `tdd` became step 5), which
 renumbers every step after it.
 Inserting a step **renumbers everything after it**, and steps refer to each other by number —
-`commands/init.md:100` says "propose whatever step 2 found". After renumbering, grep the file for
+`commands/init.md:134` says "propose whatever step 2 found". After renumbering, grep the file for
 `step [0-9]` and fix the back-references. Nothing outside `init.md` references its steps by
-number today, but other command files do reference each other's: `commands/prep.md:155` says
+number today, but other command files do reference each other's: `commands/prep.md:165` says
 "Follow `/jdi:split` steps 2 through 5", and `commands/replan.md:19` says "`/jdi:plan` step 2". If
 you renumber a *different* command, grep `commands/` for references to it before you finish.
 
@@ -106,12 +106,12 @@ to the tracker if `split.pieces` says so" (`commands/help.md:31`).
 
 **`README.md` states init's questions twice.** Once in the comment on the `/jdi:init` snippet
 (`README.md:186`) and once in the prose immediately below it (`README.md:193-200`), plus a `###`
-section describing the key (`README.md:202-216`). The two enumerations are close together and are
+section describing the key (`README.md:203-217`). The two enumerations are close together and are
 easy to half-update.
 
 **All three JSON release files carry a version, and they must match.**
 `.claude-plugin/plugin.json:3`, `.codex-plugin/plugin.json:3`, and
-`.claude-plugin/marketplace.json:10` are all `1.0.5` right now. The reason is in
+`.claude-plugin/marketplace.json:10` are all `1.0.6` right now. The reason is in
 `README.md:164-168`: `claude plugin update` compares versions rather than content, so a prompt edit
 shipped without a version bump silently does nothing on Claude's installed copy. The newest
 `CHANGELOG.md` heading is the fourth version authority and must carry that same release number.
@@ -273,7 +273,7 @@ too; if you add an operation, grep for the old number.
 
 Three categories are permanently out of scope. The reasoning for each is already in the repo.
 
-**Repo conventions the team already writes down.** `reference/config.md:248-249`:
+**Repo conventions the team already writes down.** `reference/config.md:279-280`:
 
 > **Branch and commit message conventions are not configured here.** They come from the repo's own
 > `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
@@ -282,7 +282,7 @@ Duplicating them into `.jdi/config.yml` creates a second source of truth that si
 from the one humans and every other tool already read. `commands/init.md:140-144` turns this into
 behaviour: init explicitly does **not** configure them, and instead offers to write them into
 `CLAUDE.md` / `AGENTS.md` if they are missing. `git.branch_prefix` is the deliberate seam —
-`reference/config.md:100-102`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —
+`reference/config.md:115-117`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —
 an override, not a home.
 
 **Harness specifics.** `AGENTS.md:67-68`, on adapters:
@@ -300,7 +300,7 @@ remove it.
 **A model name is not one of those, and does not belong in frontmatter.** It is a fact about the
 user's account and the harness they paired it with — which model they actually have, spelled the
 way that CLI accepts — so it has no single right answer and nothing to gain from being committed
-into a file every user shares. That is why `models` (`reference/config.md:104-131`) is a
+into a file every user shares. That is why `models` (`reference/config.md:119-146`) is a
 configuration block and not frontmatter, and why no file under `agents/` carries a `model:` key.
 
 **Anything with a right answer.** If one setting is correct for every repo, hardcode it. A config
@@ -342,7 +342,7 @@ There are **no git tags** in this repository. A release is exactly: three JSON v
 CHANGELOG entry, and a commit whose subject carries the version. Nothing else.
 
 **Three version files, and they must match.** `.claude-plugin/plugin.json:3`,
-`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.5`.
+`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.6`.
 `README.md:164-168` is the why: cached plugin releases use versioned metadata, and
 `claude plugin update` specifically compares versions rather than content. An unbumped release is
 invisible to installed copies — a workflow change that no user receives. The newest

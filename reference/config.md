@@ -71,6 +71,21 @@ tdd:
   # the Butler work the invocation out from the repo. See reference/testing.md, TS1/TS2.
   test_instructions: ""
 
+jev:
+  # true | false
+  #   false — no role asks Jev anything, nothing is sent anywhere, and no command
+  #           says a word about it. This is the default, and the only mode that
+  #           needs no API key and no network.
+  #   true  — roles may perform the named operations in reference/jev.md: ranking
+  #           candidate architecture docs, screening consumers, resolving a tracker
+  #           state by role, checking a split is atomic, ranking findings. Jev
+  #           narrows a list the role already has; it never decides, writes, or
+  #           commits. See reference/jev.md, J1–J5.
+  #
+  # The key is read from $TYPESAFE_API_KEY, or from ~/.config/typesafe/api_key.
+  # It is never written into this file, a plan, or a commit.
+  enabled: false
+
 plans:
   # repo | external
   #   repo     — plans are files in this repository, committed with the code they describe.
@@ -205,6 +220,7 @@ models:                      models:                        models:
 | `split.pieces` | `commits` — task files and one commit per task; nothing written to the tracker |
 | `tdd.enabled` | `false` — the Executor works as it always has; nothing is announced |
 | `tdd.test_instructions` | empty — the Butler works the test invocation out from the repo |
+| `jev.enabled` | `false` — no role asks Jev anything; nothing is sent and nothing is announced |
 | `plans.mode` | `repo` |
 | `plans.path` | `plans` |
 | `docs.path` | `doc` |
@@ -232,6 +248,21 @@ models:                      models:                        models:
   `enabled: false` is never turned on because a test folder happens to exist: running "on" against
   a runner nobody watched run produces fabricated red-run evidence, which is worse than not doing
   TDD at all.
+- **`jev` narrows, it never decides.** A Jev answer may reorder a list, flag a candidate, or
+  pre-select one option from a set the caller already enumerated. It is never the reason a step is
+  skipped, a file is written, a tracker is updated, a commit is made, or a pull request is opened.
+  Those stay the role's judgment and the user's approval, exactly as they are with `jev` off.
+- **`jev` degrades to more work, never less.** No key, no network, a failed request, or a state too
+  large all mean the role reads every candidate itself — which is precisely what it does with
+  `enabled: false`. Dropping a consumer sweep or an unread document because an optional model was
+  unavailable is a worse failure than never having asked. The Butler runs the ladder in
+  `reference/jev.md` once, at step 0, and roles are handed the resolved answer rather than the key.
+- **`jev: false` is silent; a `jev: true` that could not run is announced once.** Nothing was
+  skipped when the feature is off, so a default run says nothing at all. Get this backwards and
+  every repo that never enabled it is told about it on every command.
+- **The API key never lands in the repository.** It is read from `$TYPESAFE_API_KEY` or
+  `~/.config/typesafe/api_key` and passed by reference. No key value belongs in `.jdi/config.yml`,
+  a plan, a task file, or a commit message.
 - **`models` is the only place a role's model is named.** No file under `agents/` carries a
   `model:` key. A role with no entry runs on the session's own model.
 - **A value in `models` is passed to the named harness verbatim.** Write the identifier that
