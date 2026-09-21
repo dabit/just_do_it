@@ -42,6 +42,13 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   what proves it instead. A test-first execution reads the strategy to decide what to write before
   it writes anything, so a step whose untestability goes unstated is one the Executor will either
   skip silently or invent a test for
+- When the testing strategy names an existing test as the precedent to copy, check that precedent's
+  **harness** against the assertions the plan requires, not only its assertion style. Naming a file
+  as the template asserts that its capabilities are a superset of what the new work needs, and the
+  template is picked early while the cases are written late — nothing re-reads the first against
+  the second unless you do. Where the precedent's seam cannot express a planned assertion, say so
+  and prescribe the deviation, naming the call that returns what the precedent discards. A gap left
+  unstated reaches the Executor as a task that says both *copy this exactly* and *assert that*
 - When a planned test relies on fixture or seeded state to prove a filter or guard, **verify the
   fixture leaves the excluded rows present at the base scope** — the assertion must FAIL without
   the filter. If the fixture's lifecycle removes them another way (a soft-delete that also

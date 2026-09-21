@@ -43,6 +43,14 @@ possible can run at the same time. It focuses on structure, not implementation.
   (before vs after a change, or under a rejected alternative), identify which context the task
   inherits and discard the others. Prefer pairing a probe with a control whose opposite result is
   expected, so a misread outcome is self-evident
+- When a task names an existing file as the template for a new test's harness — *copy the seam from
+  X **exactly*** — that sentence is a claim that X can express **every** case the same task lists.
+  Read the template's return shape against your own case list before you write it: a seam that
+  concatenates the streams, or a call that discards one of them on a successful run, cannot carry a
+  case that asserts on them separately. Where the template falls short, name the deviation in the
+  task — *copy the seam, but return the streams separately: cases 4 and 6 assert on each* — rather
+  than leaving the Executor to discover the conflict at the fourth case and pick which of two of
+  your sentences to override
 - Always create a final UAT task with user-facing scenarios that map **every clause** of the
   issue's acceptance criteria — both what must now work and what must not break — to the scenario
   or test proving it. Name any clause that is not exercised on merge, say what proves the mechanism
