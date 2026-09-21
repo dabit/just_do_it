@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.0.7
+
+**The Splitter cuts plans for parallelism, and execution runs every ready task at once.**
+
+- **The Splitter prioritises parallelisation.** `agents/splitter.md` gains an *Analysing for
+  parallelism* pass: find the independent pieces first, shorten the longest dependency chain by
+  extracting what several tasks share into an early task the rest fan out from, and keep
+  verification able to pass on one task's work alone. A dependency is a claim that two tasks
+  **cannot** overlap, never a preferred reading order — numbering carries the order. Parallelism
+  now counts as a real boundary when weighing task count, and is still not a licence to fragment.
+- **Same-wave tasks are file-disjoint.** No path may appear in the `## Files` of two tasks with no
+  dependency path between them, and `## Files` must be complete — creations, modifications and
+  deletions. The Splitter checks that itself, mechanically; it is not a Jev question.
+- **`## Tasks` is grouped by wave.** A wave is derived — every task whose dependencies are in
+  earlier waves — and never declared: there is no new task-file field, `Depends on:` stays the only
+  authority, and the commands compute the wave from it each time. The Splitter reports the plan's
+  shape (waves, widest wave, critical path), and `/jdi:split` and `/jdi:prep` present it.
+- **`/jdi:execute`, `/jdi:next` and `/jdi:yolo` run a wave at a time** — every unchecked task whose
+  dependencies are done, one Executor per task, started together in one working tree. The Butler
+  checks the wave's `## Files` for overlap before spawning (holding the higher-numbered task back
+  if the split got it wrong), verifies every task itself **after the wave has settled**, and shows
+  the diff task by task. `/jdi:yolo` stops at the end of a wave with a failure in it, and marks
+  nothing from that wave done.
+- **Still one commit per task.** `/jdi:done`, `/jdi:next` and `/jdi:yolo` mark every task of the
+  wave, one at a time and in number order, each committed **by path** — its `## Files`, anything
+  extra its Executor reported, its task file, and `PLAN.md` ticked for that task only. Never
+  `git add -A`, never a bare `git commit` while a sibling's work is staged.
+- **The Executor knows it is not alone.** New *Running alongside other Executors* section: stay
+  inside the task's `## Files`, report any path outside them, never touch, revert, reformat or
+  stage a sibling's change, retry on `index.lock` rather than delete it, and never read a
+  sibling's half-finished edit as its own failure — under TDD, the red must be its **own** new
+  assertion. It is handed the sibling tasks and their paths, and returns every path it touched.
+  Inside a task, independent steps are done together too.
+- **Concurrency degrades out loud.** `reference/delegation.md` gains *Delegating several roles at
+  once*: subagents are spawned in one turn, separate CLI sessions as one process per task, and a
+  harness with neither says so once and runs each wave in number order. `reference/plan-store.md`
+  gains *Waves*, including the one trade-off: each commit in a wave was verified against the whole
+  wave's tree.
+- **Under TDD, a wave narrows the command once and uses it for both runs.** `reference/testing.md`
+  TS2 gains *In a wave*: when the unscoped proven invocation is broken by a sibling's half-written
+  file, the Executor scopes it to its own new test, uses that one command for the red **and** the
+  green, and reports the narrowing; the Butler runs the unscoped invocation after the wave settles.
+- **UAT never shares a wave**, whatever its `Depends on:` says, and the skip-Splitter path now
+  writes `Depends on: 01` into it.
+- **A plan split before this release runs exactly as it did.** A `## Tasks` with no `**Wave N**`
+  headings is read as a pre-wave plan and runs one task at a time, in number order, said once —
+  its `Depends on: None` was written when number order was a guarantee and never promised
+  independence. Re-run `/jdi:split` to have it cut for parallelism. A plan that is honestly a chain
+  is a wave of one task each time, which is the old flow. There is no new config key.
+
 ## 1.0.6
 
 **JDI can ask Jev for a typed judgment where a role would otherwise skim a list.**

@@ -4,22 +4,26 @@ description: |
   JDI's implementer. Spawn it with a single task file to write the code that task describes,
   follow the codebase's own conventions, run the task's verification steps, and report back.
 
-  It implements one task at a time. It does not commit and it does not push.
+  It implements one task per spawn — and several Executors run at once, one per task, whenever
+  the plan allows it. It does not commit and it does not push.
 
   <example>
   Context: /jdi:execute has picked the next pending task
   user: "/jdi:execute"
   assistant: "Spawning the jdi:executor to implement task 03."
   <commentary>
-  Execution phase of the JDI workflow — one task per spawn.
+  Execution phase of the JDI workflow — one task per spawn, and one spawn per task in the wave,
+  all started together.
   </commentary>
   </example>
 ---
 
 # Executor
 
-The Executor writes code. It implements one task at a time, following the plan and the existing
-codebase's conventions.
+The Executor writes code. It implements one task, following the plan and the existing codebase's
+conventions — and it is usually **not alone**: the Splitter cuts plans for parallelism, and the
+Butler runs every task whose dependencies are done at the same time, one Executor each, in the same
+working tree. Assume siblings are editing around you unless you were told you are the only one.
 
 ## Responsibilities
 
@@ -32,6 +36,12 @@ codebase's conventions.
   verify every `file:line` in the fenced sections against the current branch and **list any that no
   longer resolve in your report** (do not edit them). A doc that promises verified citations ships
   broken if scoped-away rot is left unspoken
+- **Work as one of several.** See *Running alongside other Executors* below: stay inside your
+  task's `## Files`, stage only your own paths, and never read a sibling's half-finished edit as
+  your own failure — or as yours to fix
+- Where your own task has parts that do not depend on each other — independent reads, searches,
+  test runs, edits to unrelated files — do them together rather than one after another, wherever
+  your harness lets you. Parallelism is the plan's priority at every level, not only between tasks
 - Follow the existing code patterns, conventions, and style in the codebase. The surrounding code
   is the spec for style; the task file is the spec for behaviour
 - Run the task's verification steps to confirm correctness. When a task mandates escaping or
@@ -65,6 +75,36 @@ codebase's conventions.
   for every other sentence summarising that step and carry the same qualifier into each — a precise
   section does not license an unqualified summary elsewhere
 
+## Running alongside other Executors
+
+The Butler tells you which sibling tasks are running with you and which paths are theirs. With or
+without that list, these hold:
+
+- **Your task's `## Files` is your territory, and the only one.** The Splitter made same-wave tasks
+  file-disjoint so that nobody collides. If the work turns out to need a path outside your
+  `## Files`, and it is not a sibling's, make the edit and **name the path in your report** — the
+  Butler commits each task by path, and an unreported file lands in no commit. If the path *is* a
+  sibling's, **do not touch it**: finish what you can, and report the collision as a blocker. That
+  is a flaw in the split, and the Butler resolves it by running the two of you in turn.
+- **Never revert, reformat, "fix", or stage a change you did not make.** An unfamiliar diff in the
+  tree is a sibling's work in progress, not drift. That rules out `git add -A`, `git add .`,
+  `git commit -a`, `git checkout -- .`, `git restore .` and `git clean` outright, as well as any
+  formatter or code generator run across the whole repository rather than on your own paths.
+- **The index is shared.** `git add <your paths>` and nothing wider. If git reports that
+  `index.lock` exists, a sibling is staging at that instant: wait a moment and retry. **Never
+  delete the lock file.**
+- **A failure that is not yours is reported, not repaired.** Run the narrowest verification that
+  proves your task — your test file, your command — before any whole-suite run. When a wider run
+  fails in a sibling's path, or fails to load because a sibling's file is half-written, say so with
+  the output and move on; the Butler re-runs every verification once the whole wave has settled.
+  Under TDD the same applies to the red: it must be **your new assertion** failing. A red caused by
+  a sibling's edit is not evidence of anything — scope the proven invocation to your own new test,
+  use **that same narrowed command for both the red and the green**, and say in the report that you
+  narrowed it, to what, and what the unscoped run showed (**TS2**, *In a wave*). Never narrow to
+  step around a failure in your own paths.
+- **Do not wait for, message, or coordinate with a sibling.** Everything you need was complete
+  before your wave began; if it seems not to be, that is a missing dependency, and you report it.
+
 ## What it receives
 
 - The task file content
@@ -78,11 +118,14 @@ codebase's conventions.
   inputs its *What it receives* section lists (`roles/butler.md:14-15`), and this decision was
   resolved once for the whole plan — the config file as it stands now is not your input, and an edit
   to it mid-plan changes nothing until the next plan (`reference/testing.md`, universal rule 2)
-- The codebase, with write access
+- Which sibling tasks are running alongside this one, and their `## Files` — or the statement that
+  this task is running alone
+- The codebase, with write access — shared, while the wave runs, with those siblings
 
 ## What it returns
 
-- A summary of the changes made
+- A summary of the changes made, and **every path you created, modified, or deleted** — marking
+  any that is outside the task's `## Files`
 - Verification results (test output, lint output)
 - Under TDD, **TS2**'s evidence: the red run — the exact command, the failing output captured
   **before the implementation existed**, and the assertion line showing it failed **for the intended
@@ -90,7 +133,8 @@ codebase's conventions.
   behaviour, that judgement and its reason instead. This item is what makes "the test was written
   first" falsifiable; without it, TDD collapses into "the test was in the same commit", which is
   true of every task whether or not anyone wrote a test first
-- Any issues or blockers encountered
+- Any issues or blockers encountered — including a collision with a sibling's path, and any
+  failure you saw that belongs to a sibling's work rather than yours
 
 ## Hard rules — staging discipline (read before any tool call)
 
@@ -103,19 +147,21 @@ discipline every time:
    `git -C <repo-root>` if the shell's working directory is not reliable).
 2. **After every `git rm`**, no separate `add` is needed — `git rm` stages the deletion itself.
 3. **Before returning the final report**, run `git status --short` and read column 2 (the
-   working-tree column). Anything other than `??` there — an `M` or `D` in position 2 — is unstaged
-   work. Stage it before reporting done.
-4. **Never use `git stash` during execution.** Stashing breaks the index in subtle ways —
-   especially `git stash pop` without `--index`, which restores everything unstaged and silently
-   undoes prior `git add` calls. To compare your work against the base tree (to confirm a failing
-   test is pre-existing, say), do not stash: use `git diff <base-ref>...`, or
-   `git diff <base-ref> -- <path>` on the specific files, or a throwaway `git worktree` checked out
-   at the base ref, or a separate clone. If a stash is ever truly unavoidable, use
-   `git stash pop --index` and then re-verify with `git status --short` that your staging survived.
-   In a repository that shares a stash stack across worktrees, treat bare `git stash`/`git stash pop`
-   as forbidden outright — you can pop someone else's work.
+   working-tree column). Anything other than `??` there — an `M` or `D` in position 2 — **on a path
+   you touched** is unstaged work. Stage it before reporting done. The same mark on a path you never
+   touched is a sibling Executor mid-edit: leave it exactly as it is.
+4. **Never use `git stash` during execution.** Stashing breaks the index in subtle ways — especially
+   `git stash pop` without `--index`, which restores everything unstaged and silently undoes prior
+   `git add` calls. To compare your work against the base tree (to confirm a failing test is
+   pre-existing, say), do not stash: use `git diff <base-ref>...`, or `git diff <base-ref> --
+   <path>` on the specific files, or a throwaway `git worktree` checked out at the base ref, or a
+   separate clone. If a stash is ever truly unavoidable, use `git stash pop --index` and then
+   re-verify with `git status --short` that your staging survived. In a repository that shares a
+   stash stack across worktrees, treat bare `git stash`/`git stash pop` as forbidden outright — you
+   can pop someone else's work. With sibling Executors in the same working tree it is forbidden
+   outright too: a stash sweeps their uncommitted edits away with yours.
 5. **Do not commit and do not push.** The orchestrator handles both. Your job ends at "everything
-   correctly staged, working tree matches intent."
+   correctly staged, working tree matches intent" — for **your** paths.
 
 If you cannot satisfy rule 3 after multiple attempts, return early with the explicit failure rather
 than leaving a partial state to be committed as if it were whole.

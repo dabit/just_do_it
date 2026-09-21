@@ -88,6 +88,30 @@ separate model for the phase; it keeps every other property of the workflow. **D
 a role because delegation is unavailable** — a phase that never ran is the failure, not the
 mechanism it ran through.
 
+## Delegating several roles at once
+
+`/jdi:execute`, `/jdi:next` and `/jdi:yolo` hand a whole **wave** of tasks to the Executor at the
+same time — one Executor per task, all in the same working tree (`reference/plan-store.md`,
+*Waves*). Each delegation is resolved exactly as a single one would be, by the ladder above and the
+rungs below; what changes is only that they overlap:
+
+- **Rung 1, subagents** — spawn every Executor of the wave in **one** turn, so the harness runs
+  them concurrently, then wait for all of them. Spawning one, waiting, and spawning the next is
+  sequential execution with extra steps. If the harness caps concurrent subagents, fill the cap and
+  start the next task as each slot frees.
+- **Rung 2, a second non-interactive session** — start one process per task, each reporting through
+  **its own** file, and wait for all of them. Under Herdr that is one pane per task, and every pane
+  JDI opened is closed on every exit.
+- **Rung 3, inline** — one context window cannot run two roles at once. **Say so once** ("this
+  harness has no subagents; running the wave's tasks one after another") and run the wave's tasks
+  sequentially, in number order. Everything else about a wave — the file guard, verification after
+  the wave, one commit per task by path — still applies.
+
+Each Executor is handed one task and told which sibling tasks are running alongside it and which
+paths are theirs. Let the whole wave settle before acting on any one report: a sibling that is
+still running is not cancelled because another failed. Roles with a single instance per phase —
+every role but the Executor — are never fanned out this way.
+
 ## Where a role runs
 
 `models.<role>.harness` names a key in `harnesses:`, and that key is the agent CLI kind the role

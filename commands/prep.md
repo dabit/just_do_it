@@ -164,7 +164,8 @@ Follow these steps:
 
 16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
     it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**,
-    passing it whether Jev is available along with the plan. State the decision and the reason. The
+    passing it whether Jev is available along with the plan, and instructing it to prioritise
+    parallelisation exactly as `/jdi:split` step 3 does. State the decision and the reason. The
     final task is always UAT, and it maps every clause of the issue's acceptance criteria to the
     scenario or test that proves it.
 
@@ -174,8 +175,8 @@ Follow these steps:
     Ask once for the batch before creating child issues, and announce any fallback to `commits`.
 
 17. **Present the prepared plan** — Summarise what you created, note which splitting path you took
-    (and why, if it was a close call), list the generated tasks, and suggest `/jdi:yolo` as the next
-    step.
+    (and why, if it was a close call), list the generated tasks wave by wave — which run together,
+    and the critical path — and suggest `/jdi:yolo` as the next step.
 
     Also offer the pause: because the branch was created in step 6, the plan and task files can be
     committed on their own — `docs: Add <slug> plan` — leaving the work resumable later or by

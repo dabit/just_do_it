@@ -28,11 +28,11 @@ The commands are:
 | `commands/start.md` | Create the branch and the initial plan |
 | `commands/research.md` | Find or write the architecture docs for the area |
 | `commands/plan.md` | Write the implementation plan |
-| `commands/split.md` | Break the plan into atomic tasks, ending with UAT |
-| `commands/execute.md` | Implement the next pending task |
-| `commands/done.md` | Mark the current task done and commit |
+| `commands/split.md` | Break the plan into atomic, parallelisable tasks, ending with UAT |
+| `commands/execute.md` | Implement the next wave of pending tasks, in parallel |
+| `commands/done.md` | Mark what was just executed done — one commit per task |
 | `commands/next.md` | `done` then `execute`, in one step |
-| `commands/yolo.md` | Auto-pilot every remaining task |
+| `commands/yolo.md` | Auto-pilot every remaining task, a parallel wave at a time |
 | `commands/status.md` | Show progress on the current plan |
 | `commands/pr.md` | Condense the plan, push, open the pull request |
 | `commands/feedback.md` | Critique the last output on demand |
@@ -44,7 +44,8 @@ The commands are:
 **Delegation.** Commands say "delegate to the *Researcher* role". If your harness
 has no subagents, the fallback is written into `reference/delegation.md` and it is a first-class
 path: read the role file in `agents/`, announce the switch, follow it for that phase, then return
-to orchestrator voice. The phases still run; they share one context window.
+to orchestrator voice. The phases still run; they share one context window. The same goes for
+execution: tasks that could run in parallel run one after another instead, and the Butler says so.
 
 **Reference files.** Commands refer to `reference/config.md`, `reference/tracker.md`,
 `reference/testing.md`, `reference/jev.md`, `reference/plan-store.md`, and
