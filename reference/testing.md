@@ -50,7 +50,7 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
 1. **`tdd.enabled` is not `true`** → off. **Say nothing.** Write no `TDD:` line. Stop. This is not a
    skip to be announced: nothing was skipped, because nothing was asked for. A repository that
    never enabled TDD produces output, and a `PLAN.md`, byte-identical to what it produced before
-   the key existed. `commands/split.md:96-97` states the same rule for `split.pieces: commits` —
+   the key existed. `commands/split.md:128-129` states the same rule for `split.pieces: commits` —
    "Say nothing; there is nothing to skip."
 2. **Derive the invocation.** Read `tdd.test_instructions` as prose and translate it into a command
    for this environment; it is a description, not a string to execute, and its literal text is
@@ -89,7 +89,7 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
    the Butler hands every Executor for the rest of the plan; nothing re-derives it later.
 6. **Disproven** → off, and **announced**, with the command that was tried and the output showing
    why it is not proof. Write the `off` line naming both. This one *is* a degradation rather than a
-   silence: the user asked for TDD and did not get it (`roles/butler.md:23-25` — "Silent
+   silence: the user asked for TDD and did not get it (`roles/butler.md:27-29` — "Silent
    degradation is the thing that makes a workflow untrustworthy"). Rung 1 is silent because nothing
    was asked for; rung 6 is loud because something was.
 7. **Ambiguous** → **ask the user once.** Several plausible invocations, prose naming a container
@@ -137,7 +137,18 @@ Executor is handed that decision and the proven invocation already resolved; it 
 7. **Return both. A task is not complete at red.** Red is the halfway point of TS2 and never its
    end; an Executor that returns a red run as its result has stopped in the middle of the operation.
 
-**The Butler does not reproduce red.** It cannot do so cheaply: `agents/executor.md:109-117` forbids
+**In a wave, the command is narrowed once and used for both runs.** Several Executors share one
+working tree (`reference/plan-store.md`, *Waves*), so the proven invocation — unscoped, by TS1
+rung 5 — can fail to load, or go red, because of a **sibling's** half-written file. That is not this
+task's red, and step 4 already says a load error is not a red at all. When it happens, the Executor
+scopes the proven invocation to its own new test — the same runner and flags, narrowed to the file
+or test it just wrote — and uses **that one command for both** the red and the green, so step 6's
+"same command" still holds between the two transcripts. It says in its report that it narrowed,
+to what, and what the unscoped run showed. It never narrows to dodge a failure in its own paths.
+The unscoped invocation is not lost: the Butler runs it itself once the whole wave has settled,
+which is where a red raised outside the slice appears.
+
+**The Butler does not reproduce red.** It cannot do so cheaply: `agents/executor.md:153-162` forbids
 `git stash` outright, and reconstructing the pre-change tree by any of the routes that rule leaves
 open — a throwaway worktree, a second clone, a diff against the base ref — costs more, on every
 task of every plan, than the check is worth. So the Butler verifies what it can see directly: that

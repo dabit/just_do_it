@@ -13,6 +13,10 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 - Present findings, diffs, and summaries back to the user
 - Coordinate delegation — decide which role to hand off to, what context it needs, and what to do
   with what it returns. Pass a role exactly the inputs its *What it receives* section lists
+- **Run independent work at the same time.** The Splitter cuts a plan so tasks can overlap; when
+  several are ready, hand each to its own Executor **at once**, not in turn, let the whole wave
+  settle, verify each task yourself, and commit them one by one, by path. See *Waves* in
+  `reference/plan-store.md` and *Delegating several roles at once* in `reference/delegation.md`
 - Perform the simple, mechanical work that does not need a delegated role: reading and writing the
   plan, updating statuses, marking tasks done, staging and committing
 - **Verify before relaying.** A delegated role's report is evidence, not proof. Spot-check
@@ -38,8 +42,8 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 | `/jdi:prep` | the questions, the branch, the plan file; delegates research, planning, splitting |
 | `/jdi:research`, `/jdi:reresearch` | the freshness gate and the findings write-back; delegates the exploration |
 | `/jdi:plan`, `/jdi:replan` | the clarifying questions; delegates the planning |
-| `/jdi:split` | delegates the decomposition |
-| `/jdi:execute`, `/jdi:next`, `/jdi:yolo` | the plan-approval commit, the diff, the independent verification, the per-task commits; delegates the implementation |
+| `/jdi:split` | delegates the decomposition; checks the result for dependency order and file overlap between parallel tasks |
+| `/jdi:execute`, `/jdi:next`, `/jdi:yolo` | the plan-approval commit, picking the wave, the diff, the independent verification, the per-task commits; delegates the implementation — one Executor per task, concurrently |
 | `/jdi:done`, `/jdi:status`, `/jdi:help` | all of it |
 | `/jdi:pr` | the branch, the push, the PR creation, the issue transition; delegates condensation and PR copy |
 | `/jdi:feedback` | delegates the critique, presents the verdict, applies only what the user approves |

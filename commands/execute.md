@@ -1,5 +1,5 @@
 ---
-description: "Implement the next pending task from the plan, show the diff, and ask for feedback."
+description: "Implement the next wave of pending tasks from the plan — in parallel where the plan allows — show the diff, and ask for feedback."
 argument-hint: "[plan slug]"
 ---
 
@@ -7,7 +7,8 @@ argument-hint: "[plan slug]"
 
 **Role: Butler** — JDI's orchestrator (`roles/butler.md`). **Delegates to: Executor**.
 
-Execute the next pending task from the plan.
+Execute the next pending wave of the plan: every task that is ready to run, at the same time. A
+wave of one is a single task, executed exactly as it always was.
 
 Follow these steps:
 
@@ -52,15 +53,28 @@ Follow these steps:
       write the `Started:` timestamp into the plan document in the service, and say that the plan
       itself lives in `<plans.service>`.
 
-3. **Pick the next task** — Find the first unchecked task in the checklist whose dependencies are
-   all complete. Read that task file.
+3. **Pick the wave** — Find **every** unchecked task in the checklist whose dependencies are all
+   complete, not only the first; that set is the wave (*Waves*, in JDI's `reference/plan-store.md`).
+   Compute it from each task file's `Depends on:`, not from the wave headings in `## Tasks` — with
+   that section's two exceptions: the UAT task never shares a wave, and a `## Tasks` with no
+   `**Wave N**` headings at all is a plan split before waves existed, which runs one task at a time
+   in number order, said once. Read every task file in it. If unchecked tasks exist whose work is
+   already in the tree — a wave that was executed and never marked done — stop and suggest
+   `/jdi:done` first rather than executing them again.
 
-4. **Verify the dependencies** — Confirm every task listed as a dependency has `status: done`. If
-   not, tell the user which ones must be completed first, and stop.
+4. **Verify the dependencies and the file guard** — Confirm every dependency of every task in the
+   wave has `status: done`. If no task is eligible, tell the user which dependencies are blocking,
+   and stop. Then compare the wave's `## Files`: where two tasks name the same path, keep the
+   lower-numbered one in this wave, hold the other for the next, and say so once.
 
-5. **Delegate to the Executor** — Hand off to the **Executor** role; see JDI's
-   `reference/delegation.md`, and adopt the role inline if this harness has no subagents. Pass it:
-   - the task file content
+5. **Delegate to the Executor, once per task, all at once** — Hand each task of the wave to its own
+   **Executor**, starting them **together** rather than one after another; see *Delegating several
+   roles at once* in JDI's `reference/delegation.md`. Where this harness cannot run roles
+   concurrently, say so once and run the wave's tasks in number order, adopting the role inline if
+   there are no subagents at all. Tell the user which tasks are running together. Pass each
+   Executor:
+   - the task file content — its own task only
+   - the sibling tasks running alongside it with their `## Files` (or that it runs alone)
    - `PLAN.md` for the overall context
    - the referenced architecture docs
    - the TDD decision for this plan, read from the `TDD:` line in `PLAN.md`. `on` means pass that
@@ -72,12 +86,18 @@ Follow these steps:
 
    Instruct it to implement the work described in the task file, follow the existing patterns and
    conventions in the codebase, run the task's verification steps, and return a summary of what was
-   done plus any issues encountered. Remind it of the Executor's staging discipline: stage every
-   edit, never stash, and do not commit or push.
+   done, every path it touched, and any issues encountered. Remind it of the Executor's staging
+   discipline: stage every edit **by path, its own paths only**, never stash, never touch a
+   sibling's file, and do not commit or push.
 
-6. **Verify independently** — Run the task's verification steps **yourself**. The Executor's report
-   is evidence, not proof: a role that just wrote the code is the worst judge of whether it works.
-   Spot-check any load-bearing citation in its report too.
+6. **Verify independently, once the wave has settled** — Wait for every Executor in the wave to
+   report; a failure in one does not cancel the others. Then run **each** task's verification steps
+   **yourself**, against the settled tree. The Executor's report is evidence, not proof: a role
+   that just wrote the code is the worst judge of whether it works, and one that verified while its
+   siblings were mid-edit is a weaker witness still. Spot-check any load-bearing citation in each
+   report too, and check every changed path is claimed by exactly one task — its `## Files` or its
+   Executor's report. A collision an Executor reported means the split was wrong about those two
+   tasks: finish the wave, then run the blocked task on its own.
 
    When the plan's `TDD:` line says `on`, verify the ordering too: confirm the task's new tests are
    in `git diff --staged` and that your own run of the proven invocation is green. **Do not
@@ -88,12 +108,13 @@ Follow these steps:
    with a failed verification, and ask the user whether to accept the task or send it back.
 
 7. **Show the diff** — Run `git diff` (and `git diff --staged`) to show the user exactly what
-   changed, with a brief explanation of the changes and why they were made. If verification failed,
-   lead with that, not with the diff.
+   changed, **task by task** — each task's paths under its own heading — with a brief explanation
+   of the changes and why they were made. If any verification failed, lead with that and name the
+   task, not with the diff.
 
 8. **Ask for feedback** — Ask the user whether this looks correct and whether any changes are
-   needed. If they are happy, suggest `/jdi:done` to mark the task complete, or `/jdi:next` to mark
-   it done and start the following one.
+   needed. If they are happy, suggest `/jdi:done` to mark the wave's tasks complete — one commit
+   each — or `/jdi:next` to do that and start the following wave.
 
-Do **not** update the task's status. Do **not** mark it done. That is `/jdi:done`'s job — wait for
-the user's feedback first.
+Do **not** update any task's status. Do **not** mark anything done. That is `/jdi:done`'s job —
+wait for the user's feedback first.

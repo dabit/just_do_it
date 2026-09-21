@@ -28,11 +28,11 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. Ranks the candidate docs and screens `consumers` with Jev when `jev.enabled` is on. |
 | `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
-| `/jdi:split` | Splitter | Break the plan into atomic, dependency-ordered tasks with verification steps. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so, and checks the split is really atomic with Jev when `jev.enabled` is on. |
-| `/jdi:execute` | Butler + Executor | Implement the next pending task. Shows the diff and asks for your feedback. Proves the test suite runs, once per plan, when `tdd.enabled` is on. |
-| `/jdi:done` | Butler | Mark the current task complete, update the checklist, and commit. |
+| `/jdi:split` | Splitter | Break the plan into atomic, dependency-ordered tasks with verification steps, cut so that as many as possible can run in parallel. Ends with a UAT task. Mirrors them to the tracker if `split.pieces` says so, and checks the split is really atomic with Jev when `jev.enabled` is on. |
+| `/jdi:execute` | Butler + Executor | Implement the next wave — every task whose dependencies are done, one Executor each, in parallel. Shows the diff and asks for your feedback. Proves the test suite runs, once per plan, when `tdd.enabled` is on. |
+| `/jdi:done` | Butler | Mark what was just executed complete, update the checklist, and commit — one commit per task, even when a wave ran several. |
 | `/jdi:next` | Butler + Executor | `/jdi:done` then `/jdi:execute`, in one step. Reads the plan's TDD decision; never re-decides it. |
-| `/jdi:yolo` | Butler + Executor | Auto-pilot: done + execute every remaining task. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
+| `/jdi:yolo` | Butler + Executor | Auto-pilot: done + execute every remaining task, a parallel wave at a time. Stops on the first failure — but the expected red inside a TDD task is required evidence, not a failure, and does not stop it. |
 | `/jdi:status` | Butler | Show progress on the current plan. |
 | `/jdi:pr` | Butler + Synthesizer + PR Writer | Condense the plan, push, and open the pull request. |
 | `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. Orders the findings with Jev when `jev.enabled` is on. |
@@ -79,6 +79,17 @@ the research are committable on their own and the work is resumable later or by 
 
 At PR time the task files collapse back into a single slim `PLAN.md` — the commits are the task
 list by then.
+
+### Tasks run in parallel
+
+The Splitter cuts the plan for parallelism: it keeps dependencies to the ones that are real,
+extracts what several tasks share into an early task so the rest fan out from it, and makes sure
+tasks that can run together never touch the same file. `/jdi:execute`, `/jdi:next` and `/jdi:yolo`
+then run a **wave** at a time — every task whose dependencies are done, one Executor each, at once —
+verify each task once the wave has settled, and still commit **one task per commit**. A plan that is
+honestly a chain — or one split before 1.0.7, with no wave headings — runs one task at a time, as
+before; UAT always runs alone, last; and a harness that cannot run roles concurrently says so once
+and runs each wave in order.
 
 ### What the pieces become
 

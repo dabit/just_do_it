@@ -273,7 +273,7 @@ Claude Code:
 
 ```sh
 /jdi:prep "Add presence indicators to pages"   # research + plan + split, in one pass
-/jdi:yolo                                      # execute every task, stopping on a real failure
+/jdi:yolo                                      # execute every task, in parallel waves, stopping on a real failure
 /jdi:pr                                        # condense the plan, push, open the PR
 ```
 
@@ -302,6 +302,13 @@ In Claude Code, run one phase at a time and stop wherever you like:
 ```
 /jdi:start → /jdi:research → /jdi:plan → /jdi:split → /jdi:execute ⇄ /jdi:done → /jdi:pr
 ```
+
+Execution is parallel wherever the plan allows it. The Splitter cuts the plan for it — real
+dependencies only, shared pieces extracted early so the rest fan out, no two parallel tasks
+touching the same file — and `/jdi:execute`, `/jdi:next` and `/jdi:yolo` run a **wave** at a time:
+every task whose dependencies are done, one Executor each, at once. Each task is still verified by
+the Butler and still lands as its own commit. A harness that cannot run roles concurrently says so
+once and runs each wave in order.
 
 `/jdi:help` prints the full command table. `/jdi:status` says where you are. `/jdi:feedback`
 critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`

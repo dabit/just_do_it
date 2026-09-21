@@ -33,6 +33,48 @@ deliberately. The line is written once, before the first task, and is never rewr
 plan — every later command **reads** it rather than re-detecting anything, so changing
 `.jdi/config.yml` mid-plan has no effect until the next one.
 
+## Waves
+
+Tasks are executed a **wave** at a time, and a wave is always derived, never stored: it is **every
+unchecked task whose `Depends on:` tasks all have `status: done`**. `/jdi:execute`, `/jdi:next` and
+`/jdi:yolo` run the whole wave at once, one Executor per task, concurrently — see *Delegating
+several roles at once* in `reference/delegation.md`. The `**Wave N**` headings the Splitter writes
+into `## Tasks` are a picture of that for the reader; `Depends on:` is the authority, and the
+commands compute the wave from it each time. A wave of one task is exactly the one-task-at-a-time
+flow, so a plan that is a strict chain runs as it always did.
+
+Two exceptions, both of which narrow a wave and neither of which widens one:
+
+- **UAT always runs alone, last.** The UAT task is never part of a wave with anything else,
+  whatever its `Depends on:` says: it is eligible only when every other task is done.
+- **A plan with no `**Wave N**` headings in `## Tasks` was split before waves existed, and runs one
+  task at a time, in number order** — each wave is the single lowest-numbered eligible task. Its
+  dependencies were written when number order was a guarantee, so a `Depends on: None` there never
+  promised independence. Say so once ("this plan was not split for parallel execution; running its
+  tasks in order") and suggest `/jdi:split` again if the user wants it cut for parallelism. This is
+  the one thing the headings decide; *which* tasks share a wave still comes from `Depends on:`.
+
+Every Executor in a wave works in the **same working tree**. Three rules make that safe:
+
+1. **The guard — same-wave tasks must be file-disjoint.** Before spawning, compare the `## Files`
+   of the wave's tasks. The Splitter is supposed to guarantee no overlap; the Butler checks anyway.
+   Where two tasks name the same path, the lower-numbered one runs in this wave and the other is
+   held for the next, said out loud once. Never run two Executors that may edit one file.
+2. **Verify after the wave settles, never during it.** An Executor's own verification ran while its
+   siblings were mid-edit, so it is weaker evidence than usual. Wait for every Executor in the wave
+   to report, then run each task's Verification yourself against the settled tree.
+3. **One commit per task, by path.** A wave leaves several tasks' work staged in one index, so a
+   task is never committed with "everything staged". Commit each task on its own, in number order,
+   naming exactly its paths: its `## Files`, any extra path its Executor reported touching, and its
+   own task file — plus `PLAN.md`, ticked for that task only, so each commit carries its own tick.
+   Never `git add -A` and never a bare `git commit` while another task's work is staged. A changed
+   path that no task in the wave claims is a question for the user, not something to fold into
+   whichever commit is nearest.
+
+The trade-off is said once, here: each commit in a wave was verified against the whole wave's tree,
+not against a tree holding that task alone. Disjoint files and independent verification keep that
+honest in practice, and the wave's last commit is always a fully verified state.
+
 ## `plans.mode: repo` (default)
 
 Plans are files under `<plans.path>/` in the repository being changed, and they are **committed
@@ -45,7 +87,7 @@ Read and write them with ordinary file tools. The commit points are:
 |---|---|
 | A pause after `/jdi:start`, `/jdi:research`, `/jdi:plan`, or `/jdi:prep` | `docs: Add <slug> plan` — offered, never automatic |
 | Before the first task is executed (`/jdi:execute`, `/jdi:yolo`) | `chore: Approve plan for <slug>` — the whole plan folder plus any new architecture doc |
-| Each completed task (`/jdi:done`, `/jdi:next`, `/jdi:yolo`) | one commit per task, never squashed |
+| Each completed task (`/jdi:done`, `/jdi:next`, `/jdi:yolo`) | one commit per task, never squashed — a wave of three tasks is three commits, each by path (see *Waves*) |
 | Plan condensation at PR time (`/jdi:pr`) | `docs: Condense <slug> plan into single file` |
 
 **A repo whose plans folder is gitignored is the trap to check for.** Run

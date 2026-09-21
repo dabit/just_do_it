@@ -48,6 +48,9 @@ Follow these steps:
    - the plan has natural checkpoints — one piece could realistically ship or be reviewed before
      the next starts
    - some subtasks are independently reviewable, revertable, or testable
+   - the plan contains pieces that share no files and no state, and so could be implemented **at
+     the same time** — `/jdi:execute` and `/jdi:yolo` run every eligible task concurrently, so a
+     cut that lets two pieces overlap is a real boundary, not a cosmetic one
    - more than roughly five distinct edits with non-trivial sequencing
 
    When in doubt, prefer fewer tasks. **State the decision and the reason** before proceeding.
@@ -58,9 +61,11 @@ Follow these steps:
    - `01-<implement-slug>.md` — Why, Description (copy the Implementation Plan verbatim or
      summarise its steps, keeping the file paths and snippets), Files, and Verification commands
      (lint plus targeted tests).
-   - `02-uat.md` — the UAT task, per the UAT rules below.
+   - `02-uat.md` — the UAT task, per the UAT rules below, with `Depends on: 01`.
 
-   Then replace `## Tasks` in `PLAN.md` with a checklist linking to them — normally two items. A
+   Then replace `## Tasks` in `PLAN.md` with a checklist linking to them — normally two items, each
+   under its own `**Wave N**` heading exactly as path (b) writes them, since a checklist without
+   wave headings is read as a plan split before waves existed. A
    piece in a separate repository, or one the plan explicitly defers, may earn its own task file;
    that is not over-splitting.
 
@@ -75,22 +80,39 @@ Follow these steps:
      a shared concern several tasks depend on into its own task. **Aim for the minimum number that
      captures real boundaries.**
    - **Determine dependencies** — a task depends on another only if it literally cannot be started
-     without it.
+     without it. A dependency is never a preferred reading order; the numbering carries that.
+   - **Prioritise parallelisation** — perform the *Analysing for parallelism* pass in the
+     Splitter's role file: find the independent pieces, shorten the longest dependency chain by
+     extracting what several tasks share into an early task of its own, and make sure **no two
+     tasks that could run together name the same path in `## Files`**. Every task with its
+     dependencies done is executed at the same time as its siblings, in one working tree, and is
+     committed by exactly the paths its `## Files` lists — so that list must be complete.
    - **Write numbered task files** in the plan folder — `01-<task-slug>.md`, `02-<task-slug>.md`,
      … — numbered in an execution order that respects the dependencies. Each contains: `status:
      pending` at the top, a title, its dependencies (or None), a **Why** in one or two sentences, a
-     **Description**, the **Files** to create or modify, and **Verification** — the specific
-     commands or checks that confirm the task is done, each with its expected outcome.
+     **Description**, the **Files** to create, modify, or delete, and **Verification** — the
+     specific commands or checks that confirm the task is done, each with its expected outcome, and
+     each able to pass on this task's work alone while a sibling is still half-finished.
    - **Write the UAT task last** — see below.
-   - **Update `PLAN.md`** with the master checklist:
+   - **Update `PLAN.md`** with the master checklist, grouped by wave — a wave being the tasks whose
+     dependencies are all in earlier waves, derived from `Depends on:` and never declared
+     separately:
      ```
      ## Tasks
+
+     **Wave 1** — run together
      - [ ] 01 — Task title (depends on: none)
-     - [ ] 02 — Task title (depends on: 01)
-     - [ ] 03 — UAT
+     - [ ] 02 — Task title (depends on: none)
+
+     **Wave 2**
+     - [ ] 03 — Task title (depends on: 01, 02)
+
+     **Wave 3**
+     - [ ] 04 — UAT (depends on: 03)
      ```
 
-4. **The UAT task** — The final numbered task is always UAT, whichever path was taken. It contains
+4. **The UAT task** — The final numbered task is always UAT, whichever path was taken. It depends
+   on every other task, so it is the last wave and runs alone. It contains
    user-facing scenarios derived from the plan, with step-by-step instructions the user can follow
    to verify the feature end to end, the expected outcome of each, and the edge cases to check.
 
@@ -117,7 +139,11 @@ Follow these steps:
    `/jdi:execute` and `/jdi:done` keep working off them, one commit per task. A tracker mirror that
    makes the work visible to people outside the repository is the only thing being added.
 
-6. **Present the tasks** — Summarise the tasks and their dependencies, note which path step 2 took
+6. **Present the tasks** — Summarise the tasks wave by wave: which run together, the widest wave,
+   and the critical path — the longest dependency chain, which is the floor on how long execution
+   takes. Name any dependency that exists only because two tasks share a file. Before presenting,
+   check the Splitter's work yourself: no dependency points at a later number, and no two tasks
+   without a dependency path between them share a path in `## Files`. Note which path step 2 took
    and why if it was a close call, name the pieces that were mirrored to the tracker (or say the run
    is `commits`), and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 

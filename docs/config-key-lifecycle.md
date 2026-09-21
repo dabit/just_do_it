@@ -40,7 +40,7 @@ key wants to know. A new key that has no plausible level-2 source is a hint that
 JDI-internal machinery rather than a fact about this repository — see section 5.
 
 The load itself is repeated in twelve of the sixteen command files as a step 0 that begins
-**"Load the JDI config"** — `commands/done.md:14`, `commands/execute.md:14`,
+**"Load the JDI config"** — `commands/done.md:14`, `commands/execute.md:15`,
 `commands/feedback.md:18`, `commands/next.md:13`, `commands/plan.md:14`, `commands/pr.md:15`,
 `commands/research.md:14`, `commands/split.md:14`, `commands/start.md:14`,
 `commands/status.md:14`, `commands/yolo.md:13`, and `commands/prep.md:19` (numbered 1 there rather
@@ -100,7 +100,7 @@ written anyway. A question that cannot be meaningfully answered is not asked.
 **`commands/help.md` takes three edits.** The instruction for the closing line that names what
 this repo is configured for (`commands/help.md:9-13`), the `/jdi:init` row in the command table,
 which lists init's questions a second time (`commands/help.md:26`), and a `###` prose subsection
-explaining the key (`commands/help.md:83-90`). If the key changes what a specific command does,
+explaining the key (`commands/help.md:94-101`). If the key changes what a specific command does,
 that command's row in the same table needs a clause too — `/jdi:split`'s row gained "Mirrors them
 to the tracker if `split.pieces` says so" (`commands/help.md:31`).
 
@@ -121,7 +121,7 @@ shipped without a version bump silently does nothing on Claude's installed copy.
 Nine is the floor now. `git show --stat c83963b` touched seventeen files before the Codex manifest
 existed; beyond that release's eight-file floor, its extra nine were the ones the key's *behaviour*
 reached: `reference/tracker.md` (two new operations),
-`reference/plan-store.md:17-19`, `agents/splitter.md:47-50`, and the command files that now branch
+`reference/plan-store.md:17-19`, `agents/splitter.md:53-56`, and the command files that now branch
 on the key — `split.md`, `prep.md`, `done.md`, `next.md`, `yolo.md`, `pr.md`.
 
 There is no list for this, because it depends on the key. **Grep the key's own name when you think
@@ -133,7 +133,7 @@ merely names the key is fine, a mention that describes behaviour that has since 
 
 `/jdi:status` loads the config (`commands/status.md:14-17`) and then never names a key: it finds
 the plan, shows the checklist, shows the next task, and reports git ground truth
-(`commands/status.md:19-32`). It reports the **local** state of the plan, and deliberately not the
+(`commands/status.md:19-34`). It reports the **local** state of the plan, and deliberately not the
 tracker-side state of the pieces — that exclusion was called out as out of scope in `c83963b`'s
 own commit message, not overlooked.
 
@@ -150,7 +150,7 @@ in order, to the orchestrator in the second person.
 
 A new key almost always lands in the command files. It lands in a role file only when the
 behaviour is the role's own discipline regardless of which command spawned it — and even then, the
-role usually gets a *constraint* rather than the key. `agents/splitter.md:47-50` is the pattern:
+role usually gets a *constraint* rather than the key. `agents/splitter.md:53-56` is the pattern:
 the Splitter is told it never writes to the tracker and that the Butler adds the `Ticket:` line
 afterwards, so it should write task bodies that read well in a ticket. It is told the consequence
 of `split.pieces`; it never reads the key.
@@ -176,18 +176,19 @@ roles usable by a harness that adopts them inline with no file access of its own
 
 This is the repo's most surprising convention, and the most expensive one to get wrong.
 
-The **T8 "Close the piece"** instruction lives at `commands/done.md:37-41`, `commands/next.md:35-38`
-and `commands/yolo.md:64-68`. The **Executor hand-off** lives at `commands/execute.md:61-76`,
-`commands/next.md:53-65` and `commands/yolo.md:77-89`. Neither site says "see `done.md`". Each
+The **T8 "Close the piece"** instruction lives at `commands/done.md:42-46`, `commands/next.md:38-41`
+and `commands/yolo.md:75-79`. The **Executor hand-off** lives at `commands/execute.md:70-91`,
+`commands/next.md:61-77` and `commands/yolo.md:89-107`. Neither site says "see `done.md`". Each
 states the whole instruction.
 
-They are *not* uniformly verbatim, which matters for maintenance. `commands/next.md:53-65` and
-`commands/yolo.md:77-89` are byte-identical apart from the step number and one capital letter,
-while `commands/execute.md:61-76` is a longer form of the same hand-off with the inputs as a
-bullet list. The three T8 sites are three different compressions of one rule: `done.md` adds "the
-commit is the real record", `yolo.md` adds "not a reason to stop the loop", `next.md` trims to
-"Warn, never fail." **So you cannot find every site by grepping for a shared sentence.** Grep for
-the key name or the operation name (`T8`, `split.pieces`) instead.
+They are *not* uniformly verbatim, which matters for maintenance. `commands/next.md:61-77` and
+`commands/yolo.md:89-107` are near-identical — the TDD sentences match word for word, while the wave
+hand-off around them differs in a few phrases (yolo announces a sequential fallback once per run,
+not once per wave) — while `commands/execute.md:70-91` is a longer form of the same hand-off with
+the inputs as a bullet list. The three T8 sites are three different compressions of one rule:
+`done.md` adds "the commit is the real record", `yolo.md` adds "not a reason to stop the loop",
+`next.md` trims to "Warn, never fail." **So you cannot find every site by grepping for a shared
+sentence.** Grep for the key name or the operation name (`T8`, `split.pieces`) instead.
 
 **Why the duplication is correct.** Every command file must be independently followable by an
 agent that reads only that one file. `AGENTS.md:9-19` is the guarantee: "Read
@@ -199,7 +200,7 @@ step. Duplication trades maintenance cost for the property that no file has a ho
 **Where cross-references are still allowed**, because they are cheap and load-bearing:
 
 - **Reference files by name.** Commands say "perform **T8** from `reference/tracker.md`" rather
-  than restating the operation (`commands/done.md:37-38`). The reference file is the single
+  than restating the operation (`commands/done.md:42-43`). The reference file is the single
   definition; the command names the operation and its local conditions.
 - **A whole command by name.** `commands/replan.md:16` and `commands/reresearch.md:16` say to follow
   their sibling command in full, then define the exceptions. The unit being reused is the entire
@@ -219,7 +220,7 @@ A behavioural key describes something the environment might not support. JDI's a
 first rung that applies, say which one out loud, and treat the run as `commits` from there on."
 The ladder is ordered cheapest-check-first, and the run adopts the fallback mode wholesale rather
 than re-deciding at each later step. Announcing is the Butler's standing duty
-(`roles/butler.md:23-25`): "Silent degradation is the thing that makes a workflow untrustworthy."
+(`roles/butler.md:27-29`): "Silent degradation is the thing that makes a workflow untrustworthy."
 
 **Degrade DOWN, never UP.** `reference/tracker.md:107-109`: a configured `tasks` the tracker
 cannot express falls back to `commits`; it never becomes `subtickets`. The reasoning is stated,
@@ -227,7 +228,7 @@ and it generalises — "Silently creating issues the user did not ask for is a w
 mirroring nothing." When you write your ladder, name which direction is the destructive one and
 close it explicitly.
 
-**Silent when the feature is off.** `commands/split.md:96-97`, for `commits` mode:
+**Silent when the feature is off.** `commands/split.md:128-129`, for `commits` mode:
 
 > **`commits`** — nothing to do. The task files are the pieces, and each one becomes a commit when
 > it is marked done. Say nothing; there is nothing to skip.
@@ -249,7 +250,7 @@ how that capability is *detected*, and detection must be an observation, not an 
 ### When a ladder earns its own reference file
 
 Inline the ladder in the command when it is short and has exactly one caller — the way
-`commands/split.md:93-108` carries the local reading of `split.pieces`. Promote it to
+`commands/split.md:125-140` carries the local reading of `split.pieces`. Promote it to
 `reference/*.md` when **several commands must perform the same operation**, which is precisely
 when the repeat-in-place rule would otherwise force you to copy the whole ladder N times. T7 and
 T8 earned their place because five commands invoke them by name: `split.md` and `prep.md` call T7,
