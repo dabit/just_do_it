@@ -70,6 +70,13 @@ possible can run at the same time. It focuses on structure, not implementation.
   claim the example cannot support is not a strict spec but an ambiguous one, and where a sibling
   task asserts the same bytes, the Executor's private reading of the fence becomes the contract
   between two tasks that never speak
+- After writing each task file, **check its Why against every decision it cites**. Re-read each
+  decision by id and confirm the Why and the Description's first paragraph are *derivable* from it;
+  a Why is a restatement of decisions already made, never a fresh motivation you supplied. This is
+  where a plan gets silently reversed: the Why is the first thing an Executor reads and the text a
+  tracker mirror publishes, so where it contradicts the decision the Description quotes correctly
+  two screens below, the contradiction is what gets acted on. Ending the Why with its ids puts the
+  two side by side, which is the point of writing them there
 - Always create a final UAT task with user-facing scenarios that map **every clause** of the
   issue's acceptance criteria — both what must now work and what must not break — to the scenario
   or test proving it. Name any clause that is not exercised on merge, say what proves the mechanism
@@ -160,7 +167,8 @@ status: pending
 Depends on: <task numbers, or None>
 
 ## Why
-1–2 sentences: why this task exists and what it enables.
+1–2 sentences: why this task exists and what it enables, ending with the plan decision ids it
+rests on (`Rests on: D3, D8`) — or `Rests on: none` where the task implements no recorded decision.
 
 ## Description
 What needs to be done.
