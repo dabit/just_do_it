@@ -29,7 +29,11 @@ unreachable.
 **Before the loop — resolve the TDD decision for this plan.** Do this **only when `PLAN.md` carries
 no `- Started:` line**, which means this plan has never been executed by any command. If
 `tdd.enabled` is not `true`, do nothing and say nothing; otherwise perform **TS1** from JDI's
-`reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. Then add a
+`reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. Where the
+first task's purpose is to build the environment the runner needs, perform that task inline as part
+of TS1 — the gate cannot be proven against something the first task has not created yet, and a
+neighbouring container proves a runner for a different checkout. See *When the runner does not
+exist yet* in `reference/testing.md`. Then add a
 `Started: YYYY-MM-DD` line yourself, exactly as `/jdi:execute`'s first-task check does, so the plan
 carries the same "execution has begun" marker whichever command began it.
 

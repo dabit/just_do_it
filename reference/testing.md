@@ -99,6 +99,23 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
    raised from inside an Executor either hangs the workflow or gets answered by the orchestrator on
    the user's behalf. With no user to ask, degrade to off and say so — which is rung 6.
 
+**When the runner does not exist yet, building it is the Butler's job, not a task's.** A gate that
+runs before the first task cannot depend on something the first task produces — and plans put it
+there routinely: task 01 stands up the container the suite needs, or the only correct runner lives
+behind a dependency directory nobody has installed. Where the first task's purpose *is* to build
+the environment the runner needs, **perform that task inline, here, as part of TS1**, and record
+the resolved invocation — config paths included — as the one every Executor is handed. Do not run
+the ladder against a neighbouring environment that happens to be up: a container built from another
+checkout proves a runner for a tree that is not this one.
+
+Environment bring-up is a precondition the orchestrator owns, resolved once and handed down as a
+fact, never a recipe each task recreates in its own scratchpad. The reason is the wave: **whatever
+every task in a wave needs but no task owns is invisible to the same-wave file guard**, which
+compares `## Files` over tracked paths, and a gitignored build directory appears in none of them.
+Two Executors then race the same install into one directory — a corrupted tree rather than a clean
+conflict, and one the Executor's own rules do not catch either, since an unbuilt dependency
+directory belongs to nobody and reads as neither a collision nor a missing dependency.
+
 **The decision is stated in every dispatch, including when it is `off`.** Rung 1's silence is
 owed to the *user* — nothing was asked for, so nothing is announced and no line is written into
 `PLAN.md`. It says nothing about the handover between two roles, where the opposite rule applies:

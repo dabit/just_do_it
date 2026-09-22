@@ -38,7 +38,10 @@ Follow these steps:
       is unreachable.
 
    b. **Resolve the TDD decision for this plan.** If `tdd.enabled` is not `true`, do nothing and
-      say nothing: write no line, and announce no skip. Otherwise perform **TS1** from JDI's
+      say nothing: write no line, and announce no skip. Where the first task's purpose is to build
+      the environment the runner needs, perform that task inline as part of TS1 rather than proving
+      the runner against a neighbouring environment — see *When the runner does not exist yet* in
+      `reference/testing.md`. Otherwise perform **TS1** from JDI's
       `reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. This
       runs before `c`'s commit, so the decision rides the plan-approval commit. TS1 answers once
       per plan, every later command reads that answer, and editing `.jdi/config.yml` mid-plan
