@@ -12,6 +12,12 @@ numbered task files:
   NN-uat.md            # final task: user acceptance scenarios
 ```
 
+Of a task file's parts, `status:`, `Depends on:` and `## Files` are **read by the commands, not by a
+reader**: `status:` is flipped when a task completes, `Depends on:` is the sole input to the wave
+computation below, and `## Files` is the same-wave overlap guard and the path list each commit is
+made by. A task that states any of the three in prose instead has not stated it at all, and the
+resulting degradation is silent — see *Waves*.
+
 Where that folder physically lives is `plans.mode` in `.jdi/config.yml`.
 
 A task file also carries a `Ticket:` line when `split.pieces` mirrors the pieces into the tracker as

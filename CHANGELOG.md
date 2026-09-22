@@ -2,9 +2,11 @@
 
 ## 1.0.8
 
-**A specification is executable prose, and the Planner and Splitter now check theirs against what
-the Executor can actually perform.** Four defects from one `/jdi:prep` → `/jdi:yolo` → `/jdi:pr`
-run, each one an instruction that reads as precise and cannot be carried out as written.
+**A specification is executable prose, and the roles that write one now check it against what the
+role downstream can actually perform.** Each entry below is an instruction that reads as precise
+and cannot be carried out as written — or a field a later step parses that was only ever stated in
+prose. Four of them came out of a single `/jdi:prep` → `/jdi:yolo` → `/jdi:pr` run; the rest were
+found the same way, one workflow at a time.
 
 - **The Splitter checks a prescribed template against its own case list.** `agents/splitter.md`
   gains a responsibility: naming an existing file as the template for a new test's harness asserts
@@ -36,6 +38,32 @@ run, each one an instruction that reads as precise and cannot be carried out as 
   crossing that boundary proves; the Executor reports the file and symbol it actually edited, since
   a reverted mutation leaves no diff to record it. Naming the calling file fails into the same
   silent no-op the anti-vacuity check exists to detect. (#17)
+- **A task file's machine-read parts are written first, and prose does not substitute for them.**
+  `status:`, `Depends on:` and `## Files` — plus the `## Tasks` wave headings — are what the
+  execute loop reads; a task that announces "Wave 2, in parallel with 03" in its text has declared
+  nothing to the runner, and the degradation is silent and in the safe-looking direction. The
+  `## Files` gap is the sharp one: that comparison is all that stands between two concurrent
+  Executors and the same path. The Splitter now writes the skeleton before the prose;
+  `reference/plan-store.md` states the contract where the consumer reads it, and `/jdi:split` says
+  the wave a task announces is not the wave the runner computes. (#18)
+- **A task's Why is checked against the decisions it cites.** The Why is the first thing an
+  Executor reads and the text a tracker mirror publishes, so a paraphrase that reverses the
+  decision quoted correctly two screens below is the version that gets acted on. The Splitter
+  re-reads each decision by id, and the task template ends the Why with the ids it rests on, so a
+  mismatch sits side by side. (#22)
+- **The condensing target is a diagnostic, not a gate.** "70–80% smaller" now names its unit
+  (words — a line count flatters a cut that has stopped compressing) and yields to the preserve
+  list. Where preserved content alone exceeds the target, the Synthesizer reports the shortfall
+  with its itemised reason and hands the cut/keep decision back rather than reaching the number by
+  dropping a preserved item or collapsing two facts into one looser sentence — which is the failure
+  mode the same role file already calls unacceptable. `/jdi:pr` stops asking for a harder cut when
+  that reason is supplied. (#23)
+- **A condensed plan states nothing about the commit that writes it.** A count, a hash or a push
+  state that includes the condensing commit is false the moment it is stored, and correcting it
+  adds another commit that reproduces the error at the same size. The Synthesizer points at
+  `git log <base>..HEAD`, scopes any number to something already closed, and leaves one sentence
+  saying the omission is deliberate; `/jdi:pr` removes such an assertion instead of updating it.
+  (#24)
 
 ## 1.0.7
 

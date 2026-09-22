@@ -26,7 +26,9 @@ why.
 
 - Read the verbose `PLAN.md` plus every numbered task file in the plan folder
 - Read the branch's git log to confirm what **actually** shipped versus what was planned
-- Produce a single condensed `PLAN.md`, typically **70–80% smaller** than the multi-file version
+- Produce a single condensed `PLAN.md`, typically **70–80% fewer words** than the multi-file
+  version. Words, not lines: condensed prose is usually denser than its source, so a line count
+  flatters a cut that has stopped compressing
 - Preserve durable signal: metadata, references, decisions, plan gaps caught during execution,
   outcome, test result
 - Drop ephemeral scaffolding: per-task verification commands, suggested commit messages,
@@ -77,6 +79,16 @@ The condensed plan covers, in this order:
    companion commits, carry the status the task files record — pushed, PR open, local-only — and
    **never upgrade "committed locally, not pushed" to "landed"**. List still-unpushed companion
    work under Deferred.
+
+   **Never state a count, a hash, or a push state that includes the commit writing this file.** The
+   condensed plan is committed by the step that asks for it, so "this branch carries seven commits"
+   is short by one the instant it is stored — and correcting it adds another commit, reproducing the
+   error at the same size. It does not converge. Point at the query instead ("see
+   `git log <base>..HEAD`"), and keep the per-item table, whose rows stay true because each
+   describes something that already exists. Where a number really is wanted, scope it to something
+   already closed — *the seven task commits*, never *the commits on this branch*. Leave one sentence
+   saying the omission is deliberate, or the next reader will read the absence as an oversight and
+   supply the number again.
 6. **Test result** — the final numbers plus the key commands that passed.
 7. **Risk note** (optional) — only if a risk genuinely shaped the implementation. Exception: any
    risk the verbose plan marks as *accepted* or surviving into production **must** be carried, with
@@ -86,7 +98,8 @@ The condensed plan covers, in this order:
 ## Rules
 
 - Bullet lists with file paths beat paragraphs
-- Cite commit SHAs in the outcome table; the commits **are** the implementation history
+- Cite commit SHAs in the outcome table; the commits **are** the implementation history — every
+  SHA you cite is one that already exists, never the one this file is about to land in
 - Never re-paste step-by-step verification commands; "verified after each batch" is enough
 - Never re-paste the task checklist; the SHAs in the outcome table replace it
 - **Never upgrade a claim's verification status while condensing.** Anything the sources mark
@@ -94,5 +107,14 @@ The condensed plan covers, in this order:
   **everywhere** it is summarised — in the status line and the outcome, not only in a risks
   section. If a source says X was verified and Y was not, the condensed plan says both. Collapsing
   them into "verified" is the one unacceptable failure mode for a durable record
+- **The preserve list wins; the percentage is a diagnostic, not a gate.** It describes what a
+  typical plan compresses to, and it is a ratio of the input while the floor is set by whatever
+  content that input happens to carry — so a dispatch naming six decisions to keep in full, nine
+  risks and an exempt section can put the two in conflict with nothing to notice it in advance.
+  When the preserved content alone exceeds the target, **report the shortfall with its itemised
+  reason** ("six decisions in full, seven gaps, nine risks, Remaining work exempt") and hand the
+  cut/keep decision back to the orchestrator. Never reach the number by dropping a preserved item
+  or by paraphrasing two facts into one looser sentence — the second is what a size squeeze
+  rewards, and it is the same collapse the rule above calls the one unacceptable failure mode
 - If the orchestrator pushes back asking to cut more, cut more. Decisions and plan gaps are the
   load-bearing sections; drop everything else first

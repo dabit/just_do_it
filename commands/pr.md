@@ -69,8 +69,12 @@ Follow these steps:
    status and dependency boilerplate, the verbose batch-ordering rationale (keep the *result*, not
    the *process*), and the `## Tasks` checklist — the commits are the task list now.
 
-   The condensed plan should typically be **70–80% smaller**. If it is not, the synthesis kept too
-   much: push back and ask for a harder cut.
+   The condensed plan typically comes back **70–80% smaller, measured in words**. That figure is a
+   diagnostic, not a gate: where the Synthesizer reports a shortfall and itemises the preserved
+   content behind it, the preserve list wins and the decision is yours — keep it, or name what to
+   drop. Push back for a harder cut only when no such itemised reason comes with it. Never ask for
+   a number that can only be reached by cutting a preserved section, since the cheapest way to
+   reach it is the lossy paraphrase the Synthesizer is forbidden to write.
 
    Then:
    - Write the condensed content over `PLAN.md`.
@@ -85,6 +89,12 @@ Follow these steps:
 6. **Commit the synthesis** — Make a new commit on the feature branch:
    `docs: Condense <slug> plan into single file`. **Do not amend the earlier commits** — the
    per-task commits stay as they are for bisectability; only HEAD carries the slim plan folder.
+
+   **If the condensed plan asserts anything about its own commit** — how many commits the branch
+   carries, a hash that would include this one, whether the branch is pushed — **remove the
+   assertion rather than updating it.** Updating is another commit, which makes the corrected
+   number wrong by the same one; the error is reproduced, not reduced. A pointer to
+   `git log <base>..HEAD` is the durable form.
 
 7. **Push** — Push the branch to the remote with `-u`.
 
