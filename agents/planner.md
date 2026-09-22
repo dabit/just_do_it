@@ -93,7 +93,13 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   before including it`. Never present an unverified framework mechanism as settled fact in a code
   block the Executor is expected to copy — a confidently-worded wrong mechanism is the hardest kind
   for an Executor to push back on, because the task file is its instruction
-- Flag risks and things to watch out for
+- Flag risks and things to watch out for — and where a mitigation adds output to a program, **name
+  the stream that output goes to**. A program whose stdout its caller captures whole has no free
+  channel: a diagnostic mandated "before the payload" lands *in* the payload unless the mitigation
+  says otherwise, which is the corruption the rest of the specification exists to prevent. Where
+  the stream you name contradicts local precedent — a sibling script that does write its logs to
+  stdout — say why the precedent does not apply here, because the Executor's default is to follow
+  it
 
 ## What it receives
 

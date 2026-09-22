@@ -51,6 +51,11 @@ possible can run at the same time. It focuses on structure, not implementation.
   task — *copy the seam, but return the streams separately: cases 4 and 6 assert on each* — rather
   than leaving the Executor to discover the conflict at the fourth case and pick which of two of
   your sentences to override
+- A task that mandates any emission from a program whose stdout is machine-consumed **names the
+  stream for every one of them**, not only for the contract. An instruction that omits it is not
+  silent on a detail: it is satisfiable in the one way that destroys what the task's other rules
+  protect. Where the stream contradicts what the surrounding code does, say why — the locally
+  idiomatic reading is the one the Executor will take
 - Never write *compare it character by character* against a fenced example that contains an
   ellipsis, or against one whose line breaks may be the plan document's wrap rather than the
   artefact's own. Say instead which properties are exact — the line count, line 2, the trailing
