@@ -119,6 +119,12 @@ Follow these steps:
    user-facing scenarios derived from the plan, with step-by-step instructions the user can follow
    to verify the feature end to end, the expected outcome of each, and the edge cases to check.
 
+   **UAT is walked before `/jdi:pr`.** It never contains a merge, a push to the default branch, or
+   any step that presupposes one — those come after the pull request this task precedes, so a UAT
+   beginning with the merge can never be run in its own sequence. Criteria observable only
+   afterwards go in a separate *after the merge — deferred* list inside the task, excluded from
+   what marks it done.
+
    **Map every clause of the issue's acceptance criteria** — both what must now work and what must
    not break — to the scenario or test that proves it. When a clause cannot be observed on merge,
    say so explicitly, state what proves the mechanism instead, and record where the deferral will
