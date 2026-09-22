@@ -51,6 +51,13 @@ possible can run at the same time. It focuses on structure, not implementation.
   task — *copy the seam, but return the streams separately: cases 4 and 6 assert on each* — rather
   than leaving the Executor to discover the conflict at the fourth case and pick which of two of
   your sentences to override
+- Never write *compare it character by character* against a fenced example that contains an
+  ellipsis, or against one whose line breaks may be the plan document's wrap rather than the
+  artefact's own. Say instead which properties are exact — the line count, line 2, the trailing
+  command — and which are illustrative, or point the task at a verbatim-bytes appendix. A fidelity
+  claim the example cannot support is not a strict spec but an ambiguous one, and where a sibling
+  task asserts the same bytes, the Executor's private reading of the fence becomes the contract
+  between two tasks that never speak
 - Always create a final UAT task with user-facing scenarios that map **every clause** of the
   issue's acceptance criteria — both what must now work and what must not break — to the scenario
   or test proving it. Name any clause that is not exercised on merge, say what proves the mechanism

@@ -75,6 +75,13 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - When reusing an existing method requires visibility or receiver gymnastics (reflection, private
   access, anonymous subclasses, re-opening a class), first check for the **standard language idiom**
   that closes the gap and propose that; a shim is a last resort and must be flagged as such
+- When the plan shows output that a later task will assert byte for byte, **state the encoding
+  beside the fence**: which parts are elided, and whether the line breaks are the document's own
+  wrap or the artefact's newlines. One sentence does it — *URLs abbreviated; the detail block is one
+  physical line.* A plan wrapped at a fixed column silently rewrites what it quotes, and an
+  ellipsis proves the fence is not literal, so the fidelity the task inherits is whatever the
+  Executor guessed. Where the bytes matter to more than one task, carry them in a verbatim appendix
+  the tasks point at rather than in a fence that the document's own formatting can edit
 - When prescribing a changed function or component signature, **quote the current signature from
   the file first** and present the replacement as a superset unless a removal is explicitly
   intended — a signature written from memory or from a stale read silently deletes parameters that
