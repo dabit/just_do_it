@@ -58,7 +58,11 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - When the plan claims a specific test fails under a specific regression ("fails the moment X is
   removed"), trace the regressed value through **every** construction between it and the asserted
   seam — splats, coercions, defaults, wrapping — and confirm the named assertion is the one that
-  fails. Name which test catches which mutation. A guard claim that does not survive this trace
+  fails. Name which test catches which mutation, and **resolve every mutation target to its
+  definition site**: the file and symbol that *define* the behaviour, imports followed first, never
+  the file whose behaviour you happen to be describing. Say what the mutation proves, and where the
+  definition lives in a module the subject imports, say so — the check crosses the import boundary,
+  and that crossing is part of what it proves. A guard claim that does not survive this trace
   directs maintainers to protect the wrong line, and in a security plan that misdirection is itself
   the vulnerability
 - When the plan reuses a shared hook, module, or composed unit, **verify its internal data
@@ -75,6 +79,13 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - When reusing an existing method requires visibility or receiver gymnastics (reflection, private
   access, anonymous subclasses, re-opening a class), first check for the **standard language idiom**
   that closes the gap and propose that; a shim is a last resort and must be flagged as such
+- When the plan shows output that a later task will assert byte for byte, **state the encoding
+  beside the fence**: which parts are elided, and whether the line breaks are the document's own
+  wrap or the artefact's newlines. One sentence does it — *URLs abbreviated; the detail block is one
+  physical line.* A plan wrapped at a fixed column silently rewrites what it quotes, and an
+  ellipsis proves the fence is not literal, so the fidelity the task inherits is whatever the
+  Executor guessed. Where the bytes matter to more than one task, carry them in a verbatim appendix
+  the tasks point at rather than in a fence that the document's own formatting can edit
 - When prescribing a changed function or component signature, **quote the current signature from
   the file first** and present the replacement as a superset unless a removal is explicitly
   intended — a signature written from memory or from a stale read silently deletes parameters that
@@ -86,7 +97,13 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   before including it`. Never present an unverified framework mechanism as settled fact in a code
   block the Executor is expected to copy — a confidently-worded wrong mechanism is the hardest kind
   for an Executor to push back on, because the task file is its instruction
-- Flag risks and things to watch out for
+- Flag risks and things to watch out for — and where a mitigation adds output to a program, **name
+  the stream that output goes to**. A program whose stdout its caller captures whole has no free
+  channel: a diagnostic mandated "before the payload" lands *in* the payload unless the mitigation
+  says otherwise, which is the corruption the rest of the specification exists to prevent. Where
+  the stream you name contradicts local precedent — a sibling script that does write its logs to
+  stdout — say why the precedent does not apply here, because the Executor's default is to follow
+  it
 
 ## What it receives
 
