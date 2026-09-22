@@ -79,6 +79,16 @@ The condensed plan covers, in this order:
    companion commits, carry the status the task files record — pushed, PR open, local-only — and
    **never upgrade "committed locally, not pushed" to "landed"**. List still-unpushed companion
    work under Deferred.
+
+   **Never state a count, a hash, or a push state that includes the commit writing this file.** The
+   condensed plan is committed by the step that asks for it, so "this branch carries seven commits"
+   is short by one the instant it is stored — and correcting it adds another commit, reproducing the
+   error at the same size. It does not converge. Point at the query instead ("see
+   `git log <base>..HEAD`"), and keep the per-item table, whose rows stay true because each
+   describes something that already exists. Where a number really is wanted, scope it to something
+   already closed — *the seven task commits*, never *the commits on this branch*. Leave one sentence
+   saying the omission is deliberate, or the next reader will read the absence as an oversight and
+   supply the number again.
 6. **Test result** — the final numbers plus the key commands that passed.
 7. **Risk note** (optional) — only if a risk genuinely shaped the implementation. Exception: any
    risk the verbose plan marks as *accepted* or surviving into production **must** be carried, with
@@ -88,7 +98,8 @@ The condensed plan covers, in this order:
 ## Rules
 
 - Bullet lists with file paths beat paragraphs
-- Cite commit SHAs in the outcome table; the commits **are** the implementation history
+- Cite commit SHAs in the outcome table; the commits **are** the implementation history — every
+  SHA you cite is one that already exists, never the one this file is about to land in
 - Never re-paste step-by-step verification commands; "verified after each batch" is enough
 - Never re-paste the task checklist; the SHAs in the outcome table replace it
 - **Never upgrade a claim's verification status while condensing.** Anything the sources mark

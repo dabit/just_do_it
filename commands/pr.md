@@ -90,6 +90,12 @@ Follow these steps:
    `docs: Condense <slug> plan into single file`. **Do not amend the earlier commits** — the
    per-task commits stay as they are for bisectability; only HEAD carries the slim plan folder.
 
+   **If the condensed plan asserts anything about its own commit** — how many commits the branch
+   carries, a hash that would include this one, whether the branch is pushed — **remove the
+   assertion rather than updating it.** Updating is another commit, which makes the corrected
+   number wrong by the same one; the error is reproduced, not reduced. A pointer to
+   `git log <base>..HEAD` is the durable form.
+
 7. **Push** — Push the branch to the remote with `-u`.
 
 8. **Delegate to the PR Writer** — Hand off to the **PR Writer** role. Pass
