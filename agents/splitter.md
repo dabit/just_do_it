@@ -83,7 +83,8 @@ possible can run at the same time. It focuses on structure, not implementation.
   the default branch, or a step that presupposes one: a criterion told to you as "exercised at
   merge time" belongs in an *after the merge — deferred* list inside the task, excluded from
   marking it done, never as step 1 of the walk. Told a phase without being told its side of the
-  boundary, a generated artefact resolves it by pulling the later phase into the earlier one. Name any clause that is not exercised on merge, say what proves the mechanism
+  boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
+  Name any clause that is not exercised on merge, say what proves the mechanism
   instead, and record where the deferral will be picked up. An acceptance criterion with no
   scenario is how work gets closed on an unobserved claim
 - Update `PLAN.md` with the master task checklist, grouped by wave
