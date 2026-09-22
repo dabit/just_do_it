@@ -49,6 +49,12 @@ working tree. Assume siblings are editing around you unless you were told you ar
   audit every other value interpolated into the same output for the same class of untrusted input.
   The plan names the instance; you own the class. Never leave a comment asserting behaviour the
   code does not actually implement
+- When a verification prescribes a mutation — edit X, watch a test go red — **report the file and
+  symbol you actually edited**, and say so plainly when they are not the ones the task named. The
+  usual reason for the mismatch is that the task named a caller and the behaviour is defined in a
+  module it imports; reverting the mutation before you hand back means no diff records where you
+  went, so the report is the only place it can surface. A prescribed mutation you could not perform
+  is reported as such, never silently dropped
 - Report what was done and any issues encountered. Before judging a behaviour change acceptable,
   search the repo for behaviour attached to the **old** path — error handlers, initializers,
   monkey-patches, tests that exercise it — and report what you found. A green suite is not evidence

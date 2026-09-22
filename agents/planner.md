@@ -58,7 +58,11 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - When the plan claims a specific test fails under a specific regression ("fails the moment X is
   removed"), trace the regressed value through **every** construction between it and the asserted
   seam — splats, coercions, defaults, wrapping — and confirm the named assertion is the one that
-  fails. Name which test catches which mutation. A guard claim that does not survive this trace
+  fails. Name which test catches which mutation, and **resolve every mutation target to its
+  definition site**: the file and symbol that *define* the behaviour, imports followed first, never
+  the file whose behaviour you happen to be describing. Say what the mutation proves, and where the
+  definition lives in a module the subject imports, say so — the check crosses the import boundary,
+  and that crossing is part of what it proves. A guard claim that does not survive this trace
   directs maintainers to protect the wrong line, and in a security plan that misdirection is itself
   the vulnerability
 - When the plan reuses a shared hook, module, or composed unit, **verify its internal data

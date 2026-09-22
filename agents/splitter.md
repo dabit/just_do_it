@@ -51,6 +51,13 @@ possible can run at the same time. It focuses on structure, not implementation.
   task — *copy the seam, but return the streams separately: cases 4 and 6 assert on each* — rather
   than leaving the Executor to discover the conflict at the fourth case and pick which of two of
   your sentences to override
+- A mutation prescribed as evidence that a test is not vacuous names the file and symbol that
+  **define** the behaviour, resolved through imports, and says what editing them proves. Name the
+  calling file and the Executor opens it, finds nothing to mutate, and concludes the check does not
+  apply — so the exercise is skipped and a green suite is reported with no evidence that the suite
+  bites, which is the exact silent no-op the exercise exists to detect. The other failure is worse:
+  adding the missing construct to the calling file so the recipe can be followed literally, which
+  proves a line production never runs
 - A task that mandates any emission from a program whose stdout is machine-consumed **names the
   stream for every one of them**, not only for the contract. An instruction that omits it is not
   silent on a detail: it is satisfiable in the one way that destroys what the task's other rules
