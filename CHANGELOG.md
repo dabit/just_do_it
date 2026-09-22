@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.8
+
+**"Copy this file exactly" is a claim about what that file can express — and now somebody checks it
+before the Executor does.**
+
+- **The Splitter checks a prescribed template against its own case list.** `agents/splitter.md`
+  gains a responsibility: naming an existing file as the template for a new test's harness asserts
+  that the template can express **every** case the same task lists, so the template's return shape
+  is read against that list before the instruction is written. A seam that concatenates two streams,
+  or a call that discards one of them on a successful run, cannot carry a case that asserts on them
+  separately — and where the template falls short, the task names the deviation instead of leaving
+  the Executor to hit the conflict at the fourth case and choose which of two sentences from the
+  same author to override.
+- **The Planner owns the same check when the plan names the precedent.** `agents/planner.md` already
+  said to default to the precedent test's assertion *style*; it now also requires checking that
+  precedent's **harness** against the assertions the plan requires. The template is picked early
+  and the cases are written late, and nothing re-reads the first against the second unless a rule
+  says to.
+
 ## 1.0.7
 
 **The Splitter cuts plans for parallelism, and execution runs every ready task at once.**
