@@ -26,7 +26,9 @@ why.
 
 - Read the verbose `PLAN.md` plus every numbered task file in the plan folder
 - Read the branch's git log to confirm what **actually** shipped versus what was planned
-- Produce a single condensed `PLAN.md`, typically **70–80% smaller** than the multi-file version
+- Produce a single condensed `PLAN.md`, typically **70–80% fewer words** than the multi-file
+  version. Words, not lines: condensed prose is usually denser than its source, so a line count
+  flatters a cut that has stopped compressing
 - Preserve durable signal: metadata, references, decisions, plan gaps caught during execution,
   outcome, test result
 - Drop ephemeral scaffolding: per-task verification commands, suggested commit messages,
@@ -94,5 +96,14 @@ The condensed plan covers, in this order:
   **everywhere** it is summarised — in the status line and the outcome, not only in a risks
   section. If a source says X was verified and Y was not, the condensed plan says both. Collapsing
   them into "verified" is the one unacceptable failure mode for a durable record
+- **The preserve list wins; the percentage is a diagnostic, not a gate.** It describes what a
+  typical plan compresses to, and it is a ratio of the input while the floor is set by whatever
+  content that input happens to carry — so a dispatch naming six decisions to keep in full, nine
+  risks and an exempt section can put the two in conflict with nothing to notice it in advance.
+  When the preserved content alone exceeds the target, **report the shortfall with its itemised
+  reason** ("six decisions in full, seven gaps, nine risks, Remaining work exempt") and hand the
+  cut/keep decision back to the orchestrator. Never reach the number by dropping a preserved item
+  or by paraphrasing two facts into one looser sentence — the second is what a size squeeze
+  rewards, and it is the same collapse the rule above calls the one unacceptable failure mode
 - If the orchestrator pushes back asking to cut more, cut more. Decisions and plan gaps are the
   load-bearing sections; drop everything else first
