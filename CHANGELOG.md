@@ -2,8 +2,9 @@
 
 ## 1.0.8
 
-**"Copy this file exactly" is a claim about what that file can express — and now somebody checks it
-before the Executor does.**
+**A specification is executable prose, and the Planner and Splitter now check theirs against what
+the Executor can actually perform.** Four defects from one `/jdi:prep` → `/jdi:yolo` → `/jdi:pr`
+run, each one an instruction that reads as precise and cannot be carried out as written.
 
 - **The Splitter checks a prescribed template against its own case list.** `agents/splitter.md`
   gains a responsibility: naming an existing file as the template for a new test's harness asserts
@@ -18,6 +19,23 @@ before the Executor does.**
   precedent's **harness** against the assertions the plan requires. The template is picked early
   and the cases are written late, and nothing re-reads the first against the second unless a rule
   says to.
+- **A fenced example says which of its parts are exact.** A plan document wrapped at a fixed column
+  breaks its own fences, and an ellipsis proves a fence is not literal — so *compare it character by
+  character* against one is unsatisfiable, and the undecidable part (does that paragraph carry hard
+  newlines?) silently becomes the contract between two tasks in different waves. The Planner states
+  the encoding beside the fence, or carries the bytes in a verbatim appendix; the Splitter names
+  which properties are exact and which are illustrative. (#14)
+- **Every mandated emission names its stream.** Where a program's stdout is captured whole by its
+  caller, a diagnostic mandated "before the payload" lands *in* the payload unless the instruction
+  says otherwise — and the locally idiomatic reading is usually the wrong one. The Planner's risk
+  mitigations and the Splitter's task files now name the stream for every emission, and say why
+  local precedent does not apply when it disagrees. (#15)
+- **A mutation target resolves to its definition site.** "Change the SHA slice in `<subject>.py`"
+  names nothing at all when the subject imports the helper and the slice lives in the sibling. The
+  Planner and Splitter follow imports to the file and symbol that define the behaviour and say what
+  crossing that boundary proves; the Executor reports the file and symbol it actually edited, since
+  a reverted mutation leaves no diff to record it. Naming the calling file fails into the same
+  silent no-op the anti-vacuity check exists to detect. (#17)
 
 ## 1.0.7
 
