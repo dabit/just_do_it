@@ -38,7 +38,10 @@ Follow these steps:
       is unreachable.
 
    b. **Resolve the TDD decision for this plan.** If `tdd.enabled` is not `true`, do nothing and
-      say nothing: write no line, and announce no skip. Otherwise perform **TS1** from JDI's
+      say nothing: write no line, and announce no skip. Where the first task's purpose is to build
+      the environment the runner needs, perform that task inline as part of TS1 rather than proving
+      the runner against a neighbouring environment — see *When the runner does not exist yet* in
+      `reference/testing.md`. Otherwise perform **TS1** from JDI's
       `reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. This
       runs before `c`'s commit, so the decision rides the plan-approval commit. TS1 answers once
       per plan, every later command reads that answer, and editing `.jdi/config.yml` mid-plan
@@ -81,8 +84,13 @@ Follow these steps:
      decision, the proven invocation the line names, and any pre-existing failure TS1 reported, and
      instruct the Executor to perform **TS2** from JDI's `reference/testing.md`: the failing test
      first, the implementation after it, and both runs returned as evidence. A line reading `off`, a
-     missing line, and a line in neither of TS1's two shapes all mean the same thing — pass nothing
-     and say nothing.
+     missing line, and a line in neither of TS1's two shapes all mean the same thing — this plan
+     runs without TDD. **Say nothing to the user; state it to the Executor anyway.** Every dispatch
+     carries the decision as a literal line — `TDD: off` or `TDD: on — <invocation>` — because to
+     the receiving role, a dispatch that does not mention TDD is indistinguishable from one where
+     the decision was resolved and dropped in the handover, and the two demand opposite behaviour.
+     TS1 rung 1's silence governs what the *user* is told and what `PLAN.md` records; it does not
+     reach the handover between two roles.
 
    Instruct it to implement the work described in the task file, follow the existing patterns and
    conventions in the codebase, run the task's verification steps, and return a summary of what was

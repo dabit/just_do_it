@@ -45,9 +45,15 @@ there on. Roles are never told to run the ladder themselves and never re-probe.
    `~/.config/typesafe/api_key` → off, announced, with the one line that fixes it:
    `export TYPESAFE_API_KEY=...` (get a key at <https://typesafe.ai>).
 3. No way to make an HTTPS request in this session → off, announced.
-4. The probe request fails — 401, 422, 429, 5xx, a timeout, or anything that is not an answer →
+4. The probe request fails — 401, 429, 5xx, a timeout, or anything that is not an answer →
    off, announced with the status. Do not retry past one backoff; a run that spends its time
    retrying an optional optimisation has already cost more than it saves.
+
+   **One exception, and it is not a retry: a 400 or 422 whose body names a field path is your bug,
+   not the service's.** The request never reached a judgment, so nothing has been shown about
+   availability — degrading there turns a typo in your own JSON into a feature-off for the whole
+   run. Correct the shape against *The request body* above and send it once more. If the corrected
+   request fails too, that is rung 4 proper: off, announced, with both statuses.
 5. The state an operation needs will not fit — Jev's budget is 64k tokens per request, of which
    **32k covers the state plus the longest single question** → that operation is skipped for the
    oversized input, announced, and the caller reads the candidates itself. Never truncate the state
@@ -75,7 +81,43 @@ curl -sS -X POST https://api.typesafe.ai/v1/systemone \
 ```
 
 The body carries `model` (always `jev-latest`), `state`, and a `questions` map whose keys you
-choose. The answers come back under the same keys:
+choose. **The three question types take three different shapes, and this is where callers lose a
+run** — every field below is verified against the live API, and each wrong form is answered with
+the status quoted beside it:
+
+```json
+{
+  "model": "jev-latest",
+  "state": "<a couple of sentences of state, plus one block per candidate>",
+  "questions": {
+    "is_procedure": {
+      "type": "noul",
+      "instructions": "<the condition, stated as an assertion — not a question>"
+    },
+    "which_state": {
+      "type": "choice",
+      "criteria": {"backlog": "<what this option means>", "started": "<...>"},
+      "instructions": "<which single option applies>"
+    },
+    "covers": {
+      "type": "score",
+      "criteria": ["<level 0>", "<level 1>", "<level 2>", "<level 3>"],
+      "instructions": "<what is being scored>"
+    }
+  }
+}
+```
+
+- `noul` takes **`instructions`**. A `question` key is not a field: it answers
+  `400 — "Noul question must have criteria or instructions"`.
+- `choice` **requires `criteria` as an object**, option name → what that option means. Omitting it
+  answers `422 — "Field required"`; a list answers `422 — "Input should be a valid dictionary"`.
+- `score` **requires `criteria` as an ordered list** of level descriptions, lowest first. A map
+  answers `422 — "Input should be a valid list"` — even though the *response* echoes those levels
+  back as a `legend` map. The response's shape is not the request's, and the `legend` field below is
+  the single likeliest thing to copy in the wrong direction.
+
+Questions of different types batch into one request; the answers come back under the same keys:
 
 ```json
 {

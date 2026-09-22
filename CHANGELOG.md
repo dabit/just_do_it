@@ -64,6 +64,31 @@ found the same way, one workflow at a time.
   `git log <base>..HEAD`, scopes any number to something already closed, and leaves one sentence
   saying the omission is deliberate; `/jdi:pr` removes such an assertion instead of updating it.
   (#24)
+- **The TDD decision is stated in every dispatch, including when it is off.** An Executor told
+  nothing about TDD cannot tell a resolved `off` from a decision lost in the handover, and the two
+  demand opposite behaviour — so a silently dropped "TDD on" yields an Executor that implements
+  first, tests after, reports green, and looks exactly like one obeying "off". TS1 rung 1's silence
+  is owed to the user and to `PLAN.md`, never to a handover between roles. The Executor also gains a
+  defined response to the absence: implement normally, and report that none was received. (#19)
+- **TS1 may build the runner when the first task is what builds it.** A gate that runs before the
+  first task cannot depend on what the first task produces — a container task 01 creates, a
+  dependency directory nobody has installed. The Butler now performs such a task inline as part of
+  TS1 and hands down the resolved invocation, because environment bring-up is a precondition it
+  owns: whatever every task in a wave needs but no task *owns* is invisible to the same-wave file
+  guard, which compares tracked paths and cannot see a gitignored build directory two Executors are
+  about to race into. (#20)
+- **UAT is walked before `/jdi:pr`.** Told that a criterion is "exercised at merge time", a split
+  made the merge step 1 of the UAT task — which, since `/jdi:pr` follows UAT, can never be run in
+  sequence. UAT now never contains a merge or a push to the default branch; criteria observable
+  only afterwards go in an *after the merge — deferred* list, excluded from marking it done. (#21)
+- **`reference/jev.md` shows a request body, not only a response.** Three separate sessions guessed
+  the same two wrong shapes in the same order, and each guess cost the run its Jev, because the
+  ladder allows one retry and a caller-side typo spent it. The reference now carries a verified
+  body for all three question types — they disagree with each other: `noul` takes `instructions`,
+  `choice` requires `criteria` as an object, `score` requires `criteria` as an ordered list, while
+  the *response* echoes those levels back as a `legend` map. Rung 4 now separates a 400/422 naming
+  a field path from a service failure: that request never reached a judgment, so it is corrected
+  and sent once more instead of turning the feature off for the run. (#25)
 
 ## 1.0.7
 

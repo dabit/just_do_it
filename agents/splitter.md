@@ -79,7 +79,12 @@ possible can run at the same time. It focuses on structure, not implementation.
   two side by side, which is the point of writing them there
 - Always create a final UAT task with user-facing scenarios that map **every clause** of the
   issue's acceptance criteria — both what must now work and what must not break — to the scenario
-  or test proving it. Name any clause that is not exercised on merge, say what proves the mechanism
+  or test proving it. **UAT is walked before `/jdi:pr`**, so it never contains a merge, a push to
+  the default branch, or a step that presupposes one: a criterion told to you as "exercised at
+  merge time" belongs in an *after the merge — deferred* list inside the task, excluded from
+  marking it done, never as step 1 of the walk. Told a phase without being told its side of the
+  boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
+  Name any clause that is not exercised on merge, say what proves the mechanism
   instead, and record where the deferral will be picked up. An acceptance criterion with no
   scenario is how work gets closed on an unobserved claim
 - Update `PLAN.md` with the master task checklist, grouped by wave

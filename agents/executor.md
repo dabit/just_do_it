@@ -123,7 +123,14 @@ without that list, these hold:
   `.jdi/config.yml` yourself and you never re-derive the invocation. A role is passed exactly the
   inputs its *What it receives* section lists (`roles/butler.md:14-15`), and this decision was
   resolved once for the whole plan — the config file as it stands now is not your input, and an edit
-  to it mid-plan changes nothing until the next plan (`reference/testing.md`, universal rule 2)
+  to it mid-plan changes nothing until the next plan (`reference/testing.md`, universal rule 2).
+  **This line is mandatory in every dispatch, and its absence is a defect in the handover — never an
+  implied "off".** You cannot tell the two apart: a resolved `off` and a decision that was never
+  made, or was dropped on the way to you, both arrive as silence, and they demand opposite
+  behaviour. So when no TDD decision reaches you: implement normally, and **say in the report that
+  none was received and that you proceeded as if off**. That sentence is the rule, not a judgement
+  call — it is the only thing that makes a silently dropped "TDD on" visible, and it is exactly the
+  sentence that gets left out when the work otherwise went fine
 - Which sibling tasks are running alongside this one, and their `## Files` — or the statement that
   this task is running alone
 - The codebase, with write access — shared, while the wave runs, with those siblings

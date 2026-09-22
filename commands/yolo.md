@@ -29,7 +29,11 @@ unreachable.
 **Before the loop — resolve the TDD decision for this plan.** Do this **only when `PLAN.md` carries
 no `- Started:` line**, which means this plan has never been executed by any command. If
 `tdd.enabled` is not `true`, do nothing and say nothing; otherwise perform **TS1** from JDI's
-`reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. Then add a
+`reference/testing.md` and record its result as a `- TDD:` line in `PLAN.md`'s metadata. Where the
+first task's purpose is to build the environment the runner needs, perform that task inline as part
+of TS1 — the gate cannot be proven against something the first task has not created yet, and a
+neighbouring container proves a runner for a different checkout. See *When the runner does not
+exist yet* in `reference/testing.md`. Then add a
 `Started: YYYY-MM-DD` line yourself, exactly as `/jdi:execute`'s first-task check does, so the plan
 carries the same "execution has begun" marker whichever command began it.
 
@@ -97,8 +101,11 @@ Step 2. For **each** task in the set, in number order, one at a time:
    `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the
    line names, and instruct the Executor to perform **TS2** from JDI's `reference/testing.md` — the
    failing test first, the implementation after it, and both runs returned as evidence. A line
-   reading `off`, a missing line, and an unparseable line all mean the same thing: pass nothing and
-   say nothing. **Never run TS1 here** — a plan running without TDD writes no line either, so a
+   reading `off`, a missing line, and an unparseable line all mean the same thing: this plan runs
+   without TDD. Say nothing to the user — but **state it to the Executor anyway**, as a literal
+   `TDD: off` line in the dispatch: a dispatch silent on TDD is indistinguishable, to the role
+   receiving it, from one where the decision was resolved and lost in the handover.
+   **Never run TS1 here** — a plan running without TDD writes no line either, so a
    missing line is not an invitation to detect one. No line means no TDD, for every command,
    always; detecting here would let a mid-plan config flip turn TDD on part-way through a plan.
    Instruct it to implement the task, follow the codebase's existing patterns, run the task's

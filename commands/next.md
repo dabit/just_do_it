@@ -68,7 +68,9 @@ is now ready, at the same time. This is `/jdi:done` followed by `/jdi:execute`, 
    decision and the proven invocation the line names, and instruct the Executor to perform **TS2**
    from JDI's `reference/testing.md` — the failing test first, the implementation after it, and both
    runs returned as evidence. A line reading `off`, a missing line, and an unparseable line all mean
-   the same thing: pass nothing and say nothing. **Never run TS1 here** — a plan running without TDD
+   the same thing: this plan runs without TDD — say nothing to the user, and still state
+   `TDD: off` to the Executor, since a dispatch that omits it cannot be told apart from one that
+   lost it. **Never run TS1 here** — a plan running without TDD
    writes no line either, so a missing line is not an invitation to detect one. No line means no
    TDD, for every command, always; detecting here would let a mid-plan config flip turn TDD on
    part-way through a plan. Instruct it to implement the task, follow the codebase's existing
