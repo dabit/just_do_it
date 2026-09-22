@@ -99,6 +99,13 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
    raised from inside an Executor either hangs the workflow or gets answered by the orchestrator on
    the user's behalf. With no user to ask, degrade to off and say so — which is rung 6.
 
+**The decision is stated in every dispatch, including when it is `off`.** Rung 1's silence is
+owed to the *user* — nothing was asked for, so nothing is announced and no line is written into
+`PLAN.md`. It says nothing about the handover between two roles, where the opposite rule applies:
+an Executor that is told nothing about TDD cannot distinguish a resolved `off` from a decision that
+was lost on the way to it, and those demand opposite behaviour. A missing field is detectable;
+missing prose is not.
+
 **Degrade down to off, never up to on.** An unproven runner, an unreachable environment, and an
 unanswerable question all mean `off` for this plan. Nothing turns TDD *on* that the configuration
 did not: a `tests/` folder that appears mid-plan does not, and neither does a suite created by the
