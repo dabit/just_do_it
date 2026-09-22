@@ -2,9 +2,11 @@
 
 ## 1.0.8
 
-**A specification is executable prose, and the Planner and Splitter now check theirs against what
-the Executor can actually perform.** Four defects from one `/jdi:prep` → `/jdi:yolo` → `/jdi:pr`
-run, each one an instruction that reads as precise and cannot be carried out as written.
+**A specification is executable prose, and the roles that write one now check it against what the
+role downstream can actually perform.** Each entry below is an instruction that reads as precise
+and cannot be carried out as written — or a field a later step parses that was only ever stated in
+prose. Four of them came out of a single `/jdi:prep` → `/jdi:yolo` → `/jdi:pr` run; the rest were
+found the same way, one workflow at a time.
 
 - **The Splitter checks a prescribed template against its own case list.** `agents/splitter.md`
   gains a responsibility: naming an existing file as the template for a new test's harness asserts
