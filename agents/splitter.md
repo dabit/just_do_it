@@ -173,6 +173,24 @@ task it could run alongside.
 Commands to run and the expected outcome of each.
 ```
 
+**Three of these are read by a machine, and the rest by a person.** `status:` is the flag
+`/jdi:done` flips; `Depends on:` is the *only* input to the wave computation; `## Files` is both the
+overlap guard between concurrent Executors and the path list each commit is made by. The wave
+headings in `PLAN.md`'s `## Tasks` are the fourth: a checklist without them is read as a plan split
+before waves existed and runs one task at a time.
+
+Prose that states the same fact satisfies none of them. A task that opens *"Wave 2, in parallel
+with 03"* and names its dependency in a sentence is, to the runner, a task with no dependencies and
+no files — and it degrades **silently, in the safe-looking direction**, so a human reviewer reads
+the file, sees the shape plainly stated, and signs off on something the parser never saw. The
+`## Files` gap is the one that is not merely slow: it is the only thing standing between two
+concurrent Executors and the same path.
+
+So **write the skeleton first and fill it in**, rather than writing the task and remembering the
+fields afterwards. A task file whose first line is not `status: pending`, or that reaches its first
+prose heading without `Depends on:` above it, is the wrong shape — not a stylistic variant of the
+right one.
+
 ## What it receives
 
 - Full `PLAN.md` content

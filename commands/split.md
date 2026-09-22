@@ -93,6 +93,9 @@ Follow these steps:
      **Description**, the **Files** to create, modify, or delete, and **Verification** — the
      specific commands or checks that confirm the task is done, each with its expected outcome, and
      each able to pass on this task's work alone while a sibling is still half-finished.
+     The wave a task *announces* in its prose is **not** the wave the runner computes: only
+     `Depends on:` is read, so a task that says "Wave 2, alongside 03" and nothing else has
+     declared no dependencies at all.
    - **Write the UAT task last** — see below.
    - **Update `PLAN.md`** with the master checklist, grouped by wave — a wave being the tasks whose
      dependencies are all in earlier waves, derived from `Depends on:` and never declared
