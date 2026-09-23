@@ -3,6 +3,11 @@
 # Copy this to `.jdi/config.yml` at the root of a repository, or let `/jdi:init`
 # write it for you. Every key is optional; the full schema and the defaults are
 # in this plugin's reference/config.md.
+#
+# A `.jdi/config.local.yml` beside this file overrides it key by key — a mapping
+# merges, a scalar or a list replaces the whole value — and is never committed.
+# Put a personal value there (the model a role runs on, a path from this disk)
+# and keep this file for what is true of the repository. Add it to .gitignore.
 
 tracker:
   # linear | jira | github | none

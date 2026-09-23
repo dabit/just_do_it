@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.0.9
+
+**A personal `.jdi/config.local.yml` overrides the repository's `.jdi/config.yml`, key by key, and is
+never committed.** The committed file says what is true of the repository; the local file says what
+is true of this machine or this person — the model a role runs on, a `harnesses` entry carrying a
+path from this disk, TDD off while the runner is broken locally — without editing a shared file in
+a checkout that may be thrown away.
+
+- **`.jdi/config.local.yml` is layered over the resolved config.** Whichever level answered —
+  `config.yml`, the repo's `AGENTS.md` / `CLAUDE.md`, or the built-in defaults — the local file is
+  merged over it: a mapping merges, a scalar or a list replaces the whole value, a key it does not
+  name is left alone. It can override a value and never delete one, and a local file with no
+  `config.yml` beside it still applies. **A repo with no local file behaves exactly as it did**; no
+  command says a word about a file that is not there.
+- **Every config load names the blocks it overrides, in one line.** The twelve step-0 sites now
+  carry the merge rule in place and say which top-level blocks the local file touches — never the
+  values — because it is the one divergence a collaborator reading the committed file cannot see.
+  They also say so when git tracks the local file, since it is meant to be ignored.
+- **`/jdi:init` writes `config.yml` only.** It reports what an existing local file overrides, offers
+  to leave a personal answer out of the shared file for the user to put there, and runs
+  `git check-ignore` on `.jdi/config.local.yml` whether or not it exists — a personal override that
+  gets committed is applied to everyone, which is the destructive direction. It never writes the
+  local file itself.
+- **Neither config file is a secret store.** The three sentences that justified "never write the
+  Jev key here" with "which is a committed file" now cover the local file too: uncommitted is not
+  the same as secret. The key stays in `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`.
+- **The local file is per checkout.** A linked worktree, a fresh clone, and a colleague's machine
+  do not have it, and `reference/config.md` says so: a setting that must survive the checkout
+  belongs in `config.yml`, committed. `docs/config-key-lifecycle.md` records that a new key inherits
+  the override for free, and that a key whose value is personal is the case the local file is for.
+
 ## 1.0.8
 
 **A specification is executable prose, and the roles that write one now check it against what the

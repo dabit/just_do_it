@@ -16,13 +16,22 @@ to half-finish.
 ## 1. Resolution order and the never-invent rule
 
 Every command reads the configuration **first, before doing anything else**
-(`reference/config.md:3`). Resolution is three levels, in order (`reference/config.md:7-12`):
+(`reference/config.md:3`). Resolution is three levels, in order (`reference/config.md`, "Resolution
+order"), plus a personal override layered over whichever level answered:
 
 1. `.jdi/config.yml` at the root of the repository being worked in — the source of truth.
 2. If it does not exist, defaults recorded in the repo's own `AGENTS.md` or `CLAUDE.md`.
 3. If neither exists, the built-in defaults, plus **asking the user** only the one or two questions
    the current command actually depends on. A missing config file never blocks the workflow;
    `/jdi:init` is offered at the end instead.
+
+Then `.jdi/config.local.yml`, if it exists, is merged over the result key by key — a mapping merges,
+a scalar or a list replaces the whole value, an unnamed key is left alone. It is per checkout and
+never committed, and step 0 names the blocks it overrides in one line. **A new key inherits the
+override for free** — there is nothing to add for it — but its documentation must not say "in
+`.jdi/config.yml`" in a way that is false when the local file is what set it, and a key whose value
+is personal rather than the repository's (a model name, a path from one disk) is the case the local
+file exists for: say so where the key is described.
 
 Then the rule every new key inherits, at `reference/config.md:14-15`:
 

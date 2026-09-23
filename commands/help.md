@@ -9,8 +9,10 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
 split pieces become, whether TDD is on, whether Jev is on, which roles have a model configured
-and whether any of them runs in another agent CLI, and whether `.jdi/config.yml` exists at all. If it does not, say
-`/jdi:init` writes it, and that JDI works without it by asking as it goes.
+and whether any of them runs in another agent CLI, whether `.jdi/config.yml` exists at all, and
+whether a `.jdi/config.local.yml` overrides any of it — name the blocks, not the values. If the
+config does not exist, say `/jdi:init` writes it, and that JDI works without it by asking as it
+goes.
 
 ---
 
@@ -141,7 +143,8 @@ It **degrades to more work, never less**. No key, no network, a failed request, 
 for one request all mean the role reads every candidate itself — which is what it does with the key
 off. The Butler runs that ladder once, before it delegates anything, and announces the fallback a
 single time rather than at every step. The key is read from `$TYPESAFE_API_KEY` or
-`~/.config/typesafe/api_key`; it never belongs in `.jdi/config.yml`, which is a committed file.
+`~/.config/typesafe/api_key`; it never belongs in `.jdi/config.yml`, which is a committed file, nor
+in `.jdi/config.local.yml` — uncommitted is not the same as secret.
 
 ### Roles and models
 
@@ -157,5 +160,21 @@ of its own choosing.
 
 Where the harness has no subagents, roles are adopted inline instead of spawned. The phases still
 run; they just share one context window.
+
+### Personal overrides
+
+`.jdi/config.yml` is the repository's configuration and is committed. `.jdi/config.local.yml`
+beside it is yours: never committed, and layered over the resolved config **key by key** — a mapping
+merges, a scalar or a list replaces the whole value, and a key it does not name is left alone. A
+two-line file that sets `models.executor.model` changes exactly that. Use it for what is true of
+this machine or this person rather than of the repo: the model a role runs on, a `harnesses` path
+from this disk, TDD off while the runner is broken locally. It can override a value; it can never
+delete one, and it does not turn a missing `config.yml` into a configured repo.
+
+Every command that loads the config says, in one line, which blocks the local file overrides —
+never the values — because it is the one divergence a collaborator reading the committed file
+cannot see. It is per checkout: a linked worktree or a fresh clone does not have it. It is not a
+secret store: the Jev key stays in the environment or `~/.config`, never in either file.
+`/jdi:init` writes `config.yml` only, and checks the local file is gitignored.
 
 ---

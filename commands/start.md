@@ -15,6 +15,11 @@ Follow these steps:
    recorded in `AGENTS.md` / `CLAUDE.md`, then to the built-in defaults. The schema is in JDI's
    `reference/config.md` (in the JDI plugin directory — `${CLAUDE_PLUGIN_ROOT}/reference/config.md`,
    or, if that variable does not resolve, `reference/` one level up from this command file).
+   Then, if `.jdi/config.local.yml` exists beside it, layer it over the result key by key: a mapping
+   merges, a scalar or a list replaces the whole value, and a key it does not name is left alone. It
+   is the personal, per-checkout override and is never committed — say in one line which top-level
+   blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
+   ignored.
    Everything below refers to `tracker`, `plans`, `docs`, and `git` from that config. If no config
    exists anywhere, say so once and ask only the questions this command actually needs; suggest
    `/jdi:init` at the end.

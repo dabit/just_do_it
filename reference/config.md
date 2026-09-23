@@ -4,12 +4,27 @@ Every JDI command reads this configuration **first**, before doing anything else
 
 ## Resolution order
 
-1. `.jdi/config.yml` at the root of the repository being worked in. This is the source of truth.
+1. `.jdi/config.yml` at the root of the repository being worked in. This is the source of truth,
+   and the file a team commits.
 2. If that file does not exist, fall back to defaults recorded in the repo's `AGENTS.md` or
    `CLAUDE.md` (a stated issue tracker, a stated plans folder, a stated docs folder).
 3. If neither exists, use the built-in defaults in the table below and **ask the user** the one or
    two questions the current command actually depends on. Do not block the workflow over a missing
    config file — offer `/jdi:init` at the end instead.
+
+Then, whichever level answered, **`.jdi/config.local.yml`** — if it exists beside `config.yml` — is
+layered over the result, key by key. It is the personal, per-checkout override: never committed, and
+the place for a value that is true of this machine or this person rather than of the repository —
+the model a role runs on, a `harnesses` entry carrying a path from this disk, `tdd.enabled: false`
+while the runner is broken locally. The merge is:
+
+- a mapping merges with the value below it, key by key;
+- a scalar or a list replaces the whole value below it;
+- a key the local file does not name is left exactly as the lower level resolved it;
+- the file can override a value; it can never delete one.
+
+A local file with no `config.yml` beside it still applies, over levels 2 and 3. A local file git
+tracks is a mistake, and step 0 says so when it sees one.
 
 A command must never invent a tracker, a project, or a plans location that the config does not
 record and the user has not confirmed.
@@ -262,7 +277,7 @@ models:                      models:                        models:
   every repo that never enabled it is told about it on every command.
 - **The API key never lands in the repository.** It is read from `$TYPESAFE_API_KEY` or
   `~/.config/typesafe/api_key` and passed by reference. No key value belongs in `.jdi/config.yml`,
-  a plan, a task file, or a commit message.
+  `.jdi/config.local.yml`, a plan, a task file, or a commit message.
 - **`models` is the only place a role's model is named.** No file under `agents/` carries a
   `model:` key. A role with no entry runs on the session's own model.
 - **A value in `models` is passed to the named harness verbatim.** Write the identifier that
@@ -276,6 +291,29 @@ models:                      models:                        models:
 - **There is no `models.butler`.** The Butler is the session you are already in, and no harness
   lets a config file change the model of a session that is already running. Its absence is
   deliberate, not an omission.
+- **`config.local.yml` overrides; it never replaces.** A local file is read on top of the resolved
+  config, key by key, so a two-line file that sets `models.executor.model` changes exactly that and
+  nothing else. It cannot remove a key, and it does not turn a missing `config.yml` into a
+  configured repo: the levels below it still answer for everything it does not name. The decisions
+  a plan records — the `TDD:` line in `PLAN.md` — are read from the plan, so a local file, like
+  `config.yml`, changes nothing mid-plan.
+- **A local override is announced once, in one line, by block.** It is neither a feature that is
+  off (silent) nor a degradation (announced with its cause): the user asked for it and got it. It is
+  still announced, because it is the one divergence a collaborator reading the committed file
+  cannot see — "TDD is off here" is a puzzle until someone says the local file turned it off. Step 0
+  names the top-level blocks the local file touches (`models`, `tdd`), never the values.
+- **`config.local.yml` is per checkout.** It is an untracked file, so a linked worktree, a fresh
+  clone, and a colleague's machine do not have it, and a setting written into the local file of a
+  worktree about to be removed is scheduled for deletion. A setting that must survive the checkout
+  belongs in `config.yml`, committed.
+- **`config.local.yml` is not a secret store.** Uncommitted is not the same as secret: the file sits
+  in plain text in the working tree, is read by every command, and is one careless `git add -A`
+  from the history. The Jev key stays in `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`; neither
+  config file carries it.
+- **`/jdi:init` writes `config.yml` only.** It reads the local file to report what it overrides, and
+  it checks that `.jdi/config.local.yml` is gitignored — a personal override that gets committed is
+  applied to everyone, which is the destructive direction — but it never writes the local file: a
+  personal override is written by the person it belongs to.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.
