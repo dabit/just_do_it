@@ -210,10 +210,6 @@ class TierVocabularyTest(unittest.TestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class ConfigLoadStepTest(unittest.TestCase):
     """Every command that loads the config states the local-override rule in place.
 
@@ -245,3 +241,7 @@ class ConfigLoadStepTest(unittest.TestCase):
                     "the config load in %s does not name `.jdi/config.local.yml`; "
                     "the merge rule is repeated in place at every site" % path,
                 )
+
+
+if __name__ == "__main__":
+    unittest.main()
