@@ -190,6 +190,15 @@ This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes 
 more than once deserves the file. See `reference/config.md` for the schema and
 `jdi.config.example.yml` for a filled-in starting point.
 
+A `.jdi/config.local.yml` beside it is your personal override: never committed, and layered over the
+resolved config **key by key** — a mapping merges, a scalar or a list replaces the whole value, and a
+key it does not name is left alone. Put there what is true of your machine rather than of the repo —
+the model a role runs on, a `harnesses` path from your disk, TDD off while your runner is broken —
+and keep `config.yml` for what the team shares. Every command says in one line which blocks the local
+file overrides, so a collaborator reading the committed file is never puzzled by behaviour it does
+not describe. `/jdi:init` writes `config.yml` only, and checks that the local file is gitignored: a
+personal override that gets committed is applied to everyone.
+
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
 should write tests first (TDD), whether roles may ask Jev for typed judgments, where plans should
 live, where architecture docs live, and which model each role runs on. It
@@ -265,7 +274,8 @@ so the fallback is always the un-Jev'd path. The Butler runs that ladder once, b
 anything, and announces the fallback a single time rather than at every step.
 
 The key is read from `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`. It never goes in
-`.jdi/config.yml` — that file is committed.
+`.jdi/config.yml`, which is committed, nor in `.jdi/config.local.yml` — uncommitted is not the same
+as secret.
 
 ## Use it
 
@@ -326,7 +336,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |
 | `skills/run/SKILL.md` | The Codex `$jdi:run` dispatcher; command behavior stays in `commands/*.md` |
-| `reference/config.md` | The `.jdi/config.yml` schema, the defaults, and example model mappings |
+| `reference/config.md` | The `.jdi/config.yml` schema, the `.jdi/config.local.yml` override, the defaults, and example model mappings |
 | `reference/tracker.md` | The eight tracker operations (T1–T8) every command calls by name |
 | `reference/testing.md` | The two testing operations (TS1–TS2) that `tdd.enabled` turns on |
 | `reference/jev.md` | The five Jev operations (J1–J5) that `jev.enabled` turns on |

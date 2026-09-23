@@ -18,7 +18,10 @@ Follow these steps:
 
 1. **Check what already exists** — If `.jdi/config.yml` is already here, read it and say what it
    currently records. This becomes an edit, not a fresh write: keep every value the user does not
-   change.
+   change. If `.jdi/config.local.yml` is here too, read it and say which top-level blocks it
+   overrides — and that this command edits only `config.yml`, so an answer the local file overrides
+   will not take effect in this checkout until the local file changes. If git tracks the local
+   file, say so now; step 11 offers the fix.
 
 2. **Learn what the repo already says about itself** — Read `AGENTS.md`, `CLAUDE.md`, and
    `README.md` if present. Look for a stated issue tracker, a plans or docs folder, branch and
@@ -100,7 +103,9 @@ Follow these steps:
 
    On a yes, **find the key rather than asking for it**. It is read from `$TYPESAFE_API_KEY`, or
    from `~/.config/typesafe/api_key`. Check whether either exists and say which one you found —
-   **never print the value, and never write it into `.jdi/config.yml`**, which is a committed file.
+   **never print the value, and never write it into `.jdi/config.yml` or `.jdi/config.local.yml`**
+   — the first is a committed file, and the second being uncommitted does not make it a secret
+   store.
    If neither exists, say so and give the one line that fixes it (`export TYPESAFE_API_KEY=...`,
    from <https://typesafe.ai>).
 
@@ -170,6 +175,18 @@ Follow these steps:
 11. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
     the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
     empty scaffolding.
+
+    Where an answer is personal rather than the repository's — the model a role runs on when the
+    team has not agreed one, a `harnesses` entry carrying a path from this disk, TDD off while the
+    runner is broken on this machine — say that `.jdi/config.local.yml` beside the file overrides it
+    key by key and is never committed, and offer to leave that value out of `config.yml` for the
+    user to put there. Never write the local file yourself: a personal override is written by the
+    person it belongs to.
+
+    **Then run `git check-ignore -q .jdi/config.local.yml`**, whether or not the file exists. A local
+    override that gets committed is applied to everyone, which is the one direction this file must
+    not fail in. If it is not ignored, offer to add the line to `.gitignore`; if git already tracks
+    it, say so and offer `git rm --cached` alongside the ignore line.
 
 12. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own

@@ -212,3 +212,36 @@ class TierVocabularyTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ConfigLoadStepTest(unittest.TestCase):
+    """Every command that loads the config states the local-override rule in place.
+
+    `docs/config-key-lifecycle.md` section 3: a step-level instruction shared by
+    several commands is repeated at every site, never cross-referenced, so each
+    file is independently followable. The config load is that kind of step, in
+    twelve of the sixteen command files (section 1), and the `.jdi/config.local.yml`
+    merge rule travels with it. A site that loads the config and never names the
+    local file silently reads the committed one alone.
+    """
+
+    def test_every_config_load_names_the_local_override(self):
+        sites = [
+            path
+            for path in jdi_files.markdown_files("commands")
+            if "**Load the JDI config**" in jdi_files.read(path)
+        ]
+        self.assertEqual(
+            len(sites),
+            12,
+            "docs/config-key-lifecycle.md section 1 counts twelve config-loading "
+            "commands; found %s" % sites,
+        )
+        for path in sites:
+            with self.subTest(command=path):
+                self.assertIn(
+                    "`.jdi/config.local.yml`",
+                    jdi_files.read(path),
+                    "the config load in %s does not name `.jdi/config.local.yml`; "
+                    "the merge rule is repeated in place at every site" % path,
+                )
