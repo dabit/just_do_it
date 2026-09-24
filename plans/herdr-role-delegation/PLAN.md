@@ -1102,7 +1102,7 @@ Every step can be reproduced from this text. Record each command and its raw out
 - [x] 03 — Rewrite the transport in `reference/delegation.md`, the Butler and the Feedbacker (depends on: none)
 
 **Wave 2**
-- [ ] 05 — User-facing docs: init, help, README (depends on: 01, 02)
+- [x] 05 — User-facing docs: init, help, README (depends on: 01, 02)
 - [ ] 06 — Architecture docs (depends on: 01, 02, 03)
 
 **Wave 3** — separable: 07 and 08 are the `/jdi:herd` layer; drop them to rebase PR #5 onto `reference/herdr.md` H1, H2 and H4 instead of superseding it

@@ -183,7 +183,7 @@ This section uses Claude Code command spellings. For the first command, Codex us
 and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, and models
+/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, how delegated roles reach their own process, and models
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -201,7 +201,8 @@ personal override that gets committed is applied to everyone.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
 should write tests first (TDD), whether roles may ask Jev for typed judgments, where plans should
-live, where architecture docs live, and which model each role runs on. It
+live, where architecture docs live, how delegated roles reach their own process, and which model
+each role runs on. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
@@ -276,6 +277,43 @@ anything, and announces the fallback a single time rather than at every step.
 The key is read from `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`. It never goes in
 `.jdi/config.yml`, which is committed, nor in `.jdi/config.local.yml` — uncommitted is not the same
 as secret.
+
+### Separate agent processes under Herdr
+
+`delegation.transport` in `.jdi/config.yml` decides how a role configured on another agent CLI
+runs:
+
+| `delegation.transport` | What you get |
+|---|---|
+| `native` (default) | Nothing changes, and nothing is said. The other CLI runs in its own non-interactive mode, and nothing is probed at the start of a command |
+| `auto` | The Butler checks once, at the start of the command, whether this session is inside a working Herdr. When it is, the other CLI runs as its interactive agent in a Herdr pane, where you can answer it. Outside Herdr it is exactly `native` and says nothing; it announces once when you are inside Herdr but a later check fails |
+| `herdr` | As `auto`, but it announces any failed check once, then delegates as `native` for the run |
+
+Only a role whose `models.<role>.harness` names another CLI is affected. A role with no `harness`,
+or one naming this session's own CLI, stays a subagent under every value, and you watch its
+progress in the harness itself. The operations are in `reference/herdr.md`, and the ladder is in
+`reference/delegation.md`.
+
+Each run gets its own directory under the repository's git directory (`jdi/runs/<run-id>/`), so
+the run files never land in the working tree. The Butler writes the prompt and a manifest there,
+and the worker writes its report and a `result.json` there last. A terminal transcript is never
+the result. An `idle` or `done` pane is not proof of success either: the Butler validates the
+result file, the report, the commit the worker started from, and every path the worker changed
+before it uses anything.
+
+A worker's approval, permission, trust, and question dialogs belong to you. When one is blocked or
+asks a question, the Butler tells you which pane, by agent name and pane ID, and you answer it
+there; the Butler never types into it for you.
+
+A wave runs one pane per task, all in one tab of their own, with at most 4 panes open at once. The
+whole wave settles before the Butler acts on any one result, and each task is still committed on
+its own.
+
+When Herdr is not usable, or a worker produces no valid result, the role falls back to the other
+CLI's non-interactive mode, and the phase still runs. The table says when that is announced; a
+worker that fails is always announced. JDI never starts a Herdr server, installs an integration,
+or adds a flag you did not write. A Butler still runs one phase at a time: only a wave runs several
+workers at once, and the Butler waits for all of them before it does anything else in the command.
 
 ## Use it
 
@@ -366,6 +404,9 @@ assumption about the harness:
 - **No subagents are available** → use a second non-interactive session where possible; otherwise
   adopt the role inline and announce the switch, follow it for the phase, then return to
   orchestrator voice.
+- **A role is set on another CLI** → run that CLI's non-interactive mode, or, when
+  `delegation.transport` allows it and Herdr is detected, its interactive agent in a Herdr pane you
+  can answer; either way the Butler waits for its validated result.
 
 Each of the seven delegatable roles has its own entry in `.jdi/config.yml`: `models.<role>.model`
 names the model it runs on, written exactly as the harness that will run it accepts — an alias

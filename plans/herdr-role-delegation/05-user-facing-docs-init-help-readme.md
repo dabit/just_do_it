@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 05 - User-facing docs: init, help, README
 
 Depends on: 01, 02
