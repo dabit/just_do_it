@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 01 - Write `reference/herdr.md` and enumerate it
 
 Depends on: None

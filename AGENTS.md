@@ -48,8 +48,8 @@ to orchestrator voice. The phases still run; they share one context window. The 
 execution: tasks that could run in parallel run one after another instead, and the Butler says so.
 
 **Reference files.** Commands refer to `reference/config.md`, `reference/tracker.md`,
-`reference/testing.md`, `reference/jev.md`, `reference/plan-store.md`, and
-`reference/delegation.md` by name, and to
+`reference/testing.md`, `reference/jev.md`, `reference/plan-store.md`, `reference/herdr.md`,
+and `reference/delegation.md` by name, and to
 `${CLAUDE_PLUGIN_ROOT}/...` for the path. That variable only resolves inside Claude Code. Anywhere
 else, the files are wherever you cloned this repository — tell your agent that once, at the start,
 and the paths resolve for the rest of the session.
