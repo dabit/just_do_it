@@ -215,5 +215,47 @@ class DelegationBlockTest(unittest.TestCase):
         )
 
 
+class HerdBlockTest(unittest.TestCase):
+    """The `herd:` block carries `kind`, `max_parallel` and `seed`, and nothing else.
+
+    `/jdi:herd` reads those three keys. PR #5 also added `herd.args` and
+    `herd.env`, which duplicated `harnesses.<kind>.{args,env}`; herd agents take
+    their arguments and environment from `harnesses.<herd.kind>` instead, so the
+    two keys must not come back.
+    """
+
+    def setUp(self):
+        self.schema_keys = jdi_files.key_paths(jdi_files.schema_block())
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_herd_keys_are_schema_keys(self):
+        for key in ("herd.kind", "herd.max_parallel", "herd.seed"):
+            with self.subTest(key=key):
+                self.assertIn(key, self.schema_keys)
+
+    def test_herd_args_and_env_are_not_schema_keys(self):
+        for key in ("herd.args", "herd.env"):
+            with self.subTest(key=key):
+                self.assertNotIn(
+                    key,
+                    self.schema_keys,
+                    "`%s` duplicates `harnesses.<kind>`; herd agents take their "
+                    "arguments and environment from `harnesses.<herd.kind>`" % key,
+                )
+
+    def test_defaults_table_covers_herd(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        for key, default in (
+            ("herd.kind", "`claude`"),
+            ("herd.max_parallel", "`5`"),
+            ("herd.seed", "empty"),
+        ):
+            with self.subTest(key=key):
+                self.assertTrue(
+                    any(row.startswith("| `%s` | %s" % (key, default)) for row in rows),
+                    "the defaults table has no `%s` row defaulting to %s" % (key, default),
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

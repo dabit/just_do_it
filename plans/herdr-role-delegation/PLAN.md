@@ -1107,7 +1107,7 @@ Every step can be reproduced from this text. Record each command and its raw out
 
 **Wave 3** — separable: 07 and 08 are the `/jdi:herd` layer; drop them to rebase PR #5 onto `reference/herdr.md` H1, H2 and H4 instead of superseding it
 - [x] 04 — Command step-0 lines and hand-off sites (depends on: 02, 03, 06)
-- [ ] 07 — The herd config block (depends on: 02, 06)
+- [x] 07 — The herd config block (depends on: 02, 06)
 - [ ] 08 — `commands/herd.md`, H9, and the command enumerations (depends on: 01, 05, 06)
 
 **Wave 4**

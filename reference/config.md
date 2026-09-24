@@ -209,6 +209,57 @@ delegation:
   # repository: set it in .jdi/config.local.yml.
   transport: native
 
+# Optional. Read only by /jdi:herd, which preps several issues in parallel,
+# one Herdr worktree and agent per issue.
+#
+# There is no `args` or `env` here. Herd agents take their arguments and
+# environment from `harnesses.<herd.kind>.{args,env}`, verbatim, exactly as a
+# delegated role on that kind does.
+herd:
+  # Herdr agent kind to start. Must be a kind Herdr supports whose CLI is
+  # installed: it appears on Herdr's `kinds:` line, and the CLI resolves on
+  # PATH. See reference/herdr.md, H2.
+  kind: claude
+
+  # How many issues one /jdi:herd run may start without asking again. Each
+  # agent is a full session with a real token cost, so this is a spend guard,
+  # not a technical limit.
+  max_parallel: 5
+
+  # What to put into each new worktree before its agent starts. A worktree is
+  # created from origin/<default>, so nothing gitignored reaches it: no .env,
+  # no installed dependency, no local database name. Everything here is
+  # optional, and an empty block seeds nothing.
+  #
+  # Applied per worktree in the order copy -> set -> setup, from JDI's own shell
+  # with the worktree as the working directory, never in the pane the agent
+  # is about to claim.
+  #
+  # Placeholders, substituted in every `set` value and every `setup` command:
+  #   {{n}}            the worktree's 1-based index in this herd
+  #   {{issue}}        the issue ID, e.g. JUT-3073
+  #   {{issue_lower}}  the same, lowercased
+  #   {{worktree}}     absolute path to the new worktree
+  #   {{repo_root}}    absolute path to the checkout /jdi:herd ran in
+  #
+  # Use {{n}} for anything concurrent runs would otherwise share: a test
+  # database, a port, a cache directory, a container name. Two worktrees on
+  # one test database produce thousands of failures that read as a regression
+  # in the branch under test.
+  #
+  #   seed:
+  #     copy:                              # paths relative to the repo root,
+  #       - apps/core/api/.env             # copied from this checkout; a path
+  #       - apps/core/frontend/.env        # absent here is skipped, not an error
+  #     set:                               # dotenv-style key replacement, after copy
+  #       apps/core/api/.env:
+  #         TEST_DATABASE: myapp_test_herd{{n}}
+  #     setup:                             # cwd is the worktree root; a non-zero
+  #       - npm ci --prefix apps/core/frontend   # exit disqualifies that
+  #       - cd apps/core/api && bin/rails db:test:prepare   # worktree: no agent
+  #                                                        # is started for it
+  seed: {}
+
 # Optional. Sibling repositories or client codebases that consume this repo's
 # public interfaces (APIs, webhooks, tool surfaces, published packages). The
 # Researcher sweeps these when a change alters an externally-consumed contract,
@@ -266,6 +317,9 @@ models:                      models:                        models:
 | `models.*` | empty — every role runs in this session's harness, on the session's own model |
 | `harnesses.*` | empty — a CLI JDI spawns receives no arguments and no extra environment |
 | `delegation.transport` | `native` - roles are delegated exactly as before this key existed; nothing is probed at step 0 and nothing is announced |
+| `herd.kind` | `claude` |
+| `herd.max_parallel` | `5` |
+| `herd.seed` | empty - worktrees are created bare, with nothing gitignored copied in and nothing run |
 | `consumers` | empty |
 
 ## Notes
@@ -327,6 +381,22 @@ models:                      models:                        models:
   acquires a flag.
 - **`delegation.transport` is usually personal.** It belongs in `config.local.yml`, because working
   inside Herdr is a fact about the machine.
+- **`herd` is read by `/jdi:herd` and nothing else.** No other command changes behavior because the
+  block exists, and a repo without Herdr never reaches a line that reads it. The block is optional,
+  and every key in it has a working default.
+- **`/jdi:herd` validates Herdr and stops; it never repairs.** A failed check ends the run with the
+  reason. It starts nothing and installs nothing, because `/jdi:herd` has no fallback: it never
+  degrades to a sequential `/jdi:prep`, since a herd that quietly became one prep looks exactly
+  like a herd that worked.
+- **`herd.seed` is the only thing that puts gitignored state into a worktree.** A worktree comes
+  from `origin/<default>`, so `.env` files, installed dependencies and local database names are
+  absent. Left empty, each agent works that out for itself, differently, and two agents that settle
+  on the same test database produce thousands of failures that read as a regression. Put `{{n}}`
+  in anything concurrent runs would share.
+- **Herd agents take their arguments and environment from `harnesses.<herd.kind>`, verbatim.**
+  The `herd` block carries no arguments or environment of its own. JDI composes no authority-affecting flag and translates
+  none between kinds, so a permission-bypass flag for a herd is a value the user wrote under
+  `harnesses`, not a mode JDI decided to enter on their behalf.
 - **There is no `models.butler`.** The Butler is the session you are already in, and no harness
   lets a config file change the model of a session that is already running. Its absence is
   deliberate, not an omission.

@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 07 - The herd config block
 
 Depends on: 02, 06
