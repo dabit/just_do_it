@@ -33,7 +33,7 @@ override for free** — there is nothing to add for it — but its documentation
 is personal rather than the repository's (a model name, a path from one disk) is the case the local
 file exists for: say so where the key is described.
 
-Then the rule every new key inherits, at `reference/config.md:14-15`:
+Then the rule every new key inherits, at `reference/config.md:29-30`:
 
 > A command must never invent a tracker, a project, or a plans location that the config does not
 > record and the user has not confirmed.
@@ -41,7 +41,7 @@ Then the rule every new key inherits, at `reference/config.md:14-15`:
 **Design your key so that "unset" is a real answer, not a gap to be filled by guessing.** That is
 why every behavioural key needs a default that is safe with no configuration at all, and why the
 default is the mode that requires the least of the environment. `split.pieces: commits` is the
-model — it is the default *and* the only mode that needs no tracker (`reference/config.md:44-46`).
+model — it is the default *and* the only mode that needs no tracker (`reference/config.md:59-61`).
 An existing repo with no such key behaves exactly as it did before the key existed.
 
 Level 2 is worth dwelling on. It exists because a repo often already states, in prose, what the
@@ -78,15 +78,15 @@ documented but never asked about, or asked about but never shipped.
 ### The multi-site ones — where a change gets half-done
 
 **`reference/config.md` takes three edits, not one.** The YAML block under `## Schema`
-(`reference/config.md:17-179`; `split:` occupies `:42-55`), a row in the
-`## Defaults when nothing is configured` table (`reference/config.md:214-230`; `split.pieces` is
-`:220`), and at least one **bolded invariant bullet** under `## Notes` (`:232-281`;
-`split.pieces` earns two, at `:236-239` and `:240-243`). The schema block alone is the most common
+(`reference/config.md:34-217`; `split:` occupies `:57-70`), a row in the
+`## Defaults when nothing is configured` table (`reference/config.md:252-269`; `split.pieces` is
+`:258`), and at least one **bolded invariant bullet** under `## Notes` (`:271-358`;
+`split.pieces` earns two, at `:275-278` and `:279-282`). The schema block alone is the most common
 half-finish: the key is documented, and then a command asks "what is the default?" and the table
 does not say.
 
 **`jdi.config.example.yml` deliberately disagrees with the schema.** The schema shows the default
-(`reference/config.md:55` — `pieces: commits`); the example shows a **non-default** value
+(`reference/config.md:70` — `pieces: commits`); the example shows a **non-default** value
 (`jdi.config.example.yml:27-33` — `pieces: subtickets`). This is intentional, not drift: a reader
 skimming the example should see what a *configured* repo looks like, and a value identical to the
 default teaches nothing. Match the convention — set the example to the interesting value.
@@ -120,7 +120,7 @@ easy to half-update.
 
 **All three JSON release files carry a version, and they must match.**
 `.claude-plugin/plugin.json:3`, `.codex-plugin/plugin.json:3`, and
-`.claude-plugin/marketplace.json:10` are all `1.0.6` right now. The reason is in
+`.claude-plugin/marketplace.json:10` carry the same version. The reason is in
 `README.md:164-168`: `claude plugin update` compares versions rather than content, so a prompt edit
 shipped without a version bump silently does nothing on Claude's installed copy. The newest
 `CHANGELOG.md` heading is the fourth version authority and must carry that same release number.
@@ -283,7 +283,7 @@ too; if you add an operation, grep for the old number.
 
 Three categories are permanently out of scope. The reasoning for each is already in the repo.
 
-**Repo conventions the team already writes down.** `reference/config.md:279-280`:
+**Repo conventions the team already writes down.** `reference/config.md:356-357`:
 
 > **Branch and commit message conventions are not configured here.** They come from the repo's own
 > `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
@@ -292,7 +292,7 @@ Duplicating them into `.jdi/config.yml` creates a second source of truth that si
 from the one humans and every other tool already read. `commands/init.md:140-144` turns this into
 behaviour: init explicitly does **not** configure them, and instead offers to write them into
 `CLAUDE.md` / `AGENTS.md` if they are missing. `git.branch_prefix` is the deliberate seam —
-`reference/config.md:115-117`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —
+`reference/config.md:130-132`, "Leave empty to follow whatever the repo's `CLAUDE.md` prescribes" —
 an override, not a home.
 
 **Harness specifics.** `AGENTS.md:67-68`, on adapters:
@@ -310,7 +310,7 @@ remove it.
 **A model name is not one of those, and does not belong in frontmatter.** It is a fact about the
 user's account and the harness they paired it with — which model they actually have, spelled the
 way that CLI accepts — so it has no single right answer and nothing to gain from being committed
-into a file every user shares. That is why `models` (`reference/config.md:119-146`) is a
+into a file every user shares. That is why `models` (`reference/config.md:134-161`) is a
 configuration block and not frontmatter, and why no file under `agents/` carries a `model:` key.
 
 **Anything with a right answer.** If one setting is correct for every repo, hardcode it. A config
@@ -323,7 +323,7 @@ Ask, in order:
 
 1. **Would two sensible repos answer this differently?** No → hardcode it.
 2. **Does the repo already state it somewhere humans read?** Yes → read it from there
-   (`reference/config.md:8-9` is the level-2 fallback that makes this work), and at most add an
+   (`reference/config.md:9-10` is the level-2 fallback that makes this work), and at most add an
    override.
 3. **Is it a fact about the harness rather than the repository?** Yes → frontmatter, and the
    adapter strips it.
@@ -352,8 +352,8 @@ There are **no git tags** in this repository. A release is exactly: three JSON v
 CHANGELOG entry, and a commit whose subject carries the version. Nothing else.
 
 **Three version files, and they must match.** `.claude-plugin/plugin.json:3`,
-`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, all `1.0.6`.
-`README.md:164-168` is the why: cached plugin releases use versioned metadata, and
+`.codex-plugin/plugin.json:3`, and `.claude-plugin/marketplace.json:10`, which carry the same
+version. `README.md:164-168` is the why: cached plugin releases use versioned metadata, and
 `claude plugin update` specifically compares versions rather than content. An unbumped release is
 invisible to installed copies — a workflow change that no user receives. The newest
 `CHANGELOG.md` heading is the fourth version authority and carries the same number.
@@ -422,13 +422,14 @@ The nine mandatory files:
 
 Behaviour:
 
-- [ ] `commands/prep.md:23-24` — the literal list of config block names includes the new block.
+- [ ] `commands/prep.md:28-29` and `commands/research.md:23-24` — the literal lists of config block
+      names include the new block.
 - [ ] Every command whose behaviour changes has the instruction **written out in place**, not
       cross-referenced. Count the sites first.
 - [ ] Any role that needs the fact has it in its "What it receives" — or, preferably, is passed the
       resolved value by the Butler.
-- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:290-294`
-      and `AGENTS.md:49-53` are both updated, and any prose count is corrected.
+- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:377-383`
+      and `AGENTS.md:50-55` are both updated, and any prose count is corrected.
 - [ ] `commands/status.md` was considered and deliberately excluded or included.
 
 Before committing:

@@ -116,5 +116,78 @@ class FeedbackerIndependenceTest(unittest.TestCase):
                 )
 
 
+class ArchitectureDocTest(unittest.TestCase):
+    longMessage = False
+
+    ARCHITECTURE = "docs/delegation-transport-architecture.md"
+
+    def architecture(self):
+        self.assertTrue(
+            (jdi_files.ROOT / self.ARCHITECTURE).is_file(),
+            "%s does not exist" % self.ARCHITECTURE,
+        )
+        return jdi_files.read(self.ARCHITECTURE)
+
+    def test_architecture_doc_has_the_pinned_headings(self):
+        lines = self.architecture().split("\n")
+        for heading in (
+            "## Two layers",
+            "## Result contract",
+            "## Waves and other roles",
+            "## Live validation matrix",
+            "## Relationship to PR #5",
+        ):
+            with self.subTest(heading=heading):
+                self.assertIn(
+                    heading, lines, "%s lacks the heading %r" % (self.ARCHITECTURE, heading)
+                )
+        self.assertNotIn(
+            "## Extending to other roles and waves",
+            lines,
+            "%s still has the superseded heading" % self.ARCHITECTURE,
+        )
+
+    def test_architecture_doc_states_the_backend_and_repair_rules(self):
+        text = " ".join(self.architecture().split())
+        for fragment in (
+            "only when the harness differs",
+            "same-harness control",
+            "`reference/herdr.md`",
+            "validate, never repair",
+            "detect, never repair",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment, text, "%s lacks %r" % (self.ARCHITECTURE, fragment)
+                )
+
+    def test_adapter_doc_names_the_transport_in_capability_based_delegation(self):
+        section = " ".join(
+            jdi_files.section(
+                jdi_files.read("docs/harness-adapter-architecture.md"),
+                "## Capability-Based Delegation",
+            )
+        )
+        self.assertIn(
+            "`delegation.transport`",
+            section,
+            "docs/harness-adapter-architecture.md's Capability-Based Delegation "
+            "section lacks `delegation.transport`",
+        )
+
+    def test_lifecycle_doc_citations_are_corrected(self):
+        lifecycle = jdi_files.read("docs/config-key-lifecycle.md")
+        self.assertIn(
+            "`commands/prep.md:28-29`",
+            lifecycle,
+            "docs/config-key-lifecycle.md lacks `commands/prep.md:28-29`",
+        )
+        self.assertNotIn(
+            "are all `1.0.6`",
+            lifecycle,
+            "docs/config-key-lifecycle.md still pins a literal version",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

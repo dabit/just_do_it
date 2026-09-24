@@ -1103,7 +1103,7 @@ Every step can be reproduced from this text. Record each command and its raw out
 
 **Wave 2**
 - [x] 05 — User-facing docs: init, help, README (depends on: 01, 02)
-- [ ] 06 — Architecture docs (depends on: 01, 02, 03)
+- [x] 06 — Architecture docs (depends on: 01, 02, 03)
 
 **Wave 3** — separable: 07 and 08 are the `/jdi:herd` layer; drop them to rebase PR #5 onto `reference/herdr.md` H1, H2 and H4 instead of superseding it
 - [ ] 04 — Command step-0 lines and hand-off sites (depends on: 02, 03, 06)

@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 06 - Architecture docs
 
 Depends on: 01, 02, 03
