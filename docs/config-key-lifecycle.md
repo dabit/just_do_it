@@ -48,12 +48,12 @@ Level 2 is worth dwelling on. It exists because a repo often already states, in 
 key wants to know. A new key that has no plausible level-2 source is a hint that it is
 JDI-internal machinery rather than a fact about this repository — see section 5.
 
-The load itself is repeated in twelve of the sixteen command files as a step 0 that begins
+The load itself is repeated in thirteen of the seventeen command files as a step 0 that begins
 **"Load the JDI config"** — `commands/done.md:14`, `commands/execute.md:15`,
 `commands/feedback.md:18`, `commands/next.md:13`, `commands/plan.md:14`, `commands/pr.md:15`,
 `commands/research.md:14`, `commands/split.md:14`, `commands/start.md:14`,
-`commands/status.md:14`, `commands/yolo.md:13`, and `commands/prep.md:19` (numbered 1 there rather
-than 0). The four exceptions each have a reason: `/jdi:init` reads `reference/config.md` directly
+`commands/status.md:14`, `commands/yolo.md:13`, `commands/prep.md:19`, and
+`commands/herd.md:24` (the last two numbered 1 rather than 0). The four exceptions each have a reason: `/jdi:init` reads `reference/config.md` directly
 before asking anything (`commands/init.md:13-15`), `/jdi:help` prints rather than acts, and
 `commands/replan.md:16` and `commands/reresearch.md:16` delegate to their sibling command's step 0
 by name.
@@ -78,10 +78,10 @@ documented but never asked about, or asked about but never shipped.
 ### The multi-site ones — where a change gets half-done
 
 **`reference/config.md` takes three edits, not one.** The YAML block under `## Schema`
-(`reference/config.md:34-217`; `split:` occupies `:57-70`), a row in the
-`## Defaults when nothing is configured` table (`reference/config.md:252-269`; `split.pieces` is
-`:258`), and at least one **bolded invariant bullet** under `## Notes` (`:271-358`;
-`split.pieces` earns two, at `:275-278` and `:279-282`). The schema block alone is the most common
+(`reference/config.md:34-268`; `split:` occupies `:57-70`), a row in the
+`## Defaults when nothing is configured` table (`reference/config.md:303-323`; `split.pieces` is
+`:309`), and at least one **bolded invariant bullet** under `## Notes` (`:325-428`;
+`split.pieces` earns two, at `:329-332` and `:333-336`). The schema block alone is the most common
 half-finish: the key is documented, and then a command asks "what is the default?" and the table
 does not say.
 
@@ -283,7 +283,7 @@ too; if you add an operation, grep for the old number.
 
 Three categories are permanently out of scope. The reasoning for each is already in the repo.
 
-**Repo conventions the team already writes down.** `reference/config.md:356-357`:
+**Repo conventions the team already writes down.** `reference/config.md:426-427`:
 
 > **Branch and commit message conventions are not configured here.** They come from the repo's own
 > `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
@@ -428,8 +428,8 @@ Behaviour:
       cross-referenced. Count the sites first.
 - [ ] Any role that needs the fact has it in its "What it receives" — or, preferably, is passed the
       resolved value by the Butler.
-- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:377-383`
-      and `AGENTS.md:50-55` are both updated, and any prose count is corrected.
+- [ ] A shared operation lives in `reference/*.md`; if that is a **new** file, `README.md:385-391`
+      and `AGENTS.md:51-56` are both updated, and any prose count is corrected.
 - [ ] `commands/status.md` was considered and deliberately excluded or included.
 
 Before committing:

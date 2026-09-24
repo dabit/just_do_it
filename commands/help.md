@@ -41,6 +41,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. Orders the findings with Jev when `jev.enabled` is on. |
 | `/jdi:replan` | Butler + Planner | Throw the plan away and write a fresh one. |
 | `/jdi:reresearch` | Butler + Researcher | Throw the research away and look again. |
+| `/jdi:herd` | Butler | Prep several issues at once inside Herdr: one worktree, pane and agent per issue, each running `/jdi:prep`. Needs Herdr and stops when it is missing; it never falls back to a sequential prep. |
 
 **On the Feedbacker:** it reviews on demand only. It is not a gate on the producing commands —
 invoke it deliberately with `/jdi:feedback` when you want an output or a prompt audited. It never

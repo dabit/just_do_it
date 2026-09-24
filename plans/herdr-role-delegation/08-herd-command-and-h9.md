@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 08 - `commands/herd.md`, H9, and the command enumerations
 
 Depends on: 01, 05, 06

@@ -187,6 +187,13 @@ Follow these steps:
     their machine, not about the repository. Offer to leave it out of `config.yml` for the user to
     put in `.jdi/config.local.yml`.
 
+    - When the user plans to use `/jdi:herd`, offer the `herd` block too: `herd.kind` (the agent
+      kind each herd Butler runs, default `claude`), `herd.max_parallel` (how many issues one run
+      starts without asking again, default `5`), and `herd.seed` (the gitignored files to copy,
+      the per-worktree values to set, and the setup commands each worktree needs). Say that a
+      herd's arguments and environment come from `harnesses.<kind>`, not from `herd`. With no
+      answer, write no `herd` block.
+
 11. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
     repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
     sweeps these when a change alters an externally-consumed contract. Skip if there are none.

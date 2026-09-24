@@ -216,8 +216,8 @@ class ConfigLoadStepTest(unittest.TestCase):
     `docs/config-key-lifecycle.md` section 3: a step-level instruction shared by
     several commands is repeated at every site, never cross-referenced, so each
     file is independently followable. The config load is that kind of step, in
-    twelve of the sixteen command files (section 1), and the `.jdi/config.local.yml`
-    merge rule travels with it. A site that loads the config and never names the
+    thirteen of the seventeen command files (section 1), and the
+    `.jdi/config.local.yml` merge rule travels with it. A site that loads the config and never names the
     local file silently reads the committed one alone.
     """
 
@@ -229,8 +229,8 @@ class ConfigLoadStepTest(unittest.TestCase):
         ]
         self.assertEqual(
             len(sites),
-            12,
-            "docs/config-key-lifecycle.md section 1 counts twelve config-loading "
+            13,
+            "docs/config-key-lifecycle.md section 1 counts thirteen config-loading "
             "commands; found %s" % sites,
         )
         for path in sites:

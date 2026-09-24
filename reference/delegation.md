@@ -185,7 +185,7 @@ by `bin/sync-opencode.sh`). Otherwise **inline the role file** — read the inst
 `agents/<role>.md` and pass its text as part of the prompt. Take a plugin-root path **only from an
 explicit config value, never derived**: the Codex and Claude snapshots are version-pinned under
 different layouts and share no derivation rule, and
-`docs/harness-adapter-architecture.md:191-194` forbids searching ancestors for a plausible checkout.
+`docs/harness-adapter-architecture.md:192-195` forbids searching ancestors for a plausible checkout.
 Under Herdr, the role file is copied into the run's `prompt.md` (`reference/herdr.md` H3).
 
 ## What delegation does not grant

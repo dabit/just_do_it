@@ -362,6 +362,14 @@ once and runs each wave in order.
 critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`
 and `/jdi:reresearch` throw a phase away and redo it.
 
+`/jdi:herd ENG-1234 ENG-1235` preps several existing issues at once inside Herdr. Each issue gets
+its own git worktree in a folder named `jdi-herd-<issue>`, its own Herdr workspace, and its own
+agent running `/jdi:prep`. The command needs Herdr, and it stops with the reason when Herdr is
+missing; it never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the
+agent kind, how many issues one run starts without asking, and what each worktree is seeded with.
+The command removes no worktree on its own, and never removes one that holds an uncommitted plan
+without your explicit yes.
+
 The three harnesses use the distinct interfaces shown above and in **Install**. Claude Code keeps
 `/jdi:<command>`, OpenCode keeps `/jdi-<command>`, and Codex passes the command after `$jdi:run`.
 
@@ -369,7 +377,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 16 workflow commands. These canonical files are written to the orchestrator |
+| `commands/` | The 17 workflow commands. These canonical files are written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |
@@ -380,7 +388,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `reference/jev.md` | The five Jev operations (J1–J5) that `jev.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How each role becomes an actual model on your harness |
-| `reference/herdr.md` | The Herdr operations (H1-H8) a Butler uses to run a role on another CLI in its own pane, one per task in a wave, and wait for its result |
+| `reference/herdr.md` | The Herdr operations (H1-H8) a Butler uses to run a role on another CLI in its own pane, one per task in a wave, and wait for its result, plus H9, which gives each `/jdi:herd` Butler its own worktree |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
 | `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |

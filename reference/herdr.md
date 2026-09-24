@@ -196,7 +196,7 @@ inputs as absolute paths>
 
 - The role instructions are the installed `agents/<role>.md` body with its frontmatter removed.
   The Butler reads it with the same resolution it uses for `reference/`, copies the text, and never
-  hands the worker a plugin path (`docs/harness-adapter-architecture.md:191-194`).
+  hands the worker a plugin path (`docs/harness-adapter-architecture.md:192-195`).
 - The inputs are exactly the role's *What it receives*. Short values are written inline, and file
   inputs are given as absolute paths.
 - The short prompt the Butler sends is, verbatim:
@@ -397,3 +397,96 @@ This section applies to Executors on another CLI, under `auto` or `herdr` with H
   `reference/plan-store.md` *Waves* says. H8 closes every pane and then the tab.
 - **Fallback.** A task whose worker failed falls back on its own, through the CLI's
   non-interactive mode, after the wave settles. The other tasks' results stand.
+
+## H9 - Give a Butler its own worktree
+
+This section applies to `/jdi:herd` only. Each issue in a herd gets its own worktree, workspace,
+pane and agent, and the agent is a whole Butler running the prep command. Nothing waits for it:
+the herd hands the work off and reports.
+
+**The kind.** A herd applies H2's supported and installed checks to `herd.kind`, or to the
+`--kind` the user passed, in place of `models.<role>.harness`. A kind with no row in the
+invocation table below is rejected at H2 for a herd.
+
+**Names.** The caller supplies one name per issue, `jdi-herd-<issue>`, built as
+`commands/herd.md` step 5 says. Check it against `herdr agent list`. A live agent that already
+holds the name may be a Butler for that issue, so the caller reports it and asks.
+
+**The worktree folder carries the issue.** Its folder name is the step-5 name,
+`jdi-herd-<issue>`, so after a crash or a closed workspace `git worktree list` (or `ls`) shows
+which folder belongs to which issue, even when prep never reached its branch step. Build the path
+as `<worktrees dir>/<repo>/jdi-herd-<issue>`:
+
+- `<worktrees dir>` is `[worktrees] directory` from Herdr's config (`~/.config/herdr/config.toml`)
+  when that is set, else Herdr's documented default `~/.herdr/worktrees` (from
+  `herdr --default-config`). Expand a leading `~` to `$HOME`.
+- `<repo>` is the basename of the main checkout. This matches the layout Herdr already uses
+  (`~/.herdr/worktrees/<repo>/<folder>`, observed on this machine).
+
+**An existing folder is not overwritten.** When `<worktrees dir>/<repo>/jdi-herd-<issue>` already
+exists, a herd has run for this issue before. Say so. Show its branch
+(`git -C <path> branch --show-current`) and whether its plan folder has uncommitted files
+(`git -C <path> status --porcelain -- <plans.path>`). Then ask: continue there (a fresh session in
+that folder, `/jdi:status`), or skip this issue. Never create a second folder beside it, and never
+remove it here.
+
+**Scratch branches are unique per herd run.** The scratch branch is
+`jdi-herd-scratch-<herd-id>-<N>`, where `<herd-id>` is the herd's UTC start time
+`yyyymmddThhmmss` and `<N>` is the issue's 1-based index in the herd. Prep switches away from the
+scratch branch but does not delete it. PR #5's `jdi-herd-scratch-<N>` therefore collides with the
+branch a previous herd left behind (observed: every earlier scratch branch of that form still
+exists in three repositories on this machine). The scratch branch still omits the issue ID, for
+PR #5's reason: prep adopts a branch that already names the work, and would then skip its **T6**
+branch.
+
+**Create it.**
+
+```text
+herdr worktree create --cwd "$PWD" --path <worktrees dir>/<repo>/jdi-herd-<issue> --branch jdi-herd-scratch-<herd-id>-<N> --base origin/<default> --label "<ISSUE-ID>" --no-focus
+```
+
+Read `.result.worktree.path`, `.result.root_pane.pane_id`, `.result.workspace.workspace_id` and
+`.result.tab.tab_id`. Confirm that `.result.worktree.path` equals the path asked for. When it
+differs, report both and use the one Herdr returned. `--path` is in `herdr worktree create --help`
+(0.8.2) without stated semantics, so UAT probe P8 settles it before the herd scenario runs.
+
+**Reattach after a restart.** `herdr worktree open` opens an existing worktree as a workspace
+again. The report's closing line names it.
+
+**Environment.** `herdr worktree create` takes no `--env`. When `harnesses.<kind>.env` is not
+empty, create a tab inside the new workspace and use its root pane instead:
+`herdr tab create --workspace <id> --cwd <path> --env KEY=VALUE ... --no-focus`, then use
+`.result.root_pane.pane_id` and `.result.tab.tab_id` from that result.
+
+**The invocation table.** The command each herd Butler receives, by kind:
+
+| Kind | Invocation |
+|---|---|
+| `claude` | `/jdi:prep <ISSUE-ID>` |
+| `codex` | `$jdi:run prep <ISSUE-ID>` |
+| `opencode` | `/jdi-prep <ISSUE-ID>` |
+
+These spellings come from the README install table that `tests/test_codex_plugin.py`'s
+`test_harness_table_uses_jdi_run_and_preserves_other_harnesses` pins (`/jdi:prep`,
+`$jdi:run <command> [arguments]`, `/jdi-prep`). Other kinds are rejected at H2 for a herd.
+
+**Label the tab.** `herdr tab rename <tab_id> <name>`, with `tab_id` read from `.result.tab.tab_id`
+(or from the `herdr tab create` result when the environment forced a new tab). The workspace keeps
+the `--label "<ISSUE-ID>"` it was created with.
+
+**Start the Butler** with **H4b** under `<name>`, in the pane chosen above. The arguments are
+`harnesses.<kind>.args` verbatim, with no model flag.
+
+**Hand it the work.** `herdr agent prompt <name> "<invocation>"`, with no `--wait`. The herd sends
+every prompt first and reads the states afterward.
+
+**Watch.** `herdr agent get <name>` reports the state. `herdr agent read <name> --source
+recent-unwrapped --lines 80` shows a blocked agent's question, for inspection only (rule 4). A herd
+Butler's dialogs belong to the user (rule 7).
+
+**Cleanup.** `herdr worktree remove --workspace <id>`, plus `--force` when the worktree was seeded.
+Before either, run `git -C <worktree> status --porcelain -- <plans.path>`. Any output means
+uncommitted plan files: stop, name them, and offer the plan commit in that worktree. `--force` is
+used only after that check is empty or the user has said yes to losing the files. Under
+`plans.mode: external` the plan is not in the worktree, and the check finds nothing. JDI removes
+nothing unless the user asks.
