@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 03 - Rewrite the transport in `reference/delegation.md`, the Butler and the Feedbacker
 
 Depends on: None

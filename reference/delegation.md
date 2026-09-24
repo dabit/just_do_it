@@ -48,10 +48,35 @@ Leaving the `models` block out, or leaving a role's entry empty, runs that role 
 harness on the model the session is already using. That is a supported configuration, not a degraded
 one: running all seven roles on one model changes nothing about the workflow's shape.
 
-One rule survives every mapping: **the Feedbacker should not be the same model as the agent whose
-output it is reviewing** where the config offers a choice. A model reviewing its own output
-confirms it. If no second model is available, run the review anyway and note that producer and
-reviewer were the same model, so the user can weigh the verdict accordingly.
+One rule survives every mapping: **the Feedbacker should not run on the same model and harness as
+the agent whose output it is reviewing** where the config offers a choice. A model reviewing its own
+output confirms it. If no second model or harness is available, run the review anyway and note that
+producer and reviewer were the same model on the same harness, so the user can weigh the verdict
+accordingly.
+
+## Choosing the transport
+
+A role on this session's own CLI never runs under Herdr. A role with no `models.<role>.harness`, or
+one that names the Butler's own kind, is delegated by rung 1 (or rung 3) of *How to delegate*
+exactly as before, and its progress is watchable in the harness itself.
+
+For a role whose `models.<role>.harness` names another CLI (rung 2), `delegation.transport` in
+`.jdi/config.yml` decides how that CLI runs:
+
+| `delegation.transport` | What happens |
+|---|---|
+| `native` (default) | Today's rung 2, unchanged: the CLI's own non-interactive mode. Herdr is reached only through rung 4, for a kind with no exec mode. Nothing is probed at step 0 |
+| `auto` | Step 0 performs H1. When it succeeds, rung 2 runs the other CLI as its interactive agent in a Herdr pane, where the user can answer it. Outside Herdr, exactly `native`, and nothing is said; announces once when inside Herdr but a later check fails |
+| `herdr` | As `auto`, but announces any failed H1 check once, then delegates as `native` for the run |
+
+Any other value: announce once, and treat it as `native`. H1 and every other Herdr operation are in
+`reference/herdr.md`.
+
+A Butler runs one phase at a time. Inside a phase, only a wave runs several workers at once, and the
+Butler waits for all of them before doing anything else in the command.
+
+Detect, never repair. The Butler never starts a Herdr server or installs an integration to make a
+check pass. A failed check hands the role back to native resolution, and the phase always runs.
 
 ## How to delegate
 
@@ -76,7 +101,11 @@ back through a file. This is a **chosen** path, not merely a fallback for a harn
 subagents: when `models.<role>.harness` names a kind other than the one you are running in, this is
 the path the configuration asked for, and it is taken even where rung 1 was available. It is also
 still the fallback when this harness has no subagents at all. `## Where a role runs` says how to
-drive it.
+drive it. When `delegation.transport` is `auto` or `herdr` and step 0 detected Herdr, rung 2 runs
+the other CLI as its interactive agent in a Herdr pane instead of its non-interactive mode
+(`reference/herdr.md` H2 to H8). On any Herdr failure: announce once, and run the same role through
+the CLI's non-interactive mode; it is never retried on Herdr in the same phase, and the phase is
+never skipped.
 
 **3. Neither.** **Adopt the role inline.** Read the role's definition file, announce the switch
 ("— adopting the Researcher role —"), follow that file as your own operating instructions for the
@@ -100,8 +129,10 @@ rungs below; what changes is only that they overlap:
   sequential execution with extra steps. If the harness caps concurrent subagents, fill the cap and
   start the next task as each slot frees.
 - **Rung 2, a second non-interactive session** — start one process per task, each reporting through
-  **its own** file, and wait for all of them. Under Herdr that is one pane per task, and every pane
-  JDI opened is closed on every exit.
+  **its own** file, and wait for all of them. Under Herdr that is one pane per task, all started
+  together in one wave tab, each with its own run directory, at most 4 open at once
+  (`reference/herdr.md`, *Waves*); the Butler waits on every worker, sends the user to any pane that
+  is blocked or asking, and every pane JDI opened is closed on every exit.
 - **Rung 3, inline** — one context window cannot run two roles at once. **Say so once** ("this
   harness has no subagents; running the wave's tasks one after another") and run the wave's tasks
   sequentially, in number order. Everything else about a wave — the file guard, verification after
@@ -117,7 +148,9 @@ every role but the Executor — are never fanned out this way.
 `models.<role>.harness` names a key in `harnesses:`, and that key is the agent CLI kind the role
 runs in. `harnesses.<kind>.args` are handed to that CLI verbatim, after its own flags;
 `harnesses.<kind>.env` is set on the process — or, under Herdr, on the pane — that runs it. JDI
-composes, merges and translates neither. Resolution is **exec-first, Herdr second**.
+composes, merges and translates neither. Under `transport: native`, resolution is exec-first, Herdr
+second. Under `auto` or `herdr` with Herdr detected, a role on another CLI runs in a Herdr pane
+first, and exec is its fallback.
 
 **Prefer the CLI's own non-interactive mode.** It returns a lossless report, allocates no pane, and
 leaves nothing to clean up. The three JDI knows:
@@ -133,16 +166,18 @@ leaves nothing to clean up. The three JDI knows:
 kind. The reverse direction is the point: a Codex or OpenCode session putting a role back on Claude
 spawns `claude -p` exactly as a Claude session spawns `codex exec`.
 
-**Use Herdr only** when the kind has no exec mode JDI knows, or when the user has asked to watch the
-run. Drive it with `herdr pane split` → `herdr pane run <PANE_ID> <command>` → `herdr pane
-wait-output --match <sentinel> --timeout <ms> <PANE_ID>` → read the file the command was told to
-write. **Not `herdr agent start`**, which is the primitive for an interactive occupant, and not
-`herdr agent read`: that is a terminal scrape in every mode, and it cannot recover rows lost to the
-alternate screen. A role's prose report must arrive through a file, never through the pane buffer.
+The model flag is the one flag JDI composes from the config, on every separate-process path, exactly
+as above.
 
-**A pane JDI created is JDI's to close.** Every exit from a Herdr path — success, timeout, or any of
-the failure rungs below — runs `herdr pane close <pane_id>` before it announces. A failed delegation
-must not leak a pane per attempt.
+**Herdr.** Under `native`, Herdr is used only when the kind has no exec mode JDI knows. Under `auto`
+or `herdr` it is how rung 2 runs another CLI when Herdr is detected. Every Herdr step (detection,
+pane, start, prompt and wait, states, the result contract, waves, pane close) is in
+`reference/herdr.md` and nowhere else. It uses Herdr's agent surface and receives the report through
+a file, and `reference/herdr.md` gives the reason.
+
+**A pane JDI created is JDI's to close** (H8). Every exit from a Herdr path, whether success,
+timeout, or any of the failure rungs below, closes that pane before it announces. A failed
+delegation must not leak a pane per attempt.
 
 **Role instructions have to travel.** Name the target's registered role where it has one
 (`opencode run --agent jdi-<role>`; the files exist at `~/.config/opencode/agent/jdi-*.md`, produced
@@ -151,6 +186,7 @@ by `bin/sync-opencode.sh`). Otherwise **inline the role file** — read the inst
 explicit config value, never derived**: the Codex and Claude snapshots are version-pinned under
 different layouts and share no derivation rule, and
 `docs/harness-adapter-architecture.md:191-194` forbids searching ancestors for a plausible checkout.
+Under Herdr, the role file is copied into the run's `prompt.md` (`reference/herdr.md` H3).
 
 ## What delegation does not grant
 
@@ -162,6 +198,12 @@ this session's. JDI composes no authority-affecting flag and translates none bet
 flag a spawned CLI receives is a literal value the user wrote in `harnesses.<kind>.args`, passed
 through verbatim and **printed back before the spawn**. Any external mutation must still be
 allowed by the active command and the Butler's rules.
+
+A Herdr worker is a separately spawned CLI in this sense. The worker's approval, permission and
+trust dialogs belong to the user, and the Butler never answers one. The Butler answers a worker's
+content question only from context it already holds, and says so. A worker writes only its run
+directory and what the active command lets the role write, and the Butler checks the tree afterward
+(H7).
 
 ## When the configuration cannot be honoured
 
@@ -179,20 +221,24 @@ The first rung that applies wins. Every rung is an observation, never an assumpt
    **Silent** — the configuration was honoured.
 3. **The named CLI is not on `PATH`.** Announce and go to the floor. Detection is an observation:
    resolve the binary, do not infer from a failed run.
-4. **JDI knows no non-interactive exec mode for that kind.** Try the Herdr transport (rungs 6–8).
-   If Herdr is unavailable, announce and go to the floor.
+4. **JDI knows no non-interactive exec mode for that kind.** Try the Herdr transport,
+   `reference/herdr.md` H1 to H8 (rungs 6-9).
 5. **The role's instructions cannot be resolved for that CLI.** No registered role name, and the
    installed `agents/<role>.md` cannot be read to inline. Announce and go to the floor. **Never
    derive a plugin path** to close this gap.
-6. **Herdr is wanted but not detected** — no binary, no `HERDR_ENV`, or no server answering on the
-   socket. Announce and go to the floor.
-7. **Herdr does not report the kind installed.** Announce and go to the floor. Herdr's `kinds:`
-   line is the observation; an absent kind is not a reason to try anyway.
-8. **The pane cannot be created.** Announce and go to the floor. Nothing to close.
-9. **The run started but never reported usably** — the output file was never written, or the status
-   stayed `unknown` with nothing readable. Herdr's statuses are exhaustively
-   `idle | working | blocked | done | unknown`, and `unknown` does **not** prove completion.
-   **Close the pane JDI opened**, announce, go to the floor.
+6. **Herdr is wanted but not detected.** H1 failed at step 0 (or, for rung 4 under `native`, when
+   the role was delegated).
+7. **The kind is not one Herdr supports, or its CLI is not installed.** Herdr's `kinds:` line lists
+   the kinds it supports; installed means `<kind>` resolves on `PATH`. Integration status affects
+   only detection quality.
+8. **The pane or the agent cannot be started.**
+9. **The run started but produced no valid result.** H7 failed, or the state stayed `unknown` or
+   timed out and the user chose to abandon. `unknown` does not prove completion.
+
+   For rungs 6 to 9: close the pane JDI opened (H8), announce, and continue as `native` would
+   resolve the role: rung 2's non-interactive mode, or the floor where rung 4 sent a kind with no
+   exec mode.
+
 10. **The model cannot be expressed in the harness that will run the role.** Claude Code's Agent
     tool takes `model` as an enum (`sonnet | opus | haiku | fable`), so a full identifier like
     `claude-opus-5` cannot be passed at spawn time there; another kind may reject an unprefixed
@@ -209,8 +255,8 @@ Four directions the ladder never takes:
 
 - **Never skip the phase.** A phase that never ran is the failure; the mechanism it ran through is
   not. The floor is always available.
-- **Never acquire a flag the user did not write.** JDI adds no argument of its own and translates
-  none between kinds. A permission-bypass flag in `harnesses.<kind>.args` is a thing the user typed,
+- **Never acquire a flag the user did not write.** JDI composes only the invocation and the model
+  flag, adds no authority-affecting argument of its own, and translates none between kinds. A permission-bypass flag in `harnesses.<kind>.args` is a thing the user typed,
   and it is printed back before the spawn.
 - **Never land somewhere less supervised.** Degrading a harness means coming **back into this
   session**, which is the most supervised place available — never onward to a third CLI, and never

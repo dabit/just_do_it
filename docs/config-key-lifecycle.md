@@ -229,7 +229,7 @@ A behavioural key describes something the environment might not support. JDI's a
 first rung that applies, say which one out loud, and treat the run as `commits` from there on."
 The ladder is ordered cheapest-check-first, and the run adopts the fallback mode wholesale rather
 than re-deciding at each later step. Announcing is the Butler's standing duty
-(`roles/butler.md:27-29`): "Silent degradation is the thing that makes a workflow untrustworthy."
+(`roles/butler.md:29-31`): "Silent degradation is the thing that makes a workflow untrustworthy."
 
 **Degrade DOWN, never UP.** `reference/tracker.md:107-109`: a configured `tasks` the tracker
 cannot express falls back to `commits`; it never becomes `subtickets`. The reasoning is stated,
