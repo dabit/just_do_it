@@ -1111,7 +1111,7 @@ Every step can be reproduced from this text. Record each command and its raw out
 - [x] 08 — `commands/herd.md`, H9, and the command enumerations (depends on: 01, 05, 06)
 
 **Wave 4**
-- [ ] 09 — Release 1.0.10 (depends on: 04, 05, 06, 07, 08)
+- [x] 09 — Release 1.0.10 (depends on: 04, 05, 06, 07, 08)
 
 **Wave 5**
 - [ ] 10 — UAT: live Herdr validation (depends on: 09)

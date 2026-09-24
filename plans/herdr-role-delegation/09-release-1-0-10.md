@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 09 - Release 1.0.10
 
 Depends on: 04, 05, 06, 07, 08
