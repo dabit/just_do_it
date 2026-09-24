@@ -20,6 +20,14 @@ at a time — every task that is ready, run concurrently — without stopping fo
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
 
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes. With `herdr`, a failed check is announced
+   once, with the check and what came back, and this run delegates as `native`. With `auto`, say
+   nothing when this session is not inside Herdr, and announce once when it is but a later check
+   fails. With any other value, say so once and delegate as `native`. **With
+   `delegation.transport` `native` or absent, say nothing at all** - nothing was skipped.
+
 **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
 `reference/plan-store.md`. Read `PLAN.md` for the task checklist.
 
@@ -97,7 +105,10 @@ Step 2. For **each** task in the set, in number order, one at a time:
    the same path, keep the lower-numbered one, hold the other for the next wave, and say so once.
 3. **Delegate to the Executor, once per task, all at once** — hand each task of the wave to its own
    **Executor**, starting them **together** rather than one after another; see *Delegating several
-   roles at once* in JDI's `reference/delegation.md`. Where this harness cannot run roles
+   roles at once* in JDI's `reference/delegation.md`. Each Executor is resolved per *Delegating
+   several roles at once*, including the transport `delegation.transport` selects; a worker waiting
+   on the user is answered where it runs, and the wave settles before anything is verified or
+   committed. Where this harness cannot run roles
    concurrently, say so **once for the run** and execute each wave's tasks in number order,
    adopting the role inline if there are no subagents at all. Say which tasks are running
    together. Pass each Executor its own task file content, the sibling tasks running alongside it

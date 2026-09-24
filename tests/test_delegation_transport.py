@@ -115,6 +115,13 @@ class FeedbackerIndependenceTest(unittest.TestCase):
                     "%s lacks 'same model and harness'" % path,
                 )
 
+    def test_feedback_command_picks_a_different_model_or_harness(self):
+        self.assertIn(
+            "a different model or a different harness",
+            normalized("commands/feedback.md"),
+            "commands/feedback.md lacks 'a different model or a different harness'",
+        )
+
 
 class ArchitectureDocTest(unittest.TestCase):
     longMessage = False

@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 04 - Command step-0 lines and hand-off sites
 
 Depends on: 02, 03, 06

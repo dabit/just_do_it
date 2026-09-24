@@ -26,7 +26,7 @@ Follow these steps:
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
    Everything below refers to `tracker`, `split`, `plans`, `docs`, `consumers`, `jev`, `models`,
-   and `harnesses` from it.
+   `harnesses`, and `delegation` from it.
 
    **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
    `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
@@ -37,6 +37,14 @@ Follow these steps:
    `jev.enabled: false` from there on. Prep runs three phases in one pass, so this probe happens
    here and the Researcher and Splitter are each handed the resolved answer; neither re-probes.
    **With `jev.enabled` false or absent, say nothing at all** — nothing was skipped.
+
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes. With `herdr`, a failed check is announced
+   once, with the check and what came back, and this run delegates as `native`. With `auto`, say
+   nothing when this session is not inside Herdr, and announce once when it is but a later check
+   fails. With any other value, say so once and delegate as `native`. **With
+   `delegation.transport` `native` or absent, say nothing at all** - nothing was skipped.
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
@@ -127,17 +135,19 @@ Follow these steps:
    - recommended references to add to `PLAN.md`
    - whether a missing architecture document should be drafted
 
-9. **Update the references** — Merge the findings into `## References`, preserving anything useful
-   that is already there. **Spot-check a couple of the load-bearing `file:line` citations against
-   the real files before writing them in** — a plan built on a hallucinated reference misleads
-   every later step.
+9. **Update the references** — When the Researcher ran as a separate process, its findings are the
+   result file the transport validated (`reference/delegation.md`), never a terminal transcript; a
+   result that failed validation was already announced and the role re-run another way. Merge the
+   findings into `## References`, preserving anything useful that is already there. **Spot-check a
+   couple of the load-bearing `file:line` citations against the real files before writing them in**
+   — a plan built on a hallucinated reference misleads every later step.
 
 10. **Draft a missing architecture doc when one is needed** — If no useful architecture doc exists,
     do not stop just to ask permission. Delegate to the **Researcher** again,
-    have it draft a suitable architecture document, write that draft to `<docs.path>/` with a
-    descriptive filename, and add it to `## References`. Stop only if a real ambiguity prevents a
-    reasonable draft. An architecture doc goes in the repository and is committed with the code, in
-    both plan-store modes.
+    delegated exactly as in step 8, have it draft a suitable architecture document, write that draft
+    to `<docs.path>/` with a descriptive filename, and add it to `## References`. Stop only if a
+    real ambiguity prevents a reasonable draft. An architecture doc goes in the repository and is
+    committed with the code, in both plan-store modes.
 
 11. **Record the findings on the issue (durable memory)** — Once `## References` is populated,
     perform **T5** from `reference/tracker.md`: upsert the research-findings comment on the issue.

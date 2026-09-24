@@ -35,6 +35,14 @@ Follow these steps:
    resolved fact; it never reads the key or re-probes. **With `jev.enabled` false or absent, say
    nothing at all** — nothing was skipped.
 
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes. With `herdr`, a failed check is announced
+   once, with the check and what came back, and this run delegates as `native`. With `auto`, say
+   nothing when this session is not inside Herdr, and announce once when it is but a later check
+   fails. With any other value, say so once and delegate as `native`. **With
+   `delegation.transport` `native` or absent, say nothing at all** - nothing was skipped.
+
 1. **Determine what to review** — If `$ARGUMENTS` names an output, a role, or a plan ("the plan",
    "the last diff", "the researcher's prompt"), target that. Otherwise default to the most recent
    producing-role output in this session: the research findings, the plan, the task split, the
@@ -45,9 +53,9 @@ Follow these steps:
 
 3. **Delegate to the Feedbacker** — Hand off to the **Feedbacker** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
-   Where the config maps more than one model, **pick a different model from the one that produced
-   the output** — a model reviewing its own work confirms it. If only one is available, run the
-   review anyway and say that producer and reviewer were the same model.
+   Where the config maps more than one model, **pick a different model or a different harness from
+   the one that produced the output** — a model reviewing its own work confirms it. If neither
+   differs, run the review anyway and say that producer and reviewer were the same.
 
    Pass it:
    - the output under review
@@ -62,7 +70,8 @@ Follow these steps:
    Run the review and consume its verdict in the same active turn where practical. A background
    delegation left running across an idle wait does not survive a harness restart and is silently
    orphaned; if it does not return promptly, run the review inline yourself, say the fallback ran,
-   and proceed.
+   and proceed. When the transport waits on a separate process, that wait is this active turn, and
+   its timeout handling replaces 'promptly'.
 
 4. **Present the verdict** — Show the user:
    - the verdict and the reasoning

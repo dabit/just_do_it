@@ -31,6 +31,14 @@ Follow these steps:
    exists so that **T4**'s state lookup can use **J3**. **With `jev.enabled` false or absent, say
    nothing at all** — nothing was skipped.
 
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes. With `herdr`, a failed check is announced
+   once, with the check and what came back, and this run delegates as `native`. With `auto`, say
+   nothing when this session is not inside Herdr, and announce once when it is but a later check
+   fails. With any other value, say so once and delegate as `native`. **With
+   `delegation.transport` `native` or absent, say nothing at all** - nothing was skipped.
+
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md`.
 
