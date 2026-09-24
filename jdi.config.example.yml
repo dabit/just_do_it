@@ -121,6 +121,12 @@ harnesses:
     args: []
     env: {OPENCODE_CONFIG_DIR: /home/you/.config/opencode-jdi}
 
+# Optional. `delegation.transport` sets how a role on another CLI runs:
+# `native` (the default), or `auto` / `herdr` for its own Herdr pane.
+# Usually personal: set it in .jdi/config.local.yml. See reference/config.md.
+delegation:
+  transport: auto
+
 # Optional. Sibling repos or clients that consume this repo's public interfaces.
 # The Researcher sweeps these when a change alters an externally-consumed
 # contract, so "does a client need updating?" is never left unanswered.

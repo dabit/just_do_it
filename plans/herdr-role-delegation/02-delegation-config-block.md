@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 02 - Add the `delegation` block to the config documents
 
 Depends on: None

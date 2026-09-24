@@ -1098,7 +1098,7 @@ Every step can be reproduced from this text. Record each command and its raw out
 
 **Wave 1** — run together
 - [x] 01 — Write `reference/herdr.md` and enumerate it (depends on: none)
-- [ ] 02 — Add the `delegation` block to the config documents (depends on: none)
+- [x] 02 — Add the `delegation` block to the config documents (depends on: none)
 - [ ] 03 — Rewrite the transport in `reference/delegation.md`, the Butler and the Feedbacker (depends on: none)
 
 **Wave 2**

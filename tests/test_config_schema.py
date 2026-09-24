@@ -12,6 +12,7 @@ the set of key paths, never a value.
 """
 
 import pathlib
+import re
 import unittest
 
 import jdi_files
@@ -151,6 +152,67 @@ class ModelsBlockTest(unittest.TestCase):
                     "block, not a flow mapping — a flow mapping loses its children "
                     "silently." % (stem, ", ".join(missing)),
                 )
+
+
+class DelegationBlockTest(unittest.TestCase):
+    """The `delegation:` block has one key, `transport`, defaulting to `native`.
+
+    Every later step that resolves a transport reads `delegation.transport`, so
+    the key has to exist in the schema, the example, and the defaults table, and
+    the schema has to say what each value does and that a role on this session's
+    own CLI is never affected. The example deliberately shows a non-default value,
+    per `docs/config-key-lifecycle.md`.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_transport_is_a_schema_key(self):
+        self.assertIn("delegation.transport", jdi_files.key_paths(self.schema))
+
+    def test_schema_default_is_native(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: native$", line) for line in self.schema),
+            "reference/config.md's schema has no `  transport: native` line",
+        )
+
+    def test_schema_comment_lists_the_values(self):
+        self.assertTrue(
+            any("native | auto | herdr" in line for line in self.schema_comments),
+            "no schema comment lists `native | auto | herdr`",
+        )
+
+    def test_schema_comment_says_own_cli_is_unaffected(self):
+        self.assertTrue(
+            any(
+                "A role on this session's own CLI is never affected" in line
+                for line in self.schema_comments
+            ),
+            "no schema comment says a role on this session's own CLI is never affected",
+        )
+
+    def test_notes_say_transport_only_changes_another_cli(self):
+        notes = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        self.assertIn("The transport only changes how a role on another CLI runs", notes)
+
+    def test_example_value_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: (auto|herdr)$", line) for line in self.example),
+            "jdi.config.example.yml has no `  transport: auto` or `  transport: herdr` "
+            "line; the example shows a configured repo, so it uses a non-default value",
+        )
+
+    def test_defaults_table_has_a_native_row(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        self.assertTrue(
+            any(row.startswith("| `delegation.transport` | `native`") for row in rows),
+            "the defaults table has no `delegation.transport` row defaulting to `native`",
+        )
 
 
 if __name__ == "__main__":
