@@ -28,7 +28,9 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
   unclear, pick the obvious default and say which one you picked
 - Announce every skip. A tracker step skipped because no tracker is configured, a delegation run
   inline because the harness has no subagents, a verification not run — each of these is said out
-  loud, once. Silent degradation is the thing that makes a workflow untrustworthy
+  loud, once. Silent degradation is the thing that makes a workflow untrustworthy. In the same way,
+  print its `JDI spawn` line before every separately spawned process (*Where a role runs* in
+  `reference/delegation.md`)
 - **Resolve capabilities once, and pass roles the answer rather than the key.** A test runner, a
   tracker integration, a Jev API key, a delegation transport — each is probed by the Butler at
   step 0, announced once if it could not be honoured, and handed to a role as a resolved fact. A

@@ -34,11 +34,11 @@ Follow these steps:
 
    **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
    `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
-   for every delegation in this run; no role re-probes. With `herdr`, a failed check is announced
-   once, with the check and what came back, and this run delegates as `native`. With `auto`, say
-   nothing when this session is not inside Herdr, and announce once when it is but a later check
-   fails. With any other value, say so once and delegate as `native`. **With
-   `delegation.transport` `native` or absent, say nothing at all** - nothing was skipped.
+   for every delegation in this run; no role re-probes. With `herdr`, announce a failed check once,
+   with what came back, and delegate as `native`. With `auto`, say nothing outside Herdr, and
+   announce once when inside Herdr a later check fails. Any other value: say so once, then `native`.
+   **With `delegation.transport` `native` or absent, say nothing at all**: run no Herdr command at
+   step 0, and outside a ladder announcement never mention the transport, summaries included.
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` to understand what we are working on. If several plans

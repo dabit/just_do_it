@@ -92,8 +92,8 @@ The directory contains five files (`reference/herdr.md` H3):
 
 | File | Written by | When | Contents |
 |---|---|---|---|
-| `manifest.json` | the Butler | before the spawn, never edited afterward | schema, run ID, role, command, plan, ticket, base and head commits, cwd, transport, the Herdr workspace, tab, pane and agent name, the integration status, the worker kind, model, verbatim args and env keys (never values), the expected files, `allowed_writes`, the creation time and the deadline |
-| `prompt.md` | the Butler | before the spawn | the role file body copied verbatim, the role's inputs, where the worker may write, and the result contract |
+| `manifest.json` | the Butler | after the pane split and before `agent start` (H4), never edited afterward | schema, run ID, role, command, plan, ticket, base and head commits, cwd, transport, the Herdr workspace, tab, pane and agent name, the integration status, the worker kind, model, verbatim args and env keys (never values), the expected files, `allowed_writes`, the creation time and the deadline |
+| `prompt.md` | the Butler | with `manifest.json` (H4) | the role file body copied verbatim, the role's inputs, where the worker may write, and the result contract |
 | `report.md` | the worker | first | every item in the role's *What it returns* |
 | `result.json` | the worker | last | `run_id`, `role`, `status` (`complete`, `needs_input` or `failed`), `report`, `head_commit`, `summary`, plus `questions` or `reason` |
 | `outcome.json` | the Butler | at H8 | `run_id`, `states`, `final` (`valid`, `invalid`, `abandoned` or `transport_failed`), `validation`, `answers`, `user_decisions`, `fallback`, `pane_closed` |

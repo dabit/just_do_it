@@ -103,6 +103,44 @@ class ButlerSequentialTest(unittest.TestCase):
                 self.assertIn(fragment, butler, "roles/butler.md lacks %r" % fragment)
 
 
+class SpawnLineTest(unittest.TestCase):
+    """Every separately spawned process is preceded by one fixed-shape line.
+
+    The smoke test found the Butler skipped the H4 "print first" prose on every
+    Herdr spawn. A literal template in `reference/delegation.md`, referenced
+    from H4 and from the Butler's skip rule, makes the omission checkable.
+    """
+
+    longMessage = False
+
+    def test_delegation_states_the_spawn_line_template(self):
+        section = " ".join(
+            jdi_files.section(
+                jdi_files.read("reference/delegation.md"), "## Where a role runs"
+            )
+        )
+        section = " ".join(section.split())
+        for fragment in (
+            "JDI spawn <run-id",
+            "the non-interactive command and the Herdr agent alike",
+            "A spawn without this line printed first is a defect",
+            "printed back before the spawn",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment,
+                    section,
+                    "reference/delegation.md's Where a role runs lacks %r" % fragment,
+                )
+
+    def test_butler_skip_rule_names_the_spawn_line(self):
+        butler = normalized("roles/butler.md")
+        self.assertIn(
+            "its `JDI spawn` line", butler, "roles/butler.md lacks 'its `JDI spawn` line'"
+        )
+        self.assertNotIn("Herdr", butler, "roles/butler.md names Herdr")
+
+
 class FeedbackerIndependenceTest(unittest.TestCase):
     longMessage = False
 

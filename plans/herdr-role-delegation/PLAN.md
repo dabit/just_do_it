@@ -118,9 +118,10 @@ PR #5 (`origin/herd-command`, head `2c28c11`, version 1.0.5) is the prior, super
 8. **The result contract.** Run directory: `$(git rev-parse --absolute-git-dir)/jdi/runs/<run-id>/`
    (`--absolute-git-dir` over `--git-dir` because the worker needs an absolute path; in a linked
    worktree this resolves under `<common>/.git/worktrees/<name>`, giving one run directory per
-   worktree). The Butler writes `manifest.json` (before the spawn, environment keys only, meant
-   never to be edited afterward - see Remaining work, defect (c), for where the `pane_id` field
-   broke this in practice) and `prompt.md`. The worker writes `report.md`, then, last, `result.json`.
+   worktree). The Butler writes `manifest.json` (after the pane split and before `agent start`, so it
+   carries the real `pane_id`; environment keys only; never edited afterward - the smoke test
+   found the original "before the spawn" order could not hold, see Remaining work, defect (c)) and
+   `prompt.md`. The worker writes `report.md`, then, last, `result.json`.
    The Butler writes `outcome.json`. A terminal transcript is never the result; `agent read` is for
    inspection only.
 9. **Blocked dialogs belong to the user; the Butler never sends keys.** `herdr agent prompt` rejects
@@ -273,9 +274,10 @@ in a commit, record it, and re-run the affected probes before continuing.
 **Scenarios (U2).** After each, confirm `herdr agent list` and `herdr pane list` show no leftover
 `jdi-*` agent or pane.
 - **A** (AC 1,2,4,5,6). Full `/jdi:prep` with the Researcher on OpenCode (`transport: auto`).
-  Expect: no step-0 announcement; a pre-spawn line naming the agent, kind, model, every argument,
-  the env keys, and the run directory; an unfocused new pane; the Butler waiting and doing nothing
-  else; a run directory with `manifest.json` and `prompt.md`, then `report.md`, `result.json`
+  Expect: no step-0 announcement; the `JDI spawn` line (`reference/delegation.md`, *Where a role
+  runs*) naming the run ID, role, kind, model, every argument, the env keys, the run directory and
+  the agent name, printed before `pane split`; an unfocused new pane; the Butler waiting and doing
+  nothing else; a run directory with `manifest.json` and `prompt.md`, then `report.md`, `result.json`
   (`complete`), and `outcome.json` (`final: valid`, `pane_closed: true`); validation stated before
   the citation spot-check and before `## References` is updated; the pane closed. The Planner and
   Splitter have no `harness` set, so they run as native subagents: no pane, no run directory, no
@@ -313,9 +315,13 @@ in a commit, record it, and re-run the affected probes before continuing.
   CLI, no transport text. (4) `harness: qwen` (a kind Herdr supports but that is not installed): one
   "supports but not installed" announcement, then the floor. (5) `transport: sometimes` (invalid):
   one announcement, then native. (6) an unlaunchable environment (bad `PATH`): H4 fails, the pane
-  closes and is announced, the exec fallback also fails, the floor is reached, one announcement per
-  failure. (7) an unreachable Herdr socket under `transport: herdr`: the H1 check-(c) announcement,
-  or "not induced" if Herdr ignores the variable.
+  closes and is announced, and the exec fallback runs. Corrected after the smoke test: when the
+  Butler resolves the CLI's absolute path before it applies the broken `PATH`, the fallback launches
+  and returns a report degraded by that `PATH` (its tools fail), the phase completes, and the floor
+  is not reached. Only a fallback that cannot launch the binary fails and reaches the floor. Either
+  way, one announcement per failure; record which outcome happened. (7) an unreachable Herdr socket
+  under `transport: herdr`: the H1 check-(c) announcement, or "not induced" if Herdr ignores the
+  variable.
 - **H** (AC 8). Backward compatibility: remove the `delegation` key and run `/jdi:research` and
   `/jdi:plan`. Expect no pane, no transport text, and behavior identical to a 1.0.9 run (compare
   against the installed plugin as a reference).
@@ -326,9 +332,13 @@ in a commit, record it, and re-run the affected probes before continuing.
   running uncanceled, the user's approval resuming the wait, both results validated, the combined
   file check passing, one commit per task by path, and every pane plus the tab closed. Best-effort
   cap check: a five-task wave opens at most 4 panes at once.
-- **J**. Feedbacker independence: a Claude Feedbacker (`{sonnet, claude}`) reviewing an OpenCode
-  Researcher's output should be stated as differing in model and harness; an OpenCode Feedbacker on
-  the same model/harness as the Researcher should be stated as the same.
+- **J**. Feedbacker independence, as `commands/feedback.md` step 3 requires it: where the config maps
+  more than one model, the review runs on a different model or a different harness from the
+  producer, and a statement is required only when neither differs. A Claude Feedbacker
+  (`{sonnet, claude}`) reviewing an OpenCode Researcher's output should run on its configured model
+  and harness; no "they differ" statement is required. An OpenCode Feedbacker on the same model and
+  harness as the Researcher should still run, and the Butler should say that producer and reviewer
+  were the same.
 - **K** (AC 9, 9a; only if the herd wave shipped). `/jdi:herd UAT-1 UAT-2`. Expect two worktrees and
   two agents named `jdi-herd-uat-1`/`jdi-herd-uat-2` with matching tab and folder names; each gets
   `/jdi:prep <ISSUE-ID>` sent with no wait, and a report naming its worktree path and scratch branch.
@@ -368,31 +378,43 @@ printed; remove the linked worktree; delete the scratch clone(s); re-enable the 
 
 ### 2. Defects the smoke test found
 
-(a) **The H4 pre-spawn line never printed.** On every Herdr spawn in the smoke test (Scenarios A, D,
-E, E2, F, G6, I, J2), the text before `agent start` was only a sentence like "Next I check whether
-Herdr can run the Researcher on OpenCode" - never the agent name, kind, model, arguments, env keys,
-and run directory that `reference/herdr.md` H4 requires. The rule lives only in that one doc section
-with nothing enforcing it at the call sites, so it is easy to skip.
+Defects (a), (b) and (c) are fixed on the branch, pending re-check in UAT; none of the three is
+verified yet.
 
-(b) **A `native` Butler still probed Herdr, and summaries broke silence.** Under `transport: native`
-inside Herdr (Scenario G3), the Butler still ran `herdr status` at step 0, though
-`reference/delegation.md` says nothing is probed at step 0 under `native`. Several run summaries
-(Scenarios B, G3, H) also mentioned the transport by name even though the ladder says to stay silent
-in those cases.
+(a) **The H4 pre-spawn line never printed.** Fixed on the branch, pending re-check in UAT:
+`reference/delegation.md` *Where a role runs* now gives a fixed `JDI spawn` template for every
+separately spawned process, H4 makes it step 1, and `roles/butler.md` names it beside the skip
+announcements. What the smoke test saw: on every Herdr spawn (Scenarios A, D, E, E2, F, G6, I,
+J2), the text before `agent start` was only a sentence like "Next I check whether Herdr can run the
+Researcher on OpenCode" - never the agent name, kind, model, arguments, env keys, and run directory
+that `reference/herdr.md` H4 required. The rule lived only in that one doc section with nothing
+enforcing it at the call sites, so it was easy to skip.
 
-(c) **Three documentation gaps in `reference/herdr.md`.** The manifest is described as "written once,
-before the spawn, never edited afterward", but its `pane_id` field is only known after H4's `pane
-split` runs, so every run in the smoke test wrote `null` and edited it in afterward. In a half-width
-wave pane, only `agent read --source detection` showed the OpenCode dialog; `--source visible` and
-`--source recent-unwrapped` did not. Herdr closes a tab itself once its last pane closes, so H8's
-`herdr tab close` after a wave returns `tab_not_found` - harmless, but undocumented.
+(b) **A `native` Butler still probed Herdr, and summaries broke silence.** Fixed on the branch,
+pending re-check in UAT: the step-0 line in the nine delegating commands and H1 now say to run no
+Herdr command at step 0 under `native` or with no `delegation` key, and to mention the transport
+nowhere in the run, summaries included. What the smoke test saw: under `transport: native` inside
+Herdr (Scenario G3), the Butler still ran `herdr status` at step 0, though `reference/delegation.md`
+says nothing is probed at step 0 under `native`. Several run summaries (Scenarios B, G3, H) also
+mentioned the transport by name even though the ladder says to stay silent in those cases.
 
-**The UAT spec itself was off in two places.** Scenario J expects a "the producer and reviewer
-differ" statement from the Butler, but `commands/feedback.md` only requires a statement when they
-are the *same* - the smoke test's expectation was stricter than the command it was testing. Scenario
-G(6) expected the exec fallback to fail alongside the Herdr path, but the Butler resolved
-`opencode`'s absolute binary path before applying the broken `PATH`, so the fallback ran (with a
-degraded report) instead of reaching the floor.
+(c) **Three documentation gaps in `reference/herdr.md`.** Fixed on the branch, pending re-check in
+UAT: H4 now creates the pane, then writes `manifest.json` and `prompt.md`, then starts the agent;
+H6 adds `--source detection`; H8 says `tab_not_found` is expected after a wave. What the smoke test
+saw: the manifest was described as "written once, before the spawn, never edited afterward", but its
+`pane_id` field is only known after H4's `pane split` runs, so every run in the smoke test wrote
+`null` and edited it in afterward. In a half-width wave pane, only `agent read --source detection`
+showed the OpenCode dialog; `--source visible` and `--source recent-unwrapped` did not. Herdr closes
+a tab itself once its last pane closes, so H8's `herdr tab close` after a wave returns
+`tab_not_found` - harmless, but undocumented.
+
+**The UAT spec itself was off in two places.** Both are corrected in section 1 (Scenarios J and
+G(6)). Scenario J expected a "the producer and reviewer differ" statement from the Butler, but
+`commands/feedback.md` only requires a statement when they are the *same* - the smoke test's
+expectation was stricter than the command it was testing. Scenario G(6) expected the exec fallback
+to fail alongside the Herdr path, but the Butler resolved `opencode`'s absolute binary path before
+applying the broken `PATH`, so the fallback ran (with a degraded report) instead of reaching the
+floor.
 
 **Not run or not induced:** Scenario C (Codex not installed); Scenario E2's second case (worker
 wrote a valid result both times instead of stopping without one); the claude write probe against a

@@ -46,7 +46,11 @@ kind with no exec mode.
 
 ## H1 - Detect Herdr
 
-The Butler performs H1 **once**, at step 0. The checks run in order, and the first failure wins:
+The Butler performs H1 **once**, at step 0, and there only under `auto` or `herdr`. Under `native`,
+or with no `delegation` key, H1 does not run at step 0: no Herdr command runs at step 0, and nothing
+in the run mentions the transport, summaries included. The one exception is rung 4 of
+`reference/delegation.md`, which runs H1 when it delegates a kind with no exec mode and announces
+what fails. The checks run in order, and the first failure wins:
 
 - (a) `printenv HERDR_ENV` prints `1`.
 - (b) The binary resolves: `$HERDR_BIN_PATH` is executable, else `command -v herdr` resolves.
@@ -89,7 +93,7 @@ For a kind with no known flag, rung 10 of `reference/delegation.md` applies. The
 before the verbatim `harnesses.<kind>.args`.
 
 With no `models.<role>.model`, no flag is passed, and the worker runs on its CLI's own default. The
-Butler says so in the pre-spawn line (H4).
+Butler says so in the `JDI spawn` line (H4).
 
 ## H3 - Prepare the run
 
@@ -106,11 +110,14 @@ The run directory holds five files:
 
 | File | Written by | When |
 |---|---|---|
-| `manifest.json` | the Butler | before the spawn, never edited afterward |
-| `prompt.md` | the Butler | before the spawn |
+| `manifest.json` | the Butler | in H4, after the pane split and before `agent start`; never edited afterward |
+| `prompt.md` | the Butler | in H4, with `manifest.json` |
 | `report.md` | the worker | first |
 | `result.json` | the worker | last |
 | `outcome.json` | the Butler | at H8 |
+
+H3 fixes the names, creates the run directory, and composes both Butler files. H4 writes them once
+the pane exists, because `manifest.json` records the new pane's ID and is never edited afterward.
 
 **`manifest.json`.** Environment values are never recorded, only the keys.
 
@@ -207,34 +214,35 @@ removes its git directory and its runs. The user may delete `<gitdir>/jdi/runs/`
 
 ## H4 - Start the worker
 
-**Print first.** Before the spawn, the Butler prints the agent name, the kind, the model (or that
-the CLI's own default applies), every argument verbatim from `harnesses.<kind>.args`, the
-environment keys, and the run directory. Every argument is printed back before the spawn, so the
-user sees exactly what is about to run.
+1. **Print the spawn line.** Print the `JDI spawn` line from `reference/delegation.md`, *Where a
+   role runs*, with this run's ID and run directory, and append ` - agent: <agent name>`. Print it
+   immediately before step 2, because the pane split starts the spawn. Nothing else runs in
+   between. A spawn without this line printed first is a defect.
+2. **Create the pane.**
 
-**Create the pane.**
+   - A single role: choose the direction with `herdr pane layout --pane "$HERDR_PANE_ID"`
+     (`right` for a wide pane, `down` otherwise), then create a sibling pane:
+     `herdr pane split --current --direction <d> --cwd <worktree root> [--env KEY=VALUE ...] --no-focus`.
+     Read the new pane's ID from `.result.pane.pane_id`.
+   - A wave: every worker's pane goes in the wave's own tab (`## Waves`). The first worker uses
+     the tab's root pane, and each later one splits a pane inside that tab.
 
-- A single role: choose the direction with `herdr pane layout --pane "$HERDR_PANE_ID"` (`right`
-  for a wide pane, `down` otherwise), then create a sibling pane:
-  `herdr pane split --current --direction <d> --cwd <worktree root> [--env KEY=VALUE ...] --no-focus`.
-  Read the new pane's ID from `.result.pane.pane_id`.
-- A wave: every worker's pane goes in the wave's own tab (`## Waves`). The first worker uses the
-  tab's root pane, and each later one splits a pane inside that tab.
+   `--env` carries `harnesses.<kind>.env` verbatim, because `herdr agent start` has no `--env` or
+   `--cwd` (verified in `--help`).
+3. **Write the run files.** Write `manifest.json`, with the real `pane_id` from step 2, then
+   `prompt.md` (H3). The manifest is written once, here, because the pane ID exists only after
+   the pane split.
+4. **Start the agent.**
 
-`--env` carries `harnesses.<kind>.env` verbatim, because `herdr agent start` has no `--env` or
-`--cwd` (verified in `--help`).
+   ```text
+   herdr agent start <name> --kind <kind> --pane <pane_id> --timeout 120000 [-- <model flag> <args...>]
+   ```
 
-**Start the agent.**
+   Pass `--` only when something follows it.
 
-```text
-herdr agent start <name> --kind <kind> --pane <pane_id> --timeout 120000 [-- <model flag> <args...>]
-```
-
-Pass `--` only when something follows it.
-
-- `agent_started`: continue to H5.
-- `agent_not_ready`: go to H6 with the prompt unsent.
-- Any other error: H8, then fall back (`## When a step fails`).
+   - `agent_started`: continue to H5.
+   - `agent_not_ready`: go to H6 with the prompt unsent.
+   - Any other error: H8, then fall back (`## When a step fails`).
 
 ### H4b - Start an agent in a given pane
 
@@ -275,7 +283,11 @@ records it.
 ## H6 - Handle a blocked worker
 
 1. Inspect with `herdr agent get <name>`, `herdr agent explain <name>`, and
-   `herdr agent read <name> --source recent-unwrapped --lines 80`.
+   `herdr agent read <name> --source recent-unwrapped --lines 80`. When that read (or
+   `--source visible`) does not show the dialog, use
+   `herdr agent read <name> --source detection --lines 80` (`detection` is one of the four
+   sources `herdr agent read --help` lists in 0.8.2). The smoke test saw this in half-width wave
+   panes, where only `detection` showed an OpenCode dialog.
 2. Show the user what was seen.
 3. Approval, permission, trust, or any question UI goes to the user. The user answers in the
    worker's pane. The Butler offers to focus the pane and does so only on a yes. Then it resumes
@@ -324,7 +336,8 @@ success.
    `user_decisions`; `fallback`, null or the path taken; and `pane_closed`, a boolean.
 2. Run `herdr pane close <pane_id>` on every exit: success, failure, abandon, or a fallback of any
    kind. After a wave, close the wave tab once its last pane is closed:
-   `herdr tab close <tab_id>`.
+   `herdr tab close <tab_id>`. Herdr closes a tab itself when its last pane closes, so this call
+   may return `tab_not_found`. That result is expected and harmless: the tab is already gone.
 
 Keep the pane open only when the user asks to inspect it, and then say that the user now owns
 closing it. A failed delegation must not leak one pane per attempt.

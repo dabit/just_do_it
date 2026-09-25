@@ -42,6 +42,13 @@ its work only through a validated result file.**
   the same role through its CLI's non-interactive mode. It is never retried on Herdr in the same
   phase, and the phase always runs. A transport-level failure switches the rest of the run to
   `native`. JDI detects and never repairs: it starts no Herdr server and installs no integration.
+- **Every separately spawned process is announced in one fixed line, and `native` stays silent.**
+  Before a non-interactive CLI run or a Herdr agent starts, the Butler prints one line that opens
+  `JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>)` and then lists the args, the
+  env keys and the run dir (a Herdr agent adds its agent name). A spawn without that line is a
+  defect. Under `native`, or with no `delegation` block, step 0 runs no Herdr command, and the run
+  mentions the transport nowhere, summaries included. Herdr's run files are now written after the
+  pane exists, so `manifest.json` records the real pane ID and is never edited afterward.
 - **The "watch the run" trigger is gone.** Herdr was also used when the user asked to watch a
   delegated role. `delegation.transport` alone decides now, and a role on this session's own CLI
   can already be watched in the harness.

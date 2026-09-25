@@ -23,6 +23,8 @@ STEP_ZERO_FRAGMENTS = (
     "**Then resolve the delegation transport, once**",
     "perform **H1** from JDI's `reference/herdr.md`",
     "With `delegation.transport` `native` or absent, say nothing at all",
+    "run no Herdr command at step 0",
+    "summaries included",
 )
 
 

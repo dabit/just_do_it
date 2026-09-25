@@ -169,6 +169,23 @@ spawns `claude -p` exactly as a Claude session spawns `codex exec`.
 The model flag is the one flag JDI composes from the config, on every separate-process path, exactly
 as above.
 
+**Print the spawn line first.** This rule applies to every separately spawned process: the
+non-interactive command and the Herdr agent alike. Immediately before the spawn, the Butler prints
+this template as one line, with nothing else run in between:
+
+```text
+JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>) - args: <verbatim | none> - env keys: <keys | none> - run dir: <path | none>
+```
+
+`<run-id>` and the run dir exist only on a path that creates a run directory, so the
+non-interactive command prints `-` and `none`. `args` lists every value from
+`harnesses.<kind>.args` verbatim, and `env keys` lists the keys of `harnesses.<kind>.env` and never
+their values. `reference/herdr.md` H4 adds the agent name to the line. A wave prints one line per
+process. A spawn without this line printed first is a defect. This is the same rule that *What
+delegation does not grant* states, that every flag is printed back before the spawn, now with a
+fixed shape. A subagent and an inline adoption are not separately spawned processes, so they print
+no spawn line.
+
 **Herdr.** Under `native`, Herdr is used only when the kind has no exec mode JDI knows. Under `auto`
 or `herdr` it is how rung 2 runs another CLI when Herdr is detected. Every Herdr step (detection,
 pane, start, prompt and wait, states, the result contract, waves, pane close) is in

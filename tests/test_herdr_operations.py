@@ -7,6 +7,7 @@ observed and never repaired, the result arrives through a file, a settled state
 is not proof of success, and every pane JDI opens is closed on every exit.
 """
 
+import re
 import unittest
 
 import jdi_files
@@ -142,9 +143,38 @@ class HerdrOperationsTest(unittest.TestCase):
             "--env",
             "--no-focus",
             "herdr agent start",
-            "printed back before the spawn",
             "`agent_not_ready`",
         )
+
+    def test_h4_opens_with_the_spawn_line(self):
+        lines = self.section_lines("## H4 - Start the worker")
+        first_step = next((line for line in lines if re.match(r"\d+\. ", line)), "")
+        self.assertTrue(
+            first_step.startswith("1. **Print the spawn line.**"),
+            "H4's first numbered step is %r, not the spawn line" % first_step,
+        )
+        self.assertSectionContains(
+            "## H4 - Start the worker",
+            "`JDI spawn` line",
+            "`reference/delegation.md`, *Where a role runs*",
+            "agent: <agent name>",
+        )
+        self.assertNotIn("**Print first.**", self.text)
+
+    def test_manifest_is_written_after_the_pane_exists(self):
+        body = self.section_text("## H4 - Start the worker")
+        for marker in ("herdr pane split --current", "**Write the run files.**", "herdr agent start <name>"):
+            self.assertIn(marker, body, "H4 lacks %r" % marker)
+        split = body.index("herdr pane split --current")
+        write = body.index("**Write the run files.**")
+        start = body.index("herdr agent start <name>")
+        self.assertLess(split, write, "H4 writes the run files before the pane split")
+        self.assertLess(write, start, "H4 starts the agent before writing the run files")
+        self.assertSectionContains(
+            "## H3 - Prepare the run",
+            "| `manifest.json` | the Butler | in H4, after the pane split and before `agent start`; never edited afterward |",
+        )
+        self.assertNotIn("before the spawn, never edited afterward", self.text)
 
     def test_h5_prompt_and_wait(self):
         heading = "## H5 - Prompt and wait"
@@ -189,7 +219,22 @@ class HerdrOperationsTest(unittest.TestCase):
 
     def test_h6_blocked(self):
         self.assertSectionContains(
-            "## H6 - Handle a blocked worker", "Never `send-keys` into"
+            "## H6 - Handle a blocked worker",
+            "Never `send-keys` into",
+            "herdr agent read <name> --source detection",
+        )
+
+    def test_h1_native_runs_no_herdr_command(self):
+        self.assertSectionContains(
+            "## H1 - Detect Herdr",
+            "Under `native`, or with no `delegation` key, H1 does not run",
+            "no Herdr command runs at step 0",
+            "summaries included",
+        )
+
+    def test_wave_tab_close_may_find_the_tab_gone(self):
+        self.assertSectionContains(
+            "## H8 - Close the pane and record the outcome", "`tab_not_found`"
         )
 
     def test_h7_validate(self):
