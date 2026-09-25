@@ -131,6 +131,7 @@ class HerdrOperationsTest(unittest.TestCase):
             "workspace_id",
             "pane_id",
             "agent_name",
+            "spawn_line",
             "expected",
             "allowed_writes",
         ):
@@ -160,6 +161,29 @@ class HerdrOperationsTest(unittest.TestCase):
             "agent: <agent name>",
         )
         self.assertNotIn("**Print first.**", self.text)
+
+    def test_h4_spawn_line_and_pane_split_are_one_command(self):
+        lines = self.section_lines("## H4 - Start the worker")
+        start = next(i for i, line in enumerate(lines) if line.startswith("1. "))
+        end = next(i for i, line in enumerate(lines) if line.startswith("2. "))
+        step = lines[start:end]
+        fence = [i for i, line in enumerate(step) if line.strip().startswith("```")]
+        self.assertGreaterEqual(len(fence), 2, "H4 step 1 has no code block")
+        block = step[fence[0] + 1 : fence[1]]
+        joined = [
+            line
+            for line in block
+            if "printf '%s\\n' \"JDI spawn" in line and "&& herdr pane split --current" in line
+        ]
+        self.assertTrue(
+            joined,
+            "H4 step 1's code block has no line that prints the spawn line and splits the pane",
+        )
+        self.assertSectionContains(
+            "## H4 - Start the worker",
+            "the same shell command",
+            "`\"spawn_line\"`",
+        )
 
     def test_manifest_is_written_after_the_pane_exists(self):
         body = self.section_text("## H4 - Start the worker")

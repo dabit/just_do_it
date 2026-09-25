@@ -170,8 +170,9 @@ The model flag is the one flag JDI composes from the config, on every separate-p
 as above.
 
 **Print the spawn line first.** This rule applies to every separately spawned process: the
-non-interactive command and the Herdr agent alike. Immediately before the spawn, the Butler prints
-this template as one line, with nothing else run in between:
+non-interactive command and the Herdr agent alike. The line is the first output of the spawn
+itself: the same shell command prints it and then spawns, joined by `&&` so that the spawn does not
+run if the print did not. The template, as one line:
 
 ```text
 JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>) - args: <verbatim | none> - env keys: <keys | none> - run dir: <path | none>
@@ -181,10 +182,23 @@ JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>) - args: <ver
 non-interactive command prints `-` and `none`. `args` lists every value from
 `harnesses.<kind>.args` verbatim, and `env keys` lists the keys of `harnesses.<kind>.env` and never
 their values. `reference/herdr.md` H4 adds the agent name to the line. A wave prints one line per
-process. A spawn without this line printed first is a defect. This is the same rule that *What
-delegation does not grant* states, that every flag is printed back before the spawn, now with a
-fixed shape. A subagent and an inline adoption are not separately spawned processes, so they print
-no spawn line.
+process.
+
+The command has this form, where `<spawn command>` is one of the three non-interactive commands
+above, exactly as written there:
+
+```text
+printf '%s\n' "JDI spawn -: <Role> on <kind> (<model | CLI default>) - args: <verbatim | none> - env keys: <keys | none> - run dir: none" && <spawn command>
+```
+
+Under Herdr the spawn is the pane split, and `reference/herdr.md` H4 step 1 gives that command in
+the same form. The Butler also repeats the line in its visible message to the user in the same
+turn. A summary never claims that the spawn line was printed unless the line appears in that
+command's output. The line is tied to the spawn command because a live run skipped a rule stated
+only as prose and then reported the line as printed. A spawn without this line printed first is a
+defect. This is the same rule that *What delegation does not grant* states, that every flag is
+printed back before the spawn, now with a fixed shape. A subagent and an inline adoption are not
+separately spawned processes, so they print no spawn line.
 
 **Herdr.** Under `native`, Herdr is used only when the kind has no exec mode JDI knows. Under `auto`
 or `herdr` it is how rung 2 runs another CLI when Herdr is detected. Every Herdr step (detection,

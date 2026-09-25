@@ -133,6 +133,35 @@ class SpawnLineTest(unittest.TestCase):
                     "reference/delegation.md's Where a role runs lacks %r" % fragment,
                 )
 
+    def test_spawn_command_itself_prints_the_line(self):
+        """A second live run showed the prose rule skipped and then reported as done.
+
+        The line now comes out of the same shell command that spawns, joined with
+        `&&`, so skipping the line skips the spawn. A summary may not claim the
+        line unless that command's output shows it.
+        """
+        section = " ".join(
+            " ".join(
+                jdi_files.section(
+                    jdi_files.read("reference/delegation.md"), "## Where a role runs"
+                )
+            ).split()
+        )
+        for fragment in (
+            "printf '%s\\n' \"JDI spawn",
+            "&& <spawn command>",
+            "the same shell command",
+            "`reference/herdr.md` H4",
+            "repeats the line in its visible message",
+            "A summary never claims that the spawn line was printed unless the line appears in that command's output.",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment,
+                    section,
+                    "reference/delegation.md's Where a role runs lacks %r" % fragment,
+                )
+
     def test_butler_skip_rule_names_the_spawn_line(self):
         butler = normalized("roles/butler.md")
         self.assertIn(
@@ -190,6 +219,14 @@ class ArchitectureDocTest(unittest.TestCase):
             "## Extending to other roles and waves",
             lines,
             "%s still has the superseded heading" % self.ARCHITECTURE,
+        )
+
+    def test_architecture_doc_lists_the_spawn_line_in_the_manifest(self):
+        text = " ".join(self.architecture().split())
+        self.assertIn(
+            "the `JDI spawn` line exactly as printed",
+            text,
+            "%s's manifest row lacks the spawn line" % self.ARCHITECTURE,
         )
 
     def test_architecture_doc_states_the_backend_and_repair_rules(self):

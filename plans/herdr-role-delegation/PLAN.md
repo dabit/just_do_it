@@ -390,6 +390,10 @@ J2), the text before `agent start` was only a sentence like "Next I check whethe
 Researcher on OpenCode" - never the agent name, kind, model, arguments, env keys, and run directory
 that `reference/herdr.md` H4 required. The rule lived only in that one doc section with nothing
 enforcing it at the call sites, so it was easy to skip.
+After the re-check below failed, a second fix ties the line to the spawn: the same shell command
+prints the `JDI spawn` line and then spawns (`printf ... && <spawn command>`, and in H4 step 1
+`printf ... && herdr pane split ...`), and `manifest.json` records the printed line in
+`"spawn_line"`. This second fix is not yet verified in a live run.
 
 (b) **A `native` Butler still probed Herdr, and summaries broke silence.** Fixed on the branch;
 agent re-check passed (not user acceptance): the step-0 line in the nine delegating commands and H1 now say to run no

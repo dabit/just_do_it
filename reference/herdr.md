@@ -141,6 +141,7 @@ the pane exists, because `manifest.json` records the new pane's ID and is never 
     "agent_name": "jdi-<role>-<4 hex>",
     "integration": "<what herdr integration status reported for the kind>"
   },
+  "spawn_line": "<the JDI spawn line exactly as H4 step 1 printed it>",
   "worker": {"kind": "opencode", "model": "<value or null>", "args": ["<verbatim>"], "env_keys": ["<KEY>"]},
   "prompt": "<abs>/prompt.md",
   "expected": {"report": "<abs>/report.md", "result": "<abs>/result.json"},
@@ -214,24 +215,34 @@ removes its git directory and its runs. The user may delete `<gitdir>/jdi/runs/`
 
 ## H4 - Start the worker
 
-1. **Print the spawn line.** Print the `JDI spawn` line from `reference/delegation.md`, *Where a
-   role runs*, with this run's ID and run directory, and append ` - agent: <agent name>`. Print it
-   immediately before step 2, because the pane split starts the spawn. Nothing else runs in
-   between. A spawn without this line printed first is a defect.
-2. **Create the pane.**
+1. **Print the spawn line.** The pane split starts the spawn, so the `JDI spawn` line and the pane
+   split are the same shell command, joined by `&&`: if the print does not run, the split does not
+   run either. The line is the one from `reference/delegation.md`, *Where a role runs*, with this
+   run's ID and run directory, and ` - agent: <agent name>` appended.
 
-   - A single role: choose the direction with `herdr pane layout --pane "$HERDR_PANE_ID"`
-     (`right` for a wide pane, `down` otherwise), then create a sibling pane:
-     `herdr pane split --current --direction <d> --cwd <worktree root> [--env KEY=VALUE ...] --no-focus`.
-     Read the new pane's ID from `.result.pane.pane_id`.
+   - A single role: first choose the direction with `herdr pane layout --pane "$HERDR_PANE_ID"`
+     (`right` for a wide pane, `down` otherwise). Then print the line and create a sibling pane in
+     one command:
+
+     ```text
+     printf '%s\n' "JDI spawn <run-id>: <Role> on <kind> (<model | CLI default>) - args: <verbatim | none> - env keys: <keys | none> - run dir: <path> - agent: <agent name>" && herdr pane split --current --direction <d> --cwd <worktree root> [--env KEY=VALUE ...] --no-focus
+     ```
+
    - A wave: every worker's pane goes in the wave's own tab (`## Waves`). The first worker uses
-     the tab's root pane, and each later one splits a pane inside that tab.
+     the tab's root pane, and each later one splits a pane inside that tab. Each worker's line is
+     printed by the same command that creates its pane: `printf '%s\n' "<its JDI spawn line>" &&`
+     followed by `herdr tab create ...` (`## Waves`) for the first worker, or by the pane split
+     for each later one.
 
-   `--env` carries `harnesses.<kind>.env` verbatim, because `herdr agent start` has no `--env` or
-   `--cwd` (verified in `--help`).
-3. **Write the run files.** Write `manifest.json`, with the real `pane_id` from step 2, then
-   `prompt.md` (H3). The manifest is written once, here, because the pane ID exists only after
-   the pane split.
+   The Butler repeats the line in its visible message to the user in the same turn. A summary
+   never claims the line was printed unless it appears in that command's output. A spawn without
+   this line printed first is a defect.
+2. **Read the pane.** Read the new pane's ID from `.result.pane.pane_id` (for a wave's first
+   worker, from `.result.root_pane.pane_id`). `--env` carries `harnesses.<kind>.env` verbatim,
+   because `herdr agent start` has no `--env` or `--cwd` (verified in `--help`).
+3. **Write the run files.** Write `manifest.json`, with the real `pane_id` from step 2 and the
+   exact line step 1 printed in `"spawn_line"`, then `prompt.md` (H3). The manifest is written
+   once, here, because the pane ID exists only after the pane split.
 4. **Start the agent.**
 
    ```text
@@ -390,8 +401,10 @@ This section applies to Executors on another CLI, under `auto` or `herdr` with H
   directory, agent name and `manifest.json`. A task's `allowed_writes` is its task file's
   `## Files` plus its run directory.
 - **The wave tab.** The wave gets its own tab:
-  `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd <worktree root> --no-focus`, which
-  returns `.result.tab` and `.result.root_pane`. Then name it with
+  `herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd <worktree root> [--env KEY=VALUE ...] --no-focus`,
+  which returns `.result.tab` and `.result.root_pane`. The first worker runs in that root pane, so
+  its `harnesses.<kind>.env` rides on this command's `--env` (verified in `herdr tab create --help`),
+  as later workers' env rides on their pane split. Then name it with
   `herdr tab rename <tab_id> jdi-wave-<first run id>`.
 - **The cap.** The Butler keeps at most 4 worker panes open at once. It fills the cap and starts
   the next task as each slot frees, exactly as the subagent-cap rule in `reference/delegation.md`
