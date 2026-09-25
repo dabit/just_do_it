@@ -379,10 +379,12 @@ printed; remove the linked worktree; delete the scratch clone(s); re-enable the 
 ### 2. Defects the smoke test found
 
 Defects (a), (b) and (c) are fixed on the branch. An agent re-check on 2026-09-24 (see the end of
-this section) passed for (b) and failed for (a); (a) and (c) remain pending re-check in UAT, and
-none of the three has user acceptance.
+this section) passed for (b) and failed for (a). A second agent re-check the same day passed for
+(a) at `2c2370d`. (c) remains pending re-check in UAT, and none of the three has user acceptance.
 
-(a) **The H4 pre-spawn line never printed.** Fixed on the branch, pending re-check in UAT:
+(a) **The H4 pre-spawn line never printed.** Fixed on the branch; agent re-check passed (not user
+acceptance). In Re-check 2 the Butler also repeated the line in a visible message in the same turn
+(criterion 3 held). The first fix:
 `reference/delegation.md` *Where a role runs* now gives a fixed `JDI spawn` template for every
 separately spawned process, H4 makes it step 1, and `roles/butler.md` names it beside the skip
 announcements. What the smoke test saw: on every Herdr spawn (Scenarios A, D, E, E2, F, G6, I,
@@ -393,7 +395,7 @@ enforcing it at the call sites, so it was easy to skip.
 After the re-check below failed, a second fix ties the line to the spawn: the same shell command
 prints the `JDI spawn` line and then spawns (`printf ... && <spawn command>`, and in H4 step 1
 `printf ... && herdr pane split ...`), and `manifest.json` records the printed line in
-`"spawn_line"`. This second fix is not yet verified in a live run.
+`"spawn_line"`. Re-check 2 below verified this second fix in a live run.
 
 (b) **A `native` Butler still probed Herdr, and summaries broke silence.** Fixed on the branch;
 agent re-check passed (not user acceptance): the step-0 line in the nine delegating commands and H1 now say to run no
@@ -469,6 +471,37 @@ command either. No pane was opened. No message says which transport the run used
 says only that `.jdi/config.local.yml` "overrides the `tracker`, `jev`, and `delegation` blocks".
 Each Herdr mention in the final summary is a research finding about this plan's subject, for
 example "`native` runs no Herdr command at step 0", and none describes this run's delegation.
+
+### Re-check 2 (agent smoke test, 2026-09-24)
+
+An agent ran this re-check, not the user. It repeated Check 1 above with the same config and setup,
+in the scratch clone at `2c2370d`. The Butler was a fresh session (`claude --plugin-dir <repo>
+--permission-mode bypassPermissions`, installed plugin disabled) in its own Herdr pane, running
+`/jdi:research`. Transcript: `497b3697-30ca-466e-83cb-f10bd67490ed.jsonl`. Worker:
+`opencode/big-pickle`. The run finished in one turn with no questions to answer.
+
+**Criterion 1, the line and the split are one command: PASS.** The Bash call that created the
+worker pane was:
+
+```text
+printf '%s\n' "JDI spawn 20260925T055127Z-researcher-bed6: Researcher on opencode (opencode/big-pickle) - args: none - env keys: XDG_CONFIG_HOME - run dir: <clone>/.git/jdi/runs/20260925T055127Z-researcher-bed6 - agent: jdi-researcher-bed6" && herdr pane split --current --direction down --cwd <clone> --env XDG_CONFIG_HOME=<scratch>/xdg --no-focus
+```
+
+Its tool result starts with the printed line, then the split's JSON (`"pane_id":"w3A:pX"`).
+
+**Criterion 2, the manifest: PASS.** `manifest.json` has `"spawn_line"` equal, character for
+character, to the printed line, and `"pane_id": "w3A:pX"`. The Butler wrote it once, after the
+split and before `agent start`. No later command wrote to it.
+
+**Criterion 3, the line in a visible message: PASS, with one limit.** The text block just before
+the split said only "Printing the spawn line and splitting the worker pane in one command:". The
+line itself appears verbatim, in a code block, in the final visible message of the same turn, under
+**Delegation**. So the repeat came at the end of the turn, not next to the spawn.
+
+**The summary's claim is true.** The final message says "The line above is from the pane-split
+command's own output." The tool result above confirms it. The rest of the run also passed:
+`outcome.json` has `"final": "valid"` and `"pane_closed": true`, and the worker agent was gone from
+`herdr agent list` afterward.
 
 ### 3. Follow-ups
 
