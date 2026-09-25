@@ -378,8 +378,9 @@ printed; remove the linked worktree; delete the scratch clone(s); re-enable the 
 
 ### 2. Defects the smoke test found
 
-Defects (a), (b) and (c) are fixed on the branch, pending re-check in UAT; none of the three is
-verified yet.
+Defects (a), (b) and (c) are fixed on the branch. An agent re-check on 2026-09-24 (see the end of
+this section) passed for (b) and failed for (a); (a) and (c) remain pending re-check in UAT, and
+none of the three has user acceptance.
 
 (a) **The H4 pre-spawn line never printed.** Fixed on the branch, pending re-check in UAT:
 `reference/delegation.md` *Where a role runs* now gives a fixed `JDI spawn` template for every
@@ -390,8 +391,8 @@ Researcher on OpenCode" - never the agent name, kind, model, arguments, env keys
 that `reference/herdr.md` H4 required. The rule lived only in that one doc section with nothing
 enforcing it at the call sites, so it was easy to skip.
 
-(b) **A `native` Butler still probed Herdr, and summaries broke silence.** Fixed on the branch,
-pending re-check in UAT: the step-0 line in the nine delegating commands and H1 now say to run no
+(b) **A `native` Butler still probed Herdr, and summaries broke silence.** Fixed on the branch;
+agent re-check passed (not user acceptance): the step-0 line in the nine delegating commands and H1 now say to run no
 Herdr command at step 0 under `native` or with no `delegation` key, and to mention the transport
 nowhere in the run, summaries included. What the smoke test saw: under `transport: native` inside
 Herdr (Scenario G3), the Butler still ran `herdr status` at step 0, though `reference/delegation.md`
@@ -421,6 +422,49 @@ wrote a valid result both times instead of stopping without one); the claude wri
 linked worktree (the default-mode dialog already covers it); the UAT-3 crash-recovery step in
 Scenario K (partially covered via UAT-1 instead); the five-task wave pane-cap check in Scenario I;
 Scenario H's `/jdi:plan` run and its comparison against the installed 1.0.8 plugin.
+
+### Re-check (agent smoke test, 2026-09-24)
+
+An agent ran this re-check, not the user. Each check used a fresh Butler (`claude --plugin-dir
+<repo> --permission-mode bypassPermissions`, installed plugin disabled) in its own Herdr pane, in the
+scratch clone at `3b2749b`, running `/jdi:research` on the clone's `herdr-role-delegation` plan.
+Worker model: `opencode/big-pickle` (OpenCode Zen free tier). A probe of `mimo-v2.6-flash-free`
+returned no output, so this run did not use it.
+
+**Check 1, defect (a), the spawn line: FAIL.** Config: `delegation: {transport: auto}`,
+`tracker: {name: none}`, `models.researcher: {model: opencode/big-pickle, harness: opencode}`,
+`harnesses.opencode.env: {XDG_CONFIG_HOME: <scratch>/xdg}`. No `PATH` entry was needed. The Butler
+printed no `JDI spawn` line. The session transcript (`1b86c7e1-...jsonl`) has no text block with
+`JDI spawn <run-id>` in it. The only text between the run setup and the pane split was a thinking
+narration that the Claude Code UI shows:
+
+```text
+Herdr's OpenCode integration is outdated (v9 < v10), which may make lifecycle detection less
+reliable. I'm spawning a researcher agent (20260925T053238Z-researcher-a456) on opencode to investigate.
+```
+
+The next tool call was `herdr pane split ... --env XDG_CONFIG_HOME=... --no-focus` (pane `w3A:pT`).
+The final summary still said "The JDI spawn line printed before the pane split, with the agent
+name included". That claim is false. The rest of the run passed. The manifest was written once,
+after the split, in the same command as `agent start`, and no later command edited it
+(`manifest.json` mtime 23:33:18, equal to `prompt.md`):
+
+```text
+"herdr": {"butler_pane_id": "w3A:pS", "pane_id": "w3A:pT", "agent_name": "jdi-researcher-a456", ...}
+"worker": {"kind": "opencode", "model": "opencode/big-pickle", "args": [], "env_keys": ["XDG_CONFIG_HOME"]}
+```
+
+`outcome.json`: `"final": "valid"`, `"pane_closed": true`. That result confirms the manifest part of
+defect (c) only; the other parts of (c) were not exercised.
+
+**Check 2, defect (b), native silence: PASS.** Config: `delegation: {transport: native}`, no role
+harness (Researcher native, `model: opus`). The Butler's six Bash calls at step 0 and afterward
+read config, plans and git state only. None ran `herdr`, `printenv HERDR_ENV` or `herdr status`.
+The Researcher ran as a native `jdi:researcher` subagent, and its 28 tool calls ran no `herdr`
+command either. No pane was opened. No message says which transport the run used. The setup note
+says only that `.jdi/config.local.yml` "overrides the `tracker`, `jev`, and `delegation` blocks".
+Each Herdr mention in the final summary is a research finding about this plan's subject, for
+example "`native` runs no Herdr command at step 0", and none describes this run's delegation.
 
 ### 3. Follow-ups
 
