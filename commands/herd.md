@@ -226,7 +226,7 @@ Follow these steps:
     reason. For a seed failure, name the command and its exit status.
 
     Under a **Worktree** heading, list each issue's worktree path and scratch branch, so the
-    cleanup in step 12 is not a surprise. Say that `/jdi:prep` renames the branch to one naming the
+    cleanup in step 11 is not a surprise. Say that `/jdi:prep` renames the branch to one naming the
     issue, so `git worktree list` finds it later.
 
     Print `harnesses.<kind>.args` and the `harnesses.<kind>.env` keys the run passed, verbatim, or
@@ -235,39 +235,11 @@ Follow these steps:
     set and ran, or that it seeded nothing.** An unseeded herd looks identical until an agent trips
     over it.
 
-    Close the report with H9's reattach command, which opens an existing worktree as a workspace
-    again after a restart.
+    Say that the Herdr sidebar shows `blocked` and `done` per pane, and that it is how to follow the
+    herd from here: JDI starts no poll. Close the report with H9's reattach command, which
+    opens an existing worktree as a workspace again after a restart.
 
-11. **Offer the watch loop** - A spawned agent that waits at a question holds its turn and runs no
-    tools, so **it cannot call for help at the moment help is needed**. A poll is the only signal
-    that covers that case, and it is also the only one that catches an agent blocked before it
-    ever read its prompt.
-
-    Ask one question, through the harness's own multiple-choice question facility, where it has
-    one; otherwise inline as a numbered list:
-
-    | Header | Question | Options |
-    |---|---|---|
-    | `Watch` | Watch these `<N>` agents for questions? | Every 5 minutes (Recommended) · Every 15 minutes · No, I will watch the Herdr sidebar |
-
-    Where a repository hook blocks the facility, ask the same question inline. **Do not retry a
-    blocked facility.**
-
-    On either interval, invoke the harness's loop facility with this prompt:
-
-    ```
-    Check the JDI herd agents <names> per H9 Watch in JDI's reference/herdr.md. Report any
-    agent that is blocked, with its question text. Report any agent that finished, with its
-    plan path. Say nothing when nothing changed.
-    ```
-
-    On a decline, say that the Herdr sidebar shows `blocked` and `done` per pane, and print the loop
-    line so the user can start it later. **Never start a loop without an answer.** It spends tokens
-    on a cadence, so it is the user's call.
-
-    Where the harness has no loop facility, say so and stop at the sidebar advice.
-
-12. **Say how to clean up - clean nothing** - List, for each issue, the workspace ID, the worktree
+11. **Say how to clean up - clean nothing** - List, for each issue, the workspace ID, the worktree
     path, and the scratch branch, with the commands that remove them, per H9's *Cleanup*: the
     worktree removal by workspace, then `git branch -D jdi-herd-scratch-<herd-id>-<N>` once the
     real feature branch exists. A worktree that `herd.seed` wrote into is dirty, so its removal
@@ -283,7 +255,8 @@ Follow these steps:
 
 ## Limits worth stating in the report
 
-- **A blocked agent is silent.** The loop, or the sidebar, is the signal. Nothing pushes.
+- **A blocked agent is silent.** The Herdr sidebar is the signal. Nothing pushes, and nothing
+  polls.
 - **The first-run permission prompt lands before the agent reads its prompt.** With no bypass flag
   in `harnesses.<kind>.args`, the first alert of a herd is often about permissions, not about the
   issue. A bypass flag buys that out, and pays for it with an unsupervised agent.

@@ -69,6 +69,20 @@ class HerdCommandTest(unittest.TestCase):
                     fragment, herd, "%s still says %r" % (HERD_COMMAND, fragment)
                 )
 
+    def test_herd_offers_no_watch_loop(self):
+        """The Herdr sidebar shows blocked and done per pane; the herd starts no poll."""
+        herd = normalized(self.herd_text())
+        for fragment in ("watch loop", "loop facility", "Every 5 minutes"):
+            with self.subTest(fragment=fragment):
+                self.assertNotIn(
+                    fragment, herd, "%s still offers a loop: %r" % (HERD_COMMAND, fragment)
+                )
+        self.assertIn(
+            "the Herdr sidebar shows `blocked` and `done` per pane",
+            herd,
+            "%s does not point at the Herdr sidebar" % HERD_COMMAND,
+        )
+
     def test_h9_exists_with_the_invocation_table(self):
         lines = self.h9_lines()
         for row in INVOCATION_ROWS:
