@@ -434,14 +434,16 @@ the herd hands the work off and reports.
 `--kind` the user passed, in place of `models.<role>.harness`. A kind with no row in the
 invocation table below is rejected at H2 for a herd.
 
-**Names.** The caller supplies one name per issue, `jdi-herd-<issue>`, built as
-`commands/herd.md` step 5 says. Check it against `herdr agent list`. A live agent that already
-holds the name may be a Butler for that issue, so the caller reports it and asks.
+**Names.** The caller supplies one name per issue, `<slug>-<suffix>`, built from the issue title
+as `commands/herd.md` step 5 says: a short slug of the title's key words, then the issue's short
+ID. When no title was read, the name falls back to `jdi-herd-<issue>`. Check the name against
+`herdr agent list`. A live agent that already holds the name may be a Butler for that issue, so
+the caller reports it and asks.
 
-**The worktree folder carries the issue.** Its folder name is the step-5 name,
-`jdi-herd-<issue>`, so after a crash or a closed workspace `git worktree list` (or `ls`) shows
-which folder belongs to which issue, even when prep never reached its branch step. Build the path
-as `<worktrees dir>/<repo>/jdi-herd-<issue>`:
+**The worktree folder carries the issue.** Its folder name is the step-5 name, which ends in the
+suffix, so after a crash or a closed workspace `git worktree list` (or `ls`) shows which folder
+belongs to which issue, even when prep never reached its branch step. Build the path as
+`<worktrees dir>/<repo>/<name>`:
 
 - `<worktrees dir>` is `[worktrees] directory` from Herdr's config (`~/.config/herdr/config.toml`)
   when that is set, else Herdr's documented default `~/.herdr/worktrees` (from
@@ -449,8 +451,12 @@ as `<worktrees dir>/<repo>/jdi-herd-<issue>`:
 - `<repo>` is the basename of the main checkout. This matches the layout Herdr already uses
   (`~/.herdr/worktrees/<repo>/<folder>`, observed on this machine).
 
-**An existing folder is not overwritten.** When `<worktrees dir>/<repo>/jdi-herd-<issue>` already
-exists, a herd has run for this issue before. Say so. Show its branch
+**An existing folder is not overwritten.** Match on the suffix, not the whole name: the slug comes
+from a title and a judgment, so a second herd for the same issue can pick different words, and the
+title can change between runs. Look in `<worktrees dir>/<repo>/` for any folder whose name
+ends in `-<suffix>`, or is named `jdi-herd-<issue>` from an older herd. When one exists, a herd
+has run for this issue before. A false match costs one question, never a folder. Say so, and name
+the folder. Show its branch
 (`git -C <path> branch --show-current`) and whether its plan folder has uncommitted files
 (`git -C <path> status --porcelain -- <plans.path>`). Then ask: continue there (a fresh session in
 that folder, `/jdi:status`), or skip this issue. Never create a second folder beside it, and never
@@ -468,8 +474,14 @@ branch.
 **Create it.**
 
 ```text
-herdr worktree create --cwd "$PWD" --path <worktrees dir>/<repo>/jdi-herd-<issue> --branch jdi-herd-scratch-<herd-id>-<N> --base origin/<default> --label "<ISSUE-ID>" --no-focus
+herdr worktree create --cwd "$PWD" --path <worktrees dir>/<repo>/<name> --branch jdi-herd-scratch-<herd-id>-<N> --base origin/<default> --label "<SHORT-ID> <TITLE>" --no-focus
 ```
+
+The label is the issue title in full, after the short ID, for example
+`f4960613 Seam 1 - A copy lands directly below the original as a sibling`. When no title was read,
+it is `"<ISSUE-ID>"`. Pass the label as one shell argument, quoted so that a quote, `$` or
+backtick in a title arrives literally. `herdr worktree create --help` and
+`herdr workspace rename --help` (0.8.2) state no length limit for a label.
 
 Read `.result.worktree.path`, `.result.root_pane.pane_id`, `.result.workspace.workspace_id` and
 `.result.tab.tab_id`. Confirm that `.result.worktree.path` equals the path asked for. When it
@@ -498,7 +510,7 @@ These spellings come from the README install table that `tests/test_codex_plugin
 
 **Label the tab.** `herdr tab rename <tab_id> <name>`, with `tab_id` read from `.result.tab.tab_id`
 (or from the `herdr tab create` result when the environment forced a new tab). The workspace keeps
-the `--label "<ISSUE-ID>"` it was created with.
+the `--label` it was created with, the title label above.
 
 **Start the Butler** with **H4b** under `<name>`, in the pane chosen above. The arguments are
 `harnesses.<kind>.args` verbatim, with no model flag.

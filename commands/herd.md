@@ -51,9 +51,17 @@ Follow these steps:
 3. **Parse the issues** - Split `$ARGUMENTS` on whitespace and commas, and drop any `--kind <x>`
    the user passed. Normalize each ID per **T1** in JDI's `reference/tracker.md`. With no issue IDs
    at all, ask which issues to herd and stop; **never invent one, and never create one here**.
-   `/jdi:herd` only prepares issues that already exist. Where the count is over
-   `herd.max_parallel`, name the excess, explain that each agent is a full session with a real
-   token cost, and ask before you go wider.
+   `/jdi:herd` only prepares issues that already exist.
+
+   Then perform **T2** from `reference/tracker.md` for each issue to read its title. Step 5 builds
+   the agent name from it, and step 6 labels the workspace with it. A title read back also proves
+   the issue exists. With no tracker integration, or when T2 cannot read a title for an issue, the
+   herd falls back to the old name `jdi-herd-<issue>` for that issue and says so once, naming the
+   issues it fell back for. That name is `jdi-herd-` plus the normalized issue ID, lowercased, with
+   every character outside `[a-z0-9-]` replaced by `-`.
+
+   Where the count is over `herd.max_parallel`, name the excess, explain that each agent is a full
+   session with a real token cost, and ask before you go wider.
 
 4. **Check the repository** - Confirm this is a git work tree. Run `git fetch origin --prune`, then
    resolve `<default>` from `git.default_branch`, and detect it with
@@ -66,20 +74,40 @@ Follow these steps:
    either.** `herd.seed` in step 7 is what puts it back.
 
 5. **Reserve the agent names - one name per issue** - Build **one name per issue**. It is the Herdr
-   agent name and the tab label, and step 6 uses it as the worktree's folder name too, so the folder
-   shows the issue on disk.
+   agent name, the tab label, and, in step 6, the worktree's folder name, so the folder shows the
+   issue on disk. It is chosen once, here, and printed in the step 10 report. Nothing later depends
+   on building it again.
 
-   - The name is `jdi-herd-<issue>`: `jdi-herd-` plus the normalized issue ID, lowercased, with
-     every character outside `[a-z0-9-]` replaced by `-`. `ENG-1234` gives `jdi-herd-eng-1234`;
-     GitHub issue `4` gives `jdi-herd-4`. A bare lowercased ID would fail Herdr's rule that a name
-     starts with a letter.
-   - The name must match Herdr's `[a-z][a-z0-9_-]{0,31}`. When the issue part is too long, cut it
-     to fit. When two cut names in one herd collide, append `-2`, `-3`, and say which issue got
-     which name.
+   - The name is `<slug>-<suffix>`, the same kind of readable name `/jdi:prep` gives a plan. The
+     herd cannot reuse prep's name, because it names the agent before prep runs, so it builds one
+     from the step-3 title.
+   - `<slug>` is a short kebab-case slug of the title's key words, built the way **T6** in
+     `reference/tracker.md` builds a branch slug: lowercase, only `[a-z0-9-]`, a few words. Drop
+     filler words, and drop prefixes that carry no meaning on their own. When no word survives,
+     the name is the suffix alone.
+   - `<suffix>` is the issue's short identity, so the name always shows the issue. Use the short ID
+     the repo's own convention prescribes, when its `CLAUDE.md` / `AGENTS.md` or the comments in
+     `.jdi/config.yml` state one (for example, the first eight characters of a UUID). Otherwise use
+     the normalized issue ID, lowercased, with every character outside `[a-z0-9-]` replaced by `-`:
+     `eng-1234`, `4`.
+   - The whole name must match Herdr's `[a-z][a-z0-9_-]{0,31}`, so 32 characters at most. When it
+     is too long, drop words from the end of the slug and keep the suffix whole. Cut the suffix only
+     when the suffix alone does not fit. When the name would not start with a letter, prefix `jdi-`.
+     When two names in one herd collide, append `-2`, `-3`, and say which issue got which name.
+   - The fallback name from step 3, `jdi-herd-<issue>`, follows the same length rule.
    - List the live agents (H9, *Names*). Where a live agent already holds a name, a Butler for that
      issue may already exist. Say which agent holds it and ask, rather than start a second one
      beside it.
-   - The workspace label stays the issue ID. JDI passes no session-name flag to the harness.
+   - JDI passes no session-name flag to the harness.
+
+   Worked examples. A commission whose UUID starts `f4960613`, in a repo whose config prescribes
+   that eight-character short ID, titled "Seam 1 - A copy lands directly below the original as a
+   sibling": prep's plan slug is `copy-lands-below-original`, but with the suffix that makes 34
+   characters, so the herd drops the last word and names it `copy-lands-below-f4960613`. `ENG-1234`,
+   "Add presence indicators to pages", gives `add-presence-indicators-eng-1234`, exactly 32
+   characters. GitHub issue `4`, "Support importing calendar events from ICS files with recurring
+   rules", gives `import-calendar-events-ics-4`. A title that starts with a digit, such as "2FA for
+   admins" on issue `12`, gives `jdi-2fa-admins-12`.
 
    Getting back to a Butler's work later does not depend on this name. The plan on the worktree's
    branch is the durable state, and a fresh session started in that worktree continues it with
@@ -89,21 +117,27 @@ Follow these steps:
    name, so this run's branches never collide with the ones an earlier herd left behind.
 
 6. **Create one worktree per issue** - For issue *N*, perform **H9** from `reference/herdr.md`
-   with the step-5 name, the herd ID, *N*, `<default>`, and the issue ID as the workspace label.
-   H9 builds the path `<worktrees dir>/<repo>/jdi-herd-<issue>`, creates the worktree on the
-   scratch branch `jdi-herd-scratch-<herd-id>-<N>` from `origin/<default>`, and returns the
-   worktree path, the root pane, the workspace, and the tab.
+   with the step-5 name, the suffix, the herd ID, *N*, `<default>`, and the workspace label. H9
+   builds the path `<worktrees dir>/<repo>/<name>`, creates the worktree on the scratch branch
+   `jdi-herd-scratch-<herd-id>-<N>` from `origin/<default>`, and returns the worktree path, the
+   root pane, the workspace, and the tab.
+
+   **The workspace label is the issue title**, in full, after the short ID: for the commission in
+   step 5, `f4960613 Seam 1 - A copy lands directly below the original as a sibling` (with the
+   title's own punctuation, verbatim). When step 3 read no title, the label is the issue ID.
 
    **The scratch branch name deliberately omits the issue ID.** `/jdi:prep` step 6 keeps the
    current branch when it already names the work, and creates the real feature branch otherwise. A
    scratch branch that named the issue would be adopted, and the plan would lose the descriptive
    slug from **T6**. The workspace label and the folder name carry the issue instead.
 
-   **An existing folder is not overwritten.** When H9 finds the folder for this issue already on
-   disk, a herd has run for it before. Show what H9 reports (its branch, and whether its plan folder
-   has uncommitted files), and ask: continue there, in a fresh session in that folder with
-   `/jdi:status`, or skip this issue. Never create a second folder beside it, and never remove it
-   here.
+   **An existing folder is not overwritten, and it is found by the suffix.** The slug comes from a
+   title and a judgment, so a second herd for the same issue can pick different words, and the
+   title can change between runs. So H9 looks for any folder whose name ends in `-<suffix>`, or is
+   the old `jdi-herd-<issue>`. When it finds one, a herd has run for this issue before. Show what
+   H9 reports (the folder, its branch, and whether its plan folder has uncommitted files), and ask:
+   continue there, in a fresh session in that folder with `/jdi:status`, or skip this issue. Never
+   create a second folder beside it, and never remove it here.
 
    **Read every identifier from the result.** Do not predict an ID, and do not read one from the
    sidebar order. When the worktree path Herdr returned differs from the one asked for, report both

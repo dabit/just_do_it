@@ -135,10 +135,18 @@ PR #5 (`origin/herd-command`, head `2c28c11`, version 1.0.5) is the prior, super
     exactly like a herd that worked, so it stops on the first failed check instead. Role delegation
     starts no server and installs no integration, but always falls down the ladder to a native run
     on failure, because a phase that never ran is the real failure there.
-11. **Herd names, worktrees, scratch branches, and the cleanup guard.** Herd agents and tabs are
-    named `jdi-herd-<issue>` (Herdr rejects a bare numeric agent name). Worktree folders are
-    `<worktrees dir>/<repo>/jdi-herd-<issue>`, so a crashed or closed workspace is found again by
-    folder name even if prep never reached its branch step, and `herdr worktree open` reattaches it.
+11. **Herd names, worktrees, scratch branches, and the cleanup guard.** Herd agents, tabs and
+    worktree folders share one name per issue, `<slug>-<suffix>`: a short slug of the issue title
+    (read with T2, built the way T6 builds a branch slug) and the issue's short ID, the repo's own
+    short-ID convention where it states one, else the lowercased issue ID. A UUID-keyed ID alone
+    reads `jdi-herd-f4960613-9705-48f4-a555`; the title gives `copy-lands-below-f4960613`. The herd
+    cannot reuse prep's plan slug, because it names the agent before prep runs. With no title, the
+    name falls back to `jdi-herd-<issue>` (Herdr rejects a bare numeric agent name, so a name that
+    would not start with a letter gets `jdi-`). Worktree folders are `<worktrees dir>/<repo>/<name>`,
+    so a crashed or closed workspace is found again by folder name even if prep never reached its
+    branch step, and `herdr worktree open` reattaches it. An existing folder is matched on its
+    `-<suffix>` ending, because a second herd can pick different slug words. The workspace label
+    is the short ID and the full title.
     Scratch branches are `jdi-herd-scratch-<herd-id>-<N>`: PR #5's `jdi-herd-scratch-<N>` collides on
     a second herd run in the same repo (observed on this machine) because it omits the issue ID.
     Before removing a worktree, `/jdi:herd` checks the plan folder with `git status --porcelain`,
@@ -339,16 +347,24 @@ in a commit, record it, and re-run the affected probes before continuing.
   and harness; no "they differ" statement is required. An OpenCode Feedbacker on the same model and
   harness as the Researcher should still run, and the Butler should say that producer and reviewer
   were the same.
-- **K** (AC 9, 9a; only if the herd wave shipped). `/jdi:herd UAT-1 UAT-2`. Expect two worktrees and
-  two agents named `jdi-herd-uat-1`/`jdi-herd-uat-2` with matching tab and folder names; each gets
-  `/jdi:prep <ISSUE-ID>` sent with no wait, and a report naming its worktree path and scratch branch.
+- **K** (AC 9, 9a; only if the herd wave shipped). `/jdi:herd UAT-1 UAT-2`. The scratch clone runs
+  with `tracker: {name: none}`, so T2 reads no title and the herd takes the fallback path: expect
+  one note naming both issues as fallbacks, two worktrees and two agents named
+  `jdi-herd-uat-1`/`jdi-herd-uat-2` with matching tab and folder names, and workspaces labeled
+  with the issue IDs. K does not exercise title-based `<slug>-<suffix>` names; that needs a real
+  tracker and real issues, and `commands/herd.md` step 5's worked examples state the expected
+  names. Each agent gets `/jdi:prep <ISSUE-ID>` sent with no wait, and a report naming its worktree
+  path and scratch branch.
   Then: a workspace closed by hand before prep reaches its branch step still leaves the worktree
   findable by folder name, and `herdr worktree open` reattaches it; requesting an existing folder
   reports its branch/plan state and asks to continue or skip rather than duplicating it; a second
   herd run in the same repo gets different scratch-branch IDs; a fresh session in an orphaned
   worktree recovers the plan with `/jdi:status` and no prior session needed; the cleanup guard names
   any uncommitted plan files, offers the `docs: Add <slug> plan` commit, and does not remove the
-  worktree until the user answers; an over-length issue name is cut to Herdr's 32-character rule;
+  worktree until the user answers; under the fallback, GitHub-style issue `4` is named
+  `jdi-herd-4` and an over-length ID is cut to Herdr's 32-character rule; an existing folder is
+  found by its `-<suffix>` ending (create `<worktrees dir>/<repo>/other-words-uat-1` by hand first,
+  and expect the herd to report it for UAT-1 rather than create a second folder);
   requesting an already-live herd name reports its holder and asks instead of duplicating it. Outside
   Herdr, `/jdi:herd` stops with the H1 reason and never falls back to a sequential prep.
 - **L** (AC 10). `python3 -m unittest discover -s tests -v` passes, with `HerdrConfinementTest`

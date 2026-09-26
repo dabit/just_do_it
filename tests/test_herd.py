@@ -52,7 +52,6 @@ class HerdCommandTest(unittest.TestCase):
             "`reference/herdr.md`",
             "Validate, never repair",
             "never fall back to a sequential `/jdi:prep`",
-            "`jdi-herd-<issue",
             "`.jdi/config.local.yml`",
             "one name per issue",
             "Worktree",
@@ -96,7 +95,7 @@ class HerdCommandTest(unittest.TestCase):
             "herdr tab rename",
             "git -C <worktree> status --porcelain",
             "--path",
-            "<worktrees dir>/<repo>/jdi-herd-<issue>",
+            "<worktrees dir>/<repo>/<name>",
             "[worktrees] directory",
             "~/.herdr/worktrees",
             "jdi-herd-scratch-<herd-id>-<N>",
@@ -104,6 +103,43 @@ class HerdCommandTest(unittest.TestCase):
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
+
+    def test_herd_names_each_agent_from_the_issue_title(self):
+        """A readable `<slug>-<suffix>` name from the title, with the old name as the fallback."""
+        herd = normalized(self.herd_text())
+        for fragment in (
+            "perform **T2**",
+            "`<slug>-<suffix>`",
+            "**T6**",
+            "`[a-z][a-z0-9_-]{0,31}`",
+            "keep the suffix whole",
+            "falls back to the old name `jdi-herd-<issue>` for that issue and says so once",
+            "any folder whose name ends in `-<suffix>`",
+            "The workspace label is the issue title",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, herd, "%s lacks %r" % (HERD_COMMAND, fragment))
+        self.assertNotIn(
+            "The name is `jdi-herd-<issue>`",
+            herd,
+            "%s still builds every name as `jdi-herd-<issue>`" % HERD_COMMAND,
+        )
+
+    def test_h9_uses_the_title_name_suffix_match_and_title_label(self):
+        h9 = normalized("\n".join(self.h9_lines()))
+        for fragment in (
+            "`<slug>-<suffix>`",
+            "ends in `-<suffix>`",
+            "`jdi-herd-<issue>` from an older herd",
+            '--label "<SHORT-ID> <TITLE>"',
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
+        self.assertNotIn(
+            "--path <worktrees dir>/<repo>/jdi-herd-<issue>",
+            h9,
+            "H9 still creates the worktree at `jdi-herd-<issue>`",
+        )
 
     def test_h9_drops_the_collision_prone_scratch_branch(self):
         h9 = normalized("\n".join(self.h9_lines()))

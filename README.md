@@ -363,10 +363,13 @@ critiques the last thing an agent produced — on demand, never as an automatic 
 and `/jdi:reresearch` throw a phase away and redo it.
 
 `/jdi:herd ENG-1234 ENG-1235` preps several existing issues at once inside Herdr. Each issue gets
-its own git worktree in a folder named `jdi-herd-<issue>`, its own Herdr workspace, and its own
-agent running `/jdi:prep`. The command needs Herdr, and it stops with the reason when Herdr is
-missing; it never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the
-agent kind, how many issues one run starts without asking, and what each worktree is seeded with.
+its own git worktree, its own Herdr workspace labeled with the issue title, and its own agent
+running `/jdi:prep`. The agent, its tab and its worktree folder share one readable name built from
+the title and the issue's short ID, such as `add-presence-indicators-eng-1234`; with no title to
+read, the name falls back to `jdi-herd-<issue>`. The command needs Herdr, and it stops with the
+reason when Herdr is missing; it never falls back to a sequential prep. The `herd` block in
+`.jdi/config.yml` sets the agent kind, how many issues one run starts without asking, and what each
+worktree is seeded with.
 The command removes no worktree on its own, and never removes one that holds an uncommitted plan
 without your explicit yes.
 

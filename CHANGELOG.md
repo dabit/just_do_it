@@ -65,9 +65,13 @@ its work only through a validated result file.**
   replaced by `harnesses.<kind>`.** It preps several issues in parallel, one Herdr worktree,
   workspace and agent per issue, and it requires Herdr with no fallback. Herd agents take their
   arguments and environment verbatim from `harnesses.<herd.kind>`, and the `herd` block keeps
-  `kind`, `max_parallel` and `seed`. Each worktree folder is named after its issue,
-  `<worktrees dir>/<repo>/jdi-herd-<issue>`, so after a crash `git worktree list` shows which
-  folder belongs to which issue; an existing folder is reported, never duplicated or removed.
+  `kind`, `max_parallel` and `seed`. Each agent, tab and worktree folder gets one readable name,
+  `<slug>-<suffix>`: a slug of the issue title (read with T2) and the issue's short ID, such as
+  `copy-lands-below-f4960613`, falling back to `jdi-herd-<issue>` when no title can be read. The
+  worktree is `<worktrees dir>/<repo>/<name>` and the workspace label is the short ID and the full
+  title, so after a crash `git worktree list` shows which folder belongs to which issue. An existing
+  folder is found by its `-<suffix>` ending, so a renamed title or a different slug still finds it;
+  it is reported, never duplicated or removed.
   Scratch branches are unique per run, `jdi-herd-scratch-<herd-id>-<N>`, so a second herd in the
   same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
   `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
