@@ -20,6 +20,7 @@ done
 execute
 feedback
 help
+herd
 init
 next
 plan

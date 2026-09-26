@@ -12,6 +12,7 @@ the set of key paths, never a value.
 """
 
 import pathlib
+import re
 import unittest
 
 import jdi_files
@@ -150,6 +151,109 @@ class ModelsBlockTest(unittest.TestCase):
                     "is the agent CLI it runs in. Write them as a two-space-indented "
                     "block, not a flow mapping — a flow mapping loses its children "
                     "silently." % (stem, ", ".join(missing)),
+                )
+
+
+class DelegationBlockTest(unittest.TestCase):
+    """The `delegation:` block has one key, `transport`, defaulting to `native`.
+
+    Every later step that resolves a transport reads `delegation.transport`, so
+    the key has to exist in the schema, the example, and the defaults table, and
+    the schema has to say what each value does and that a role on this session's
+    own CLI is never affected. The example deliberately shows a non-default value,
+    per `docs/config-key-lifecycle.md`.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_transport_is_a_schema_key(self):
+        self.assertIn("delegation.transport", jdi_files.key_paths(self.schema))
+
+    def test_schema_default_is_native(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: native$", line) for line in self.schema),
+            "reference/config.md's schema has no `  transport: native` line",
+        )
+
+    def test_schema_comment_lists_the_values(self):
+        self.assertTrue(
+            any("native | auto | herdr" in line for line in self.schema_comments),
+            "no schema comment lists `native | auto | herdr`",
+        )
+
+    def test_schema_comment_says_own_cli_is_unaffected(self):
+        self.assertTrue(
+            any(
+                "A role on this session's own CLI is never affected" in line
+                for line in self.schema_comments
+            ),
+            "no schema comment says a role on this session's own CLI is never affected",
+        )
+
+    def test_notes_say_transport_only_changes_another_cli(self):
+        notes = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        self.assertIn("The transport only changes how a role on another CLI runs", notes)
+
+    def test_example_value_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: (auto|herdr)$", line) for line in self.example),
+            "jdi.config.example.yml has no `  transport: auto` or `  transport: herdr` "
+            "line; the example shows a configured repo, so it uses a non-default value",
+        )
+
+    def test_defaults_table_has_a_native_row(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        self.assertTrue(
+            any(row.startswith("| `delegation.transport` | `native`") for row in rows),
+            "the defaults table has no `delegation.transport` row defaulting to `native`",
+        )
+
+
+class HerdBlockTest(unittest.TestCase):
+    """The `herd:` block carries `kind`, `max_parallel` and `seed`, and nothing else.
+
+    `/jdi:herd` reads those three keys. PR #5 also added `herd.args` and
+    `herd.env`, which duplicated `harnesses.<kind>.{args,env}`; herd agents take
+    their arguments and environment from `harnesses.<herd.kind>` instead, so the
+    two keys must not come back.
+    """
+
+    def setUp(self):
+        self.schema_keys = jdi_files.key_paths(jdi_files.schema_block())
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_herd_keys_are_schema_keys(self):
+        for key in ("herd.kind", "herd.max_parallel", "herd.seed"):
+            with self.subTest(key=key):
+                self.assertIn(key, self.schema_keys)
+
+    def test_herd_args_and_env_are_not_schema_keys(self):
+        for key in ("herd.args", "herd.env"):
+            with self.subTest(key=key):
+                self.assertNotIn(
+                    key,
+                    self.schema_keys,
+                    "`%s` duplicates `harnesses.<kind>`; herd agents take their "
+                    "arguments and environment from `harnesses.<herd.kind>`" % key,
+                )
+
+    def test_defaults_table_covers_herd(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        for key, default in (
+            ("herd.kind", "`claude`"),
+            ("herd.max_parallel", "`5`"),
+            ("herd.seed", "empty"),
+        ):
+            with self.subTest(key=key):
+                self.assertTrue(
+                    any(row.startswith("| `%s` | %s" % (key, default)) for row in rows),
+                    "the defaults table has no `%s` row defaulting to %s" % (key, default),
                 )
 
 

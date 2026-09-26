@@ -89,7 +89,7 @@ Resolved once per plan, before the first task is executed, by the Butler. Its ou
    the Butler hands every Executor for the rest of the plan; nothing re-derives it later.
 6. **Disproven** → off, and **announced**, with the command that was tried and the output showing
    why it is not proof. Write the `off` line naming both. This one *is* a degradation rather than a
-   silence: the user asked for TDD and did not get it (`roles/butler.md:27-29` — "Silent
+   silence: the user asked for TDD and did not get it (`roles/butler.md:29-31` — "Silent
    degradation is the thing that makes a workflow untrustworthy"). Rung 1 is silent because nothing
    was asked for; rung 6 is loud because something was.
 7. **Ambiguous** → **ask the user once.** Several plausible invocations, prose naming a container

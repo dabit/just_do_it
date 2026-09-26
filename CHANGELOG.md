@@ -1,5 +1,82 @@
 # Changelog
 
+## 1.0.10
+
+**A Butler inside Herdr can run a delegated role as its own agent process, wait for it, and accept
+its work only through a validated result file.**
+
+- **`delegation.transport` decides how a role on another CLI runs: `native`, `auto` or `herdr`.**
+  `native` is the default and is the delegation JDI already did; it probes nothing at step 0 and
+  says nothing. `auto` checks for Herdr once, at step 0, and runs the role in a Herdr pane when
+  Herdr is there; outside Herdr it is exactly `native`, and nothing is said. `herdr` does the same,
+  but announces any failed check once. A repo with no `delegation` block behaves exactly as it did.
+  Whether you work inside Herdr is usually true of your machine, so `reference/config.md` suggests
+  setting the key in `.jdi/config.local.yml`.
+- **Only a role configured on a different CLI gets a Herdr pane.** Herdr is used for a role whose
+  `models.<role>.harness` names another CLI. A role on this session's own CLI stays a subagent, as
+  before, and you can watch it in the harness itself. Any role on another CLI qualifies, Executor
+  waves included: a wave gets one pane per task in its own tab, at most 4 open at once, and the
+  Butler lets the whole wave settle before it acts on any one result.
+- **`reference/herdr.md` is the one place every Herdr step is written.** Operations H1 to H9 cover
+  detection, the worker-kind check, run preparation, start, prompt and wait, a blocked worker,
+  result validation, pane close, and a Butler's own worktree for `/jdi:herd`.
+  `reference/delegation.md` calls them by name. Workers run on Herdr's agent surface, so the Butler
+  can tell `working`, `blocked`, `idle`, `done` and `unknown` apart. The older pane-run recipe is
+  gone.
+- **Work is accepted only through a validated result file.** Each run gets its own directory,
+  `<gitdir>/jdi/runs/<run-id>/`, with the Butler's `manifest.json` and `prompt.md`, the worker's
+  `report.md` and `result.json`, and the Butler's `outcome.json`. A terminal transcript is never
+  the result, and `idle` or `done` is not proof of success. H7 checks the run ID and role,
+  `status: complete`, every item the role returns, that HEAD did not move, and that
+  `git status --porcelain` shows no write outside the run's allowed paths. A worker that needs an
+  answer writes `needs_input`, and one that cannot do the work writes `failed`.
+- **A blocked worker, a silent worker and a timeout all go to the user.** Approval, permission,
+  trust and question dialogs belong to the user, who answers them in the worker's pane; the Butler
+  never sends keys into a dialog. A worker that goes idle without a result file is inspected: when
+  its pane ends in a question, the Butler tells the user which pane to answer in (agent name and
+  pane ID) and keeps waiting. Every wait has a timeout, and the overall deadline defaults to 45
+  minutes. At the deadline the Butler never counts the run as a success and never resubmits; it
+  asks whether to keep waiting, accept a file the user has checked, or abandon. Every pane JDI
+  opened is closed on every exit.
+- **Degrades to `native`, never beyond.** A Herdr failure closes the pane, announces once, and runs
+  the same role through its CLI's non-interactive mode. It is never retried on Herdr in the same
+  phase, and the phase always runs. A transport-level failure switches the rest of the run to
+  `native`. JDI detects and never repairs: it starts no Herdr server and installs no integration.
+- **Every separately spawned process is announced in one fixed line, and `native` stays silent.**
+  The spawn command itself prints one line that opens
+  `JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>)` and then lists the args, the
+  env keys and the run dir (a Herdr agent adds its agent name). The same shell command prints the
+  line and then runs the non-interactive CLI or the Herdr pane split, joined by `&&`, so the spawn
+  cannot run without the line. The Butler repeats the line to the user, a summary never claims it
+  unless the command's output shows it, and a Herdr run records it in `manifest.json` as
+  `spawn_line`. A spawn without that line is a defect. Under `native`, or with no `delegation` block, step 0 runs no Herdr command, and the run
+  mentions the transport nowhere, summaries included. Herdr's run files are now written after the
+  pane exists, so `manifest.json` records the real pane ID and is never edited afterward.
+- **The "watch the run" trigger is gone.** Herdr was also used when the user asked to watch a
+  delegated role. `delegation.transport` alone decides now, and a role on this session's own CLI
+  can already be watched in the harness.
+- **Herdr's `kinds:` line is read correctly.** It lists the kinds Herdr supports, not the kinds
+  installed. A worker kind must appear on that line and its CLI must resolve on `PATH`;
+  `herdr integration status` affects only detection quality.
+- **The Feedbacker should not run on the same model and harness as the agent it reviews.** The
+  rule named only the model before. Where no second model or harness is available, the review still
+  runs and says that producer and reviewer shared both.
+- **`/jdi:herd` arrives on the shared Herdr operations; `herd.args` and `herd.env` from PR #5 are
+  replaced by `harnesses.<kind>`.** It preps several issues in parallel, one Herdr worktree,
+  workspace and agent per issue, and it requires Herdr with no fallback. Herd agents take their
+  arguments and environment verbatim from `harnesses.<herd.kind>`, and the `herd` block keeps
+  `kind`, `max_parallel` and `seed`. Each agent, tab and worktree folder gets one readable name,
+  `<slug>-<suffix>`: a slug of the issue title (read with T2) and the issue's short ID, such as
+  `copy-lands-below-f4960613`, falling back to `jdi-herd-<issue>` when no title can be read. The
+  worktree is `<worktrees dir>/<repo>/<name>` and the workspace label is the short ID and the full
+  title, so after a crash `git worktree list` shows which folder belongs to which issue. An existing
+  folder is found by its `-<suffix>` ending, so a renamed title or a different slug still finds it;
+  it is reported, never duplicated or removed.
+  Scratch branches are unique per run, `jdi-herd-scratch-<herd-id>-<N>`, so a second herd in the
+  same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
+  `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
+  removal without an explicit yes.
+
 ## 1.0.9
 
 **A personal `.jdi/config.local.yml` overrides the repository's `.jdi/config.yml`, key by key, and is

@@ -20,6 +20,14 @@ is now ready, at the same time. This is `/jdi:done` followed by `/jdi:execute`, 
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
 
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes. With `herdr`, announce a failed check once,
+   with what came back, and delegate as `native`. With `auto`, say nothing outside Herdr, and
+   announce once when inside Herdr a later check fails. Any other value: say so once, then `native`.
+   **With `delegation.transport` `native` or absent, say nothing at all**: run no Herdr command at
+   step 0, and outside a ladder announcement never mention the transport, summaries included.
+
 ---
 
 ## Phase 1 — Mark the current wave done
@@ -65,7 +73,10 @@ is now ready, at the same time. This is `/jdi:done` followed by `/jdi:execute`, 
 
 7. **Delegate to the Executor, once per task, all at once** — Hand each task of the wave to its own
    **Executor**, starting them **together**; see *Delegating several roles at once* in JDI's
-   `reference/delegation.md`. Where this harness cannot run roles concurrently, say so once and run
+   `reference/delegation.md`. Each Executor is resolved per *Delegating several roles at once*,
+   including the transport `delegation.transport` selects; a worker waiting on the user is answered
+   where it runs, and the wave settles before anything is verified or committed. Where this harness
+   cannot run roles concurrently, say so once and run
    them in number order, adopting the role inline if there are no subagents at all. Tell the user
    which tasks are running together. Pass each Executor its own task file content, the sibling tasks
    running alongside it with their `## Files` (or that it runs alone), `PLAN.md` for context, and

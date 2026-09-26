@@ -32,9 +32,10 @@ It judges and directs; it never edits code, role files, or command files itself.
 producing role is the orchestrator's action, and applying a prompt fix needs the user's explicit
 sign-off. **A clean pass is a valid, common result** — the Feedbacker is a reviewer, not a nag.
 
-Where the config offers more than one model, the Feedbacker should not be the same model that
-produced the output under review; a model reviewing its own work confirms it. If only one model is
-available, run the review anyway and say that producer and reviewer were the same model.
+Where the config offers more than one model, the Feedbacker should not run on the same model and
+harness that produced the output under review; a model reviewing its own work confirms it. If no
+different model or harness is available, run the review anyway and say that producer and reviewer
+were the same.
 
 ## Responsibilities
 

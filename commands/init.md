@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, whether roles may ask Jev for typed judgments, where plans and docs live, and which model each role runs on."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, whether roles may ask Jev for typed judgments, where plans and docs live, how delegated roles reach their own process, and which model each role runs on."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -21,7 +21,7 @@ Follow these steps:
    change. If `.jdi/config.local.yml` is here too, read it and say which top-level blocks it
    overrides — and that this command edits only `config.yml`, so an answer the local file overrides
    will not take effect in this checkout until the local file changes. If git tracks the local
-   file, say so now; step 11 offers the fix.
+   file, say so now; step 12 offers the fix.
 
 2. **Learn what the repo already says about itself** — Read `AGENTS.md`, `CLAUDE.md`, and
    `README.md` if present. Look for a stated issue tracker, a plans or docs folder, branch and
@@ -168,11 +168,37 @@ Follow these steps:
    it per role rather than keep a block that has no effect — this is the one place step 1's "keep
    every value the user does not change" would otherwise preserve something dead.
 
-10. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
+10. **Ask how delegated roles should run - only when this session is inside Herdr** - First,
+    perform **H1** from JDI's `reference/herdr.md` (beside `reference/config.md`). When its first
+    check fails, because this session is not inside Herdr at all, skip this question entirely and
+    write no `delegation` block: outside Herdr there is nothing to choose, and `native` is what
+    runs.
+
+    Otherwise, propose `native` (the default) for `delegation.transport`, and explain the other two
+    values in one sentence each. `auto` runs a role on another CLI as that CLI's interactive agent
+    in a Herdr pane when H1 passes, and behaves exactly as `native` when it does not. `herdr` does
+    the same, but announces a failed H1 check once before it delegates natively for the run. Say
+    that the key only matters for a role whose `models.<role>.harness` names another CLI: such a
+    role then runs in its own pane where the user can answer it, one pane per task in a wave, while
+    a role on this session's own CLI always stays a subagent. When step 9 named no other harness,
+    say that the key changes nothing yet.
+
+    Say that the value is usually personal: whether someone works inside Herdr is a fact about
+    their machine, not about the repository. Offer to leave it out of `config.yml` for the user to
+    put in `.jdi/config.local.yml`.
+
+    - When the user plans to use `/jdi:herd`, offer the `herd` block too: `herd.kind` (the agent
+      kind each herd Butler runs, default `claude`), `herd.max_parallel` (how many issues one run
+      starts without asking again, default `5`), and `herd.seed` (the gitignored files to copy,
+      the per-worktree values to set, and the setup commands each worktree needs). Say that a
+      herd's arguments and environment come from `harnesses.<kind>`, not from `herd`. With no
+      answer, write no `herd` block.
+
+11. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
     repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher
     sweeps these when a change alters an externally-consumed contract. Skip if there are none.
 
-11. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
+12. **Write `.jdi/config.yml`** — Write the file with the answers, keeping the schema's comments so
     the next reader can edit it by hand. Omit optional blocks the user skipped rather than writing
     empty scaffolding.
 
@@ -188,12 +214,12 @@ Follow these steps:
     not fail in. If it is not ignored, offer to add the line to `.gitignore`; if git already tracks
     it, say so and offer `git rm --cached` alongside the ignore line.
 
-12. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
+13. **Offer to record the branch and commit conventions where they belong** — JDI deliberately does
     **not** configure branch naming or commit message format: it reads them from the repo's own
     `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down. If neither file
     states them and the user told you what they are, offer to add them there. Do not write to those
     files without saying you are about to.
 
-13. **Report and point at the next step** — Show the config you wrote, name anything you
+14. **Report and point at the next step** — Show the config you wrote, name anything you
     deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
     `/jdi:help` for the tour.
