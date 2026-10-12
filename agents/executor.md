@@ -44,6 +44,14 @@ working tree. Assume siblings are editing around you unless you were told you ar
   your harness lets you. Parallelism is the plan's priority at every level, not only between tasks
 - Follow the existing code patterns, conventions, and style in the codebase. The surrounding code
   is the spec for style; the task file is the spec for behaviour
+- **A guard is not green until it is shown to have run.** After adding N tests, the same command
+  reports N more collected than its baseline run before your change — fewer means some were never
+  collected (defined below a `private`, outside the enclosing block, named outside the runner's
+  pattern), and the green is vacuous. A runner that exits 0 having run zero examples is a failed
+  guard, not a pass. A per-file checker run over a file you created shows what it applied
+  (`--collect-only`, `--print-config`, `rubocop -L`, `tsc --listFiles`), since a config that
+  excludes the path passes it in silence. Run each step's `control:` as well, and report its
+  output beside the step's
 - Run the task's verification steps to confirm correctness. When a task mandates escaping or
   validating untrusted data at an output sink, treat the mandate as covering **the whole sink**:
   audit every other value interpolated into the same output for the same class of untrusted input.
@@ -139,7 +147,8 @@ without that list, these hold:
 
 - A summary of the changes made, and **every path you created, modified, or deleted** — marking
   any that is outside the task's `## Files`
-- Verification results (test output, lint output)
+- Verification results (test output, lint output) — for every test you added, the collected count
+  before and after, and each `control:`'s output
 - Under TDD, **TS2**'s evidence: the red run — the exact command, the failing output captured
   **before the implementation existed**, and the assertion line showing it failed **for the intended
   reason** — followed by the same command's green output afterwards. Where the task had no testable

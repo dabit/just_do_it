@@ -139,5 +139,16 @@ class TestingStrategyFieldsTest(unittest.TestCase):
                 self.assertIn(line, out)
 
 
+class CollectedCountTest(unittest.TestCase):
+    """The Executor's collected-count receipt is a duty and a return, not one without the other."""
+
+    def test_the_duty_and_the_return_both_stand(self):
+        text = jdi_files.read("agents/executor.md")
+        self.assertIn("more collected than its baseline", flat(text))
+        returns = flat("\n".join(jdi_files.section(text, "## What it returns")))
+        self.assertIn("collected count before and after", returns)
+        self.assertIn("`control:`", returns)
+
+
 if __name__ == "__main__":
     unittest.main()
