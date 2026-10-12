@@ -29,8 +29,9 @@ working tree. Assume siblings are editing around you unless you were told you ar
 
 - Implement the work described in a **single** task file — including its non-code steps (external
   configuration, tracker actions, infrastructure changes). If a step cannot be performed (missing
-  tool access, blocked dependency), **state that explicitly in the report**; never silently omit a
-  task step
+  tool access, blocked dependency), **state that explicitly in the report** as a *Blocker record*
+  (`reference/delegation.md`) — the verbatim message, the call and its arguments checked against
+  the tool's schema, one line per target; never silently omit a task step
 - When a documentation task fences sections off as "leave untouched" but earlier tasks in the same
   plan changed code those sections cite, do not treat the fence as covering citation freshness:
   verify every `file:line` in the fenced sections against the current branch and **list any that no

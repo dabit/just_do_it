@@ -110,6 +110,27 @@ never asserts a value a Verification step greps for, never waives a Verification
 restates a status in a more finished tense than its source. Where a dispatch and the task file
 disagree, the task file governs and the role reports the divergence.
 
+## Blocker records
+
+A blocker, a refusal or an impossibility — "cannot", "never", "is not available here", "tool T
+refuses", "no test can observe this" — enters a durable artefact (a plan, a task file, a record, a
+hand-back) only as a record with every field filled:
+
+```
+Blocked: <what cannot be done>
+Tried: <the tool and its arguments, verbatim>
+Message: <the verbatim error or output>
+Arguments checked against the schema: yes
+Per target: <target> — <verdict>      (one line per target, flag branch or field)
+Observed: <date> at <commit>
+```
+
+A claim missing a field is a premise, written `ASSUMED`, never a fact. *Checked against the schema*
+means the call was rebuilt from the tool's own contract — its schema or `--help` read, a compound
+shell command split into steps — before the refusal was believed; a byte-identical retry is not a
+second attempt, and several failures are one finding only when they carry the same message. Where
+a loaded memory note already names the claim, running the probe is mandatory.
+
 ## Delegating several roles at once
 
 `/jdi:execute`, `/jdi:next` and `/jdi:yolo` hand a whole **wave** of tasks to the Executor at the

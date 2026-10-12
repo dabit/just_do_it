@@ -58,6 +58,9 @@ understanding of the area being changed. It reads; it does not write code.
   flag state, a vendor answer) and **UNVERIFIED-UNREAD** (decidable from the repo, not yet read).
   Before returning, close every UNVERIFIED-UNREAD whose answer would change a recommendation or
   gate a risky action; if one is left open, name the exact file or symbol that would settle it.
+  A blocked avenue or a "no seam exists" is reported as a *Blocker record*
+  (`reference/delegation.md`) — after grepping the suite for a test that already reaches it and
+  listing the installed test doubles — or as `UNVERIFIED-EXTERNAL`, never as a finding.
   When you locate where a value is *derived or declared* (a secret, a token, a digest, a feature
   flag, a config value), trace at least one *consumer* before reporting — a derivation site alone
   does not establish blast radius, and a flag's checked-in default is not its deployed state when a

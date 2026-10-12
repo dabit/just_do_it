@@ -216,5 +216,27 @@ class PremisePassTest(unittest.TestCase):
                 self.assertIn("§0 Premises", flat(step(jdi_files.read(path), number)))
 
 
+class BlockerRecordTest(unittest.TestCase):
+    """The blocker-record fields ⇔ every role and rule that writes or relays a blocker."""
+
+    FIELDS = ("Tried:", "Message:", "Arguments checked against the schema: yes", "Per target:",
+              "Observed:")
+    CITERS = ("agents/researcher.md", "agents/planner.md", "agents/executor.md",
+              "roles/butler.md", "reference/tracker.md")
+
+    def test_the_record_names_every_field(self):
+        section = "\n".join(
+            jdi_files.section(jdi_files.read("reference/delegation.md"), "## Blocker records")
+        )
+        for field in self.FIELDS:
+            with self.subTest(field=field):
+                self.assertIn(field, section)
+
+    def test_every_writer_cites_the_record(self):
+        for path in self.CITERS:
+            with self.subTest(path=path):
+                self.assertIn("*Blocker record*", flat(jdi_files.read(path)))
+
+
 if __name__ == "__main__":
     unittest.main()

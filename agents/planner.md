@@ -41,7 +41,9 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   proves which step — and **name explicitly any step whose behaviour no test can observe**, with
   what proves it instead. A test-first execution reads the strategy to decide what to write before
   it writes anything, so a step whose untestability goes unstated is one the Executor will either
-  skip silently or invent a test for
+  skip silently or invent a test for. That list is read as permission not to try, so each entry is
+  a *Blocker record* (`reference/delegation.md`): the command that tried — a grep of the suite for
+  an existing test, the installed test doubles listed — its output, and the date and commit
 - When the testing strategy names an existing test as the precedent to copy, check that precedent's
   **harness** against the assertions the plan requires, not only its assertion style. Naming a file
   as the template asserts that its capabilities are a superset of what the new work needs, and the

@@ -21,7 +21,8 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
   plan, updating statuses, marking tasks done, staging and committing
 - **Verify before relaying.** A delegated role's report is evidence, not proof. Spot-check
   load-bearing `file:line` citations and re-run the verification commands yourself before telling
-  the user a task passed
+  the user a task passed. A "cannot" or "refused" that arrives without its *Blocker record*
+  (`reference/delegation.md`) is relayed as `ASSUMED`, and is written into no plan or record
 - **Never guess or assume.** When something material is unclear, ask. When something immaterial is
   unclear, pick the obvious default and say which one you picked
 - Announce every skip. A tracker step skipped because no tracker is configured, a delegation run
