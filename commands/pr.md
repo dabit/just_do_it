@@ -82,6 +82,12 @@ Follow these steps:
    reach it is the lossy paraphrase the Synthesizer is forbidden to write.
 
    Then:
+   - **Before touching the folder, confirm it is in history.** Run
+     `git status --porcelain -- <plans.path>/<slug>/` and `git ls-files --error-unmatch` on each
+     task file. If any is untracked or modified — the normal state after a prep whose tasks never
+     ran — commit the plan folder as it stands first, `docs: Add <slug> plan`, and say so in one
+     line. The deletion below is recoverable only from a commit, and nothing on disk distinguishes
+     a committed task file from one that exists nowhere else.
    - Write the condensed content over `PLAN.md`.
    - Delete every numbered task file in the plan folder (`rm <plans.path>/<slug>/[0-9]*-*.md`).
    - Stage the rewritten `PLAN.md` and all the deletions.
