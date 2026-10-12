@@ -55,6 +55,19 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   re-parents the row out of the queried subtree, so it is already gone regardless of the filter),
   plan an in-place state flip instead, mirroring the precedent test the plan cites, so the filter
   itself is exercised. A guard that still passes with the filter removed is vacuous
+- **Every case in the Testing Strategy carries three fields**, and the Butler sends back a case
+  missing one:
+  - `at HEAD:` — `red`, or `green`. A case green at HEAD does not prove the fix; label it
+    `green — guards <decision id>, not the fix`, so nobody counts it as the fix's evidence
+  - `reddened by:` — the mutation that turns it red, at its definition site (the trace below)
+  - `reaches the guard:` — why its stimulus and precondition arrive where the assertion looks:
+    every early return, idempotence latch, pagination bound and test-environment setting on the
+    path, and the state the fixture must be in for the code not to produce the value for free
+
+  A case whose assertions are all negative — nothing raised, nothing sent, a value still at its
+  seed — cannot tell "the guard held" from "the stimulus never arrived", so it carries one
+  positive assertion that the stimulus was delivered: a request count, a recorded call, a side
+  effect on the path before the guard
 - When the plan claims a specific test fails under a specific regression ("fails the moment X is
   removed"), trace the regressed value through **every** construction between it and the asserted
   seam — splats, coercions, defaults, wrapping — and confirm the named assertion is the one that
@@ -114,6 +127,6 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 ## What it returns
 
 - A complete implementation plan ready to be written into `PLAN.md`
-- A testing strategy
+- A testing strategy, each case carrying `at HEAD:`, `reddened by:` and `reaches the guard:`
 - Risks and watchouts
 - Open questions, only when the plan genuinely cannot be completed safely without them

@@ -104,5 +104,40 @@ class RefusedFormsTest(unittest.TestCase):
                 self.assertRegex(line, pattern)
 
 
+class TestingStrategyFieldsTest(unittest.TestCase):
+    """The Planner's per-case fields ⇔ the Butler's check in plan step 7 and prep step 15."""
+
+    FIELDS = ("at HEAD:", "reddened by:", "reaches the guard:")
+
+    def test_every_end_names_every_field(self):
+        ends = (
+            ("agents/planner.md", flat(jdi_files.read("agents/planner.md"))),
+            ("commands/plan.md", flat(step(jdi_files.read("commands/plan.md"), 7))),
+            ("commands/prep.md", flat(step(jdi_files.read("commands/prep.md"), 15))),
+        )
+        for path, text in ends:
+            for field in self.FIELDS:
+                with self.subTest(path=path, field=field):
+                    self.assertIn(field, text)
+
+    def test_the_check_counts_only_the_testing_strategy(self):
+        text = step(jdi_files.read("commands/plan.md"), 7)
+        match = re.search(r"```sh\n(.*?)\n\s*```", text, re.S)
+        self.assertIsNotNone(match, "plan step 7 no longer carries its check")
+        probe = "\n".join(line[3:] for line in match.group(1).split("\n"))
+        plan = (
+            "## Testing Strategy\n- a — at HEAD: red; reddened by: m; reaches the guard: s\n"
+            "- b — at HEAD: green\n## Risks\n- at HEAD: not a case\n"
+        )
+        with tempfile.TemporaryDirectory() as folder:
+            (pathlib.Path(folder) / "PLAN.md").write_text(plan, encoding="utf-8")
+            out = subprocess.run(
+                ["bash", "-c", probe], cwd=folder, capture_output=True, text=True
+            ).stdout.split("\n")
+        for line in ("at HEAD: 2", "reddened by: 1", "reaches the guard: 1"):
+            with self.subTest(line=line):
+                self.assertIn(line, out)
+
+
 if __name__ == "__main__":
     unittest.main()

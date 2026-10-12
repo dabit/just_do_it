@@ -184,7 +184,9 @@ Follow these steps:
 14. **Resolve any follow-up gaps** — If the Planner returns open questions, ask them and re-run it.
 
 15. **Update `PLAN.md`** — Write the Planner's output into `## Implementation Plan`,
-    `## Testing Strategy`, and `## Risks`, preserving the metadata and references.
+    `## Testing Strategy`, and `## Risks`, preserving the metadata and references. Then run
+    `/jdi:plan` step 7's check that every Testing Strategy case carries `at HEAD:`,
+    `reddened by:` and `reaches the guard:`, and send the strategy back when one does not.
 
     When a user decision lands after the Planner returned — a declined step, a follow-up issue now
     filed — **reconcile every mention of it across `PLAN.md` and the task files**: the decisions,

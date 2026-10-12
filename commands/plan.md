@@ -98,6 +98,16 @@ Follow these steps:
 7. **Update `PLAN.md`** — Write the Planner's output into `## Implementation Plan`,
    `## Testing Strategy`, and `## Risks`, preserving the metadata and references above them.
 
+   Then check that every Testing Strategy case carries the Planner's three fields:
+
+   ```sh
+   for k in 'at HEAD:' 'reddened by:' 'reaches the guard:'; do printf '%s %s\n' "$k" \
+     "$(awk '/^## /{v=($0=="## Testing Strategy")} v' PLAN.md | grep -c "$k")"; done
+   ```
+
+   It prints three counts, which must be equal and at least the number of cases; send the strategy
+   back to the Planner otherwise. A case with no `reddened by:` is one nobody has shown can fail.
+
    When a user decision lands after the Planner returned — a declined step, a follow-up issue now
    filed — **reconcile every mention of it across the whole plan**: the decisions, the steps, the
    task checklist, and any "file an issue" instruction, which must now name the existing issue ID
