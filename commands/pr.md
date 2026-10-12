@@ -146,3 +146,11 @@ Follow these steps:
     UAT, a tracker transition that did not happen, a task left pending. Where `split.pieces`
     mirrored the tasks into the tracker, say which pieces are still open there — condensing the
     plan deletes the task files, but it does not touch the tracker.
+
+**After the pull request is open, its body is a live record.** It has no diff, no test and no lint,
+and a reviewer reads it first. Any commit pushed to the branch from here on — a review fix, a
+walked UAT, a shipped follow-up — pulls the body to a file first (`gh pr view --json body -q .body`,
+`glab mr view`, or the forge's own tools), sweeps it beside the condensed `PLAN.md` for phrasing the
+commit retired and counts it moved — `NOT WALKED`, `pending`, `deferred`, a test tally — and updates
+it (`gh pr edit --body-file`, `glab mr update --description`) **in the same push**, along with every
+line of `PLAN.md` that carries the same fact.
