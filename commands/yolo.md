@@ -52,6 +52,11 @@ re-detect nothing, because a plan that began without TDD must not be turned on p
 This is the only place this command resolves TDD: once per run, never once per task, and TS1's
 ambiguous rung asks the user here, at the top, rather than mid-flight.
 
+**Say so when the marker contradicts the evidence.** A `- Started:` line on a plan whose every task
+file is `status: pending` and whose `git rev-parse HEAD` still equals the base commit cannot have
+come from execution — it was written at planning time or copied from a sibling plan. Name the
+contradiction, say which reading you are taking and why, and ask before resolving TDD on it.
+
 Then loop through the following cycle until every task is complete. A **wave** is every unchecked
 task whose dependencies are all done — see *Waves* in JDI's `reference/plan-store.md`. It is
 computed from the task files' `Depends on:` on every pass, never read off the wave headings in

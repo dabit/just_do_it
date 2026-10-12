@@ -101,7 +101,7 @@ Follow these steps:
    - Issue: <issue id, or none>
    - Issue URL: <url, or none>
    - Created: YYYY-MM-DD
-   - Base commit: <default-branch ref> @ <SHA>
+   - Base commit: <default-branch ref> @ <full SHA from `git rev-parse HEAD`>
    - Summary: <one line>
 
    ## References
@@ -116,6 +116,12 @@ Follow these steps:
    ```
 
    Leave the sections empty for now.
+
+   **Every metadata value is a measurement, never a format to fill.** Run `git cat-file -t` on any
+   40-character hex value before saving the file — a short SHA padded to length passes every check
+   short of that one. A required field with no sourced value says "none named by the source". Leave
+   `Started:` out: it is written only by the first execution command (`/jdi:execute`,
+   `/jdi:yolo`), never at planning time, and not copied from a sibling plan further along.
 
 8. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.

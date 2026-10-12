@@ -34,6 +34,11 @@ Follow these steps:
    is still unchecked" stays true after a task has already been implemented, and re-running this
    check would re-resolve decisions the plan has already made.
 
+   One contradiction is worth naming rather than trusting the marker: `- Started:` present while
+   every task file is `status: pending` and `git rev-parse HEAD` still equals the base commit. That
+   state cannot arise from execution — the line was written at planning time or copied from a
+   sibling plan — so say so, and ask whether to treat the plan as never executed and run a–c.
+
    a. **Ensure the research findings reached the issue (durable-memory gate).** Read `Issue:` and
       `Issue URL:` from `PLAN.md`. If there is an issue, check its comments for one beginning with
       `tracker.research_comment_heading`. If none is there, post it now from `## References` plus

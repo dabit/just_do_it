@@ -42,7 +42,8 @@ Follow these steps:
    re-base the work on `origin/<default>` before researching** — a Researcher is only as accurate
    as the tree it reads, and every `file:line` it returns is silently wrong on a stale checkout.
 
-   Record the base commit in `PLAN.md`'s metadata. If the plan already records one and it no longer
+   Record the base commit in `PLAN.md`'s metadata — the full SHA from `git rev-parse HEAD`, checked
+   with `git cat-file -t` before saving. If the plan already records one and it no longer
    matches HEAD, say so, and treat **every** existing citation as needing re-verification against
    the new base — including those under `## References`, not only the sections being rewritten.
 
