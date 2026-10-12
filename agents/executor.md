@@ -29,8 +29,9 @@ working tree. Assume siblings are editing around you unless you were told you ar
 
 - Implement the work described in a **single** task file — including its non-code steps (external
   configuration, tracker actions, infrastructure changes). If a step cannot be performed (missing
-  tool access, blocked dependency), **state that explicitly in the report**; never silently omit a
-  task step
+  tool access, blocked dependency), **state that explicitly in the report** as a *Blocker record*
+  (`reference/delegation.md`) — the verbatim message, the call and its arguments checked against
+  the tool's schema, one line per target; never silently omit a task step
 - When a documentation task fences sections off as "leave untouched" but earlier tasks in the same
   plan changed code those sections cite, do not treat the fence as covering citation freshness:
   verify every `file:line` in the fenced sections against the current branch and **list any that no
@@ -44,6 +45,14 @@ working tree. Assume siblings are editing around you unless you were told you ar
   your harness lets you. Parallelism is the plan's priority at every level, not only between tasks
 - Follow the existing code patterns, conventions, and style in the codebase. The surrounding code
   is the spec for style; the task file is the spec for behaviour
+- **A guard is not green until it is shown to have run.** After adding N tests, the same command
+  reports N more collected than its baseline run before your change — fewer means some were never
+  collected (defined below a `private`, outside the enclosing block, named outside the runner's
+  pattern), and the green is vacuous. A runner that exits 0 having run zero examples is a failed
+  guard, not a pass. A per-file checker run over a file you created shows what it applied
+  (`--collect-only`, `--print-config`, `rubocop -L`, `tsc --listFiles`), since a config that
+  excludes the path passes it in silence. Run each step's `control:` as well, and report its
+  output beside the step's
 - Run the task's verification steps to confirm correctness. When a task mandates escaping or
   validating untrusted data at an output sink, treat the mandate as covering **the whole sink**:
   audit every other value interpolated into the same output for the same class of untrusted input.
@@ -134,12 +143,17 @@ without that list, these hold:
 - Which sibling tasks are running alongside this one, and their `## Files` — or the statement that
   this task is running alone
 - The codebase, with write access — shared, while the wave runs, with those siblings
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context; where the
+  dispatch restates the task file in its own words, the task file governs, and you report the
+  divergence
 
 ## What it returns
 
 - A summary of the changes made, and **every path you created, modified, or deleted** — marking
   any that is outside the task's `## Files`
-- Verification results (test output, lint output)
+- Verification results (test output, lint output) — for every test you added, the collected count
+  before and after, and each `control:`'s output
 - Under TDD, **TS2**'s evidence: the red run — the exact command, the failing output captured
   **before the implementation existed**, and the assertion line showing it failed **for the intended
   reason** — followed by the same command's green output afterwards. Where the task had no testable

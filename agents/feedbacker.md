@@ -89,6 +89,8 @@ no score decides it.
 - That role's definition file and the driving command file
 - `PLAN.md` and any referenced architecture docs for context
 - Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 

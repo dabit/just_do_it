@@ -102,6 +102,10 @@ Follow these steps:
      TS1 rung 1's silence governs what the *user* is told and what `PLAN.md` records; it does not
      reach the handover between two roles.
 
+   The dispatch cites the task file rather than restating it — *Premises in a brief* in
+   `reference/delegation.md`: a figure, a scope or a rule you want to stress is pointed at by its
+   location, never retyped, and no Verification step is waived.
+
    Instruct it to implement the work described in the task file, follow the existing patterns and
    conventions in the codebase, run the task's verification steps, and return a summary of what was
    done, every path it touched, and any issues encountered. Remind it of the Executor's staging

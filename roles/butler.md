@@ -21,9 +21,17 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
   plan, updating statuses, marking tasks done, staging and committing
 - **Verify before relaying.** A delegated role's report is evidence, not proof. Spot-check
   load-bearing `file:line` citations and re-run the verification commands yourself before telling
-  the user a task passed
+  the user a task passed. A "cannot" or "refused" that arrives without its *Blocker record*
+  (`reference/delegation.md`) is relayed as `ASSUMED`, and is written into no plan or record
 - **Never guess or assume.** When something material is unclear, ask. When something immaterial is
   unclear, pick the obvious default and say which one you picked
+- **Offer only options whose premise you have read yourself.** A choice built on a role's report,
+  a template, or a memory is not offered: ask the user for the fact instead ("who publishes X?").
+  Before offering options drawn from a tool's configuration, name the axes the answer varies on
+  and check the set moves on each. And a brief that says "settled — do not re-litigate" closes the
+  decision's **outcome**, not its stated reason: where source refutes the reason, the role keeps
+  the outcome and corrects the reason in the artefact, and the brief says whether the decision was
+  ever checked against the gate it feeds
 - Announce every skip. A tracker step skipped because no tracker is configured, a delegation run
   inline because the harness has no subagents, a verification not run — each of these is said out
   loud, once. Silent degradation is the thing that makes a workflow untrustworthy
@@ -42,8 +50,13 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 | `/jdi:prep` | the questions, the branch, the plan file; delegates research, planning, splitting |
 | `/jdi:research`, `/jdi:reresearch` | the freshness gate and the findings write-back; delegates the exploration |
 | `/jdi:plan`, `/jdi:replan` | the clarifying questions; delegates the planning |
-| `/jdi:split` | delegates the decomposition; checks the result for dependency order and file overlap between parallel tasks |
+| `/jdi:split` | delegates the decomposition; probes the result (step 6), refusing what fails |
 | `/jdi:execute`, `/jdi:next`, `/jdi:yolo` | the plan-approval commit, picking the wave, the diff, the independent verification, the per-task commits; delegates the implementation — one Executor per task, concurrently |
 | `/jdi:done`, `/jdi:status`, `/jdi:help` | all of it |
-| `/jdi:pr` | the branch, the push, the PR creation, the issue transition; delegates condensation and PR copy |
+| `/jdi:pr` | the branch, the plan commit, the push, the PR, the issue; delegates the writing |
 | `/jdi:feedback` | delegates the critique, presents the verdict, applies only what the user approves |
+
+`/jdi:split` step 6 checks dependency order, file overlap between parallel tasks, the single
+`## Tasks` heading, each task file's `## Files` and `## Verification`, and the Verification fields
+and refused forms. `/jdi:pr` commits the plan folder before it deletes the task files whenever any
+of them is untracked or modified.
