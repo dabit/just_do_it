@@ -73,7 +73,10 @@ Follow these steps:
    - *Dependencies*: "This touches feature X — handle that here, or separately?"
 
    **Do not guess or assume.** Get clarity first, then plan. Ask only what materially changes the
-   output; for the rest, pick the obvious default and say which one you picked.
+   output; for the rest, pick the obvious default and say which one you picked. Offer no option
+   whose premise you have not read yourself — ask for the fact instead — and when a brief calls a
+   decision settled, it settles the outcome, not its stated reason (`roles/butler.md`, *Offer only
+   options whose premise you have read*).
 
    Ask one more even when nothing is ambiguous: when the plan would create the project's **first
    instance of a kind** — its first CI pipeline, service account, scheduled job, container image,

@@ -238,5 +238,21 @@ class BlockerRecordTest(unittest.TestCase):
                 self.assertIn("*Blocker record*", flat(jdi_files.read(path)))
 
 
+class ClarificationOptionsTest(unittest.TestCase):
+    """The Butler's option rule ⇔ the clarification steps that cite it by name."""
+
+    RULE = "Offer only options whose premise you have read"
+
+    def test_the_rule_exists_and_covers_settled_briefs(self):
+        text = flat(jdi_files.read("roles/butler.md"))
+        self.assertIn("**%s yourself.**" % self.RULE, text)
+        self.assertIn("closes the decision's **outcome**, not its stated reason", text)
+
+    def test_both_clarification_steps_cite_it(self):
+        for path, number in (("commands/prep.md", 12), ("commands/plan.md", 5)):
+            with self.subTest(path=path):
+                self.assertIn("*%s*" % self.RULE, flat(step(jdi_files.read(path), number)))
+
+
 if __name__ == "__main__":
     unittest.main()

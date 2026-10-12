@@ -165,7 +165,9 @@ Follow these steps:
 12. **Clarify only the true ambiguities** — If something important about the scope, the behaviour,
     or the constraints is still unclear, ask before planning. **Do not ask for approval to
     continue.** Ask only what materially changes the output; for the rest, pick the obvious default
-    and say which one you picked.
+    and say which one you picked. Offer no option whose premise you have not read yourself — ask
+    for the fact instead — and when a brief calls a decision settled, it settles the outcome, not
+    its stated reason (`roles/butler.md`, *Offer only options whose premise you have read*).
 
     **One trigger beside ambiguity: a first-of-its-kind artefact.** When the plan would create the
     project's first instance of a kind it has never had — a CI pipeline, a service account, a
