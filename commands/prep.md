@@ -146,10 +146,10 @@ Follow these steps:
     `## References` for the Planner to turn into a step. Drafting it here would decide questions
     that belong to execution and leave two drafts of one artefact.
 
-    Otherwise, if no useful architecture doc exists, do not stop just to ask permission. Delegate to the **Researcher** again,
-    have it draft a suitable architecture document, write that draft to `<docs.path>/` with a
-    descriptive filename, and add it to `## References`. Stop only if a real ambiguity prevents a
-    reasonable draft. An architecture doc goes in the repository and is committed with the code, in
+    Otherwise, if no useful architecture doc exists, do not stop just to ask permission. Delegate
+    to the **Researcher** again, have it draft a suitable architecture document, write that draft
+    to `<docs.path>/` with a descriptive filename, and add it to `## References`. Stop only if a
+    real ambiguity prevents a reasonable draft. An architecture doc goes in the repository and is committed with the code, in
     both plan-store modes.
 
 11. **Record the findings on the issue (durable memory)** — Once `## References` is populated,

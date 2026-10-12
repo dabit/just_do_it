@@ -86,8 +86,8 @@ possible can run at the same time. It focuses on structure, not implementation.
   boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
   Name any clause that is not exercised on merge, say what proves the mechanism
   instead, and record where the deferral will be picked up — the probe or run that will close it,
-  since the execute loop treats a listed step as deferred, neither passed nor failed. An acceptance criterion with no
-  scenario is how work gets closed on an unobserved claim
+  since the execute loop treats a listed step as deferred, neither passed nor failed. An
+  acceptance criterion with no scenario is how work gets closed on an unobserved claim
 - **The gate the branch will face is the UAT's last check.** Read the CI configuration for the app
   the plan touches and make the CI job's own commands, **verbatim**, the last Verification bullet of
   the UAT — run locally, before the pull request. Narrow targets prove a task; only the pipeline's
