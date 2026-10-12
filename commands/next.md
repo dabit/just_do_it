@@ -49,8 +49,8 @@ is now ready, at the same time. This is `/jdi:done` followed by `/jdi:execute`, 
 
 ## Phase 2 — Execute the next wave
 
-4. **Check for remaining tasks** — If everything is now complete, say so and suggest `/jdi:pr`.
-   Stop here.
+4. **Check for remaining tasks** — If everything is now complete, say so and suggest `/jdi:pr`,
+   naming each deferred check still owed and the probe that would close it. Stop here.
 
 5. **Pick the wave** — Find **every** unchecked task whose dependencies are all complete, computed
    from each task file's `Depends on:`. The two exceptions in *Waves* apply: the UAT task never
@@ -93,6 +93,11 @@ is now ready, at the same time. This is `/jdi:done` followed by `/jdi:execute`, 
    evidence and counts as none. If a task that touched executable code carries neither red evidence
    nor a stated reason there was nothing to test, lead with that the way you would lead with a
    failed verification, and ask whether to accept it or send it back.
+
+   A step the task file marks as runnable only in CI or after the merge is **deferred** — neither a
+   pass nor a failure. Say which steps were deferred and the probe that would close each; a step in
+   the task's *after the merge — deferred* list does not hold the task back, but a task whose
+   decisive step is deferred without being in that list should not be marked done yet — say so.
 
 9. **Show the diff** — Run `git diff` (and `git diff --staged`) and present it **task by task**,
    with a brief explanation of what changed and why. If any verification failed, lead with that and

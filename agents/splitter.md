@@ -85,7 +85,8 @@ possible can run at the same time. It focuses on structure, not implementation.
   marking it done, never as step 1 of the walk. Told a phase without being told its side of the
   boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
   Name any clause that is not exercised on merge, say what proves the mechanism
-  instead, and record where the deferral will be picked up. An acceptance criterion with no
+  instead, and record where the deferral will be picked up — the probe or run that will close it,
+  since the execute loop treats a listed step as deferred, neither passed nor failed. An acceptance criterion with no
   scenario is how work gets closed on an unobserved claim
 - Update `PLAN.md` with the master task checklist, grouped by wave
 

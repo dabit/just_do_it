@@ -117,6 +117,11 @@ Follow these steps:
    Executor's report. A collision an Executor reported means the split was wrong about those two
    tasks: finish the wave, then run the blocked task on its own.
 
+   A step the task file marks as runnable only in CI or after the merge is **deferred** — neither a
+   pass nor a failure. Say which steps were deferred and the probe that would close each; a step in
+   the task's *after the merge — deferred* list does not hold the task back, but a task whose
+   decisive step is deferred without being in that list should not be marked done yet — say so.
+
    When the plan's `TDD:` line says `on`, verify the ordering too: confirm the task's new tests are
    in `git diff --staged` and that your own run of the proven invocation is green. **Do not
    reproduce the red** — read the Executor's captured red instead, and check it names the new

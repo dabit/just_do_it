@@ -52,4 +52,5 @@ Follow these steps:
 
 4. **Next up** — Tell the user what is done, with each commit's SHA. If tasks remain, show the next
    wave — which tasks will run together — and suggest `/jdi:execute` to continue, or `/jdi:next` to
-   roll straight on. If everything is complete, say so and suggest `/jdi:pr`.
+   roll straight on. If everything is complete, say so and suggest `/jdi:pr`, naming each deferred
+   check still owed and the probe that would close it.
