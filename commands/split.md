@@ -39,6 +39,12 @@ Follow these steps:
    granularity. Over-splitting bloats the commit history with mark-done ceremony and forces context
    shifts that help neither reviewers nor `git bisect`.
 
+   There are **three** outcomes, not two: **one combined task file plus UAT**, written by you — the
+   default; **several task files written by you**; or **several task files from the Splitter**. The
+   criteria below choose between the first and the last. The middle one is the one taken without
+   noticing — work with phases looks like it describes its own split — so it carries the same burden
+   of proof as the Splitter path.
+
    **Skip the Splitter** — write one combined task file plus UAT yourself — when any of:
    - three or fewer files touched, and all the changes must land atomically
    - the plan reads as a single coherent edit (add a flag and the tests that prove it; gate a job
@@ -59,6 +65,10 @@ Follow these steps:
    - more than roughly five distinct edits with non-trivial sequencing
 
    When in doubt, prefer fewer tasks. **State the decision and the reason** before proceeding.
+   Whenever the result is more than one task file plus UAT, whoever writes them, the reason must
+   argue for **more than one** — name the pieces that share no files or state, or the checkpoint
+   that could ship alone. A reason that reads the same at any count ("they are sequential") has
+   justified the order or the delegation, not the count.
 
 3. **Generate the task files** — Two paths, depending on step 2.
 
@@ -66,7 +76,8 @@ Follow these steps:
    - `01-<implement-slug>.md` — Why, Description (copy the Implementation Plan verbatim or
      summarise its steps, keeping the file paths and snippets), Files, and Verification commands
      (lint plus targeted tests).
-   - `02-uat.md` — the UAT task, per the UAT rules below, with `Depends on: 01`.
+   - `02-uat.md` — the UAT task, per the UAT rules below, with `Depends on: 01`, and its own
+     `## Files` and `## Verification` like any other task.
 
    Then replace `## Tasks` in `PLAN.md` with a checklist linking to them — normally two items, each
    under its own `**Wave N**` heading exactly as path (b) writes them, since a checklist without
@@ -123,6 +134,10 @@ Follow these steps:
    on every other task, so it is the last wave and runs alone. It contains
    user-facing scenarios derived from the plan, with step-by-step instructions the user can follow
    to verify the feature end to end, the expected outcome of each, and the edge cases to check.
+   It carries the task shape like every other task: its `## Files` is the record it writes, and its
+   `## Verification` restates, under its own numbers, every earlier task's check it re-runs. Its
+   last Verification bullet is the CI job's own commands for the touched app, verbatim, run
+   locally — the gate the branch will actually face.
 
    **UAT is walked before `/jdi:pr`.** It never contains a merge, a push to the default branch, or
    any step that presupposes one — those come after the pull request this task precedes, so a UAT
@@ -157,8 +172,14 @@ Follow these steps:
    and the critical path — the longest dependency chain, which is the floor on how long execution
    takes. Name any dependency that exists only because two tasks share a file. Before presenting,
    check the Splitter's work yourself: no dependency points at a later number, and no two tasks
-   without a dependency path between them share a path in `## Files`. Note which path step 2 took
-   and why if it was a close call, name the pieces that were mirrored to the tracker (or say the run
-   is `commits`), and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
+   without a dependency path between them share a path in `## Files`. Probe the structure the
+   commands parse, too: `grep -c '^## Tasks$' PLAN.md` prints `1`, and the first `- [ ]` line comes
+   after it — fold a second heading or prose above the checklist into a `### Shape` subsection
+   below it. And refuse any task file, UAT included, that `grep -L '^## Files$'` or
+   `grep -L '^## Verification$'` lists: send it back rather than presenting it, since the
+   Executor's territory and the checks it must run resolve against those sections and nothing
+   else. Note which path step 2 took and why if it was a close call, name the pieces that were
+   mirrored to the tracker (or say the run is `commits`), and suggest `/jdi:execute` — or
+   `/jdi:yolo` to run them all.
 
 Do **not** write any implementation code. This command produces task documents only.

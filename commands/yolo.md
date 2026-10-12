@@ -52,6 +52,11 @@ re-detect nothing, because a plan that began without TDD must not be turned on p
 This is the only place this command resolves TDD: once per run, never once per task, and TS1's
 ambiguous rung asks the user here, at the top, rather than mid-flight.
 
+**Say so when the marker contradicts the evidence.** A `- Started:` line on a plan whose every task
+file is `status: pending` and whose `git rev-parse HEAD` still equals the base commit cannot have
+come from execution — it was written at planning time or copied from a sibling plan. Name the
+contradiction, say which reading you are taking and why, and ask before resolving TDD on it.
+
 Then loop through the following cycle until every task is complete. A **wave** is every unchecked
 task whose dependencies are all done — see *Waves* in JDI's `reference/plan-store.md`. It is
 computed from the task files' `Depends on:` on every pass, never read off the wave headings in
@@ -146,6 +151,14 @@ Step 2. For **each** task in the set, in number order, one at a time:
    evidence nor a stated reason there was nothing to test. Stop the loop and show the report — that
    is the same class of failure as a verification that was never run.
 
+   **A third outcome: deferred.** A verification step the task file itself marks as runnable only
+   in CI or after the merge did not run here, and that is neither a pass nor a failure — it does not
+   stop the loop. A step listed in the task's *after the merge — deferred* list is already excluded
+   from marking the task done, so the task is marked as usual and the deferral carried forward. A
+   task whose **decisive** step is deferred without being in that list is not marked done: leave it
+   `pending`, say why, and carry on with whatever does not depend on it. Never count a step that did
+   not run as either result.
+
 ### Step 3 — Loop back to Step 1
 
 The next pass marks the whole wave done, one commit per task, and picks up whatever those tasks
@@ -157,6 +170,11 @@ unblocked.
 
 After the final task is committed, say the plan is done, show a summary of the completed tasks with
 their commit SHAs — grouped by the wave they ran in — and suggest `/jdi:pr`.
+
+Where any verification was deferred, the plan is done **except** for those checks: name each one
+owed — its task, the step, and the probe or run that would close it (the CI job, the post-deploy
+reading) — and any task left `pending` because its decisive step could not run here. Never report
+a plan as complete on a check nobody observed.
 
 If the UAT task was executed by an agent rather than by the user, **say that explicitly** — an
 agent running through UAT scenarios is a smoke test, not user acceptance, and `/jdi:pr` will ask

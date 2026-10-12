@@ -195,5 +195,11 @@ Follow these steps:
     files without saying you are about to.
 
 13. **Report and point at the next step** — Show the config you wrote, name anything you
-    deliberately left unset, and suggest `/jdi:prep "<the first thing they want to build>"` — or
-    `/jdi:help` for the tour.
+    deliberately left unset, and **name the edit's disposition**: `.jdi/config.yml` is tracked, so
+    an uncommitted change to it is not yet a setting. Offer to commit it on its own, in the repo's
+    commit style, and never fold it into another change's commit. In a linked worktree —
+    `git rev-parse --git-common-dir` differs from `git rev-parse --git-dir` — say that the edit dies
+    with the worktree unless that commit lands, and offer instead to apply it to the main checkout;
+    a personal value goes in the main checkout's `.jdi/config.local.yml`, which the user writes.
+    Say which of these happened. Then suggest `/jdi:prep "<the first thing they want to build>"` —
+    or `/jdi:help` for the tour.

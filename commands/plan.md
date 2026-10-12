@@ -75,6 +75,12 @@ Follow these steps:
    **Do not guess or assume.** Get clarity first, then plan. Ask only what materially changes the
    output; for the rest, pick the obvious default and say which one you picked.
 
+   Ask one more even when nothing is ambiguous: when the plan would create the project's **first
+   instance of a kind** — its first CI pipeline, service account, scheduled job, container image,
+   anything with a measured count of zero today — confirm it in one line, even if a record
+   prescribes it. A record settles *what*, not whether the project wants that category at all; filed
+   as a risk, the question is read only after the shape has been approved.
+
 6. **Delegate to the Planner** — Once the ambiguities are resolved, hand off to the **Planner**
    role; see JDI's `reference/delegation.md`, and adopt the role inline if this
    harness has no subagents. Pass it:

@@ -85,8 +85,18 @@ possible can run at the same time. It focuses on structure, not implementation.
   marking it done, never as step 1 of the walk. Told a phase without being told its side of the
   boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
   Name any clause that is not exercised on merge, say what proves the mechanism
-  instead, and record where the deferral will be picked up. An acceptance criterion with no
-  scenario is how work gets closed on an unobserved claim
+  instead, and record where the deferral will be picked up — the probe or run that will close it,
+  since the execute loop treats a listed step as deferred, neither passed nor failed. An
+  acceptance criterion with no scenario is how work gets closed on an unobserved claim
+- **The gate the branch will face is the UAT's last check.** Read the CI configuration for the app
+  the plan touches and make the CI job's own commands, **verbatim**, the last Verification bullet of
+  the UAT — run locally, before the pull request. Narrow targets prove a task; only the pipeline's
+  commands prove the branch will pass it. Waiting for a green pipeline run stays in the *after the
+  merge — deferred* list; running its commands here does not
+- A task that **establishes an environment** for later tasks — a borrowed dependency tree, an
+  install, a generated toolchain — is certified by a whole-tree command that reads the installed
+  state (the typecheck, the build, the full suite, `npm ls`), never by a diff of the manifests or a
+  single smoke test, whose reach is only its own import closure
 - Update `PLAN.md` with the master task checklist, grouped by wave
 
 The Splitter never writes to the issue tracker. Where `split.pieces` mirrors the tasks as tracker
@@ -159,6 +169,12 @@ wrong. UAT depends on every other task, so it is always the last wave, alone.
 - [ ] 04 — UAT (depends on: 03)
 ```
 
+`PLAN.md` carries **exactly one** `## Tasks` heading, and the checklist starts directly under it.
+The commands read that section by name, so prose above the first `- [ ]` — even a useful note on
+why the shape differs from the plan's proposal — is something a parser sees instead of the
+checklist. Put that rationale in a `### Shape` subsection **below** the checklist, or in your
+hand-back; never under a second `## Tasks`.
+
 A plan that is honestly a strict chain is written as one: one task per wave, no invented
 independence. Report the shape when you hand back — how many waves, the widest wave, and the
 critical path — and name any dependency you declared only because of a shared file.
@@ -198,6 +214,12 @@ no files — and it degrades **silently, in the safe-looking direction**, so a h
 the file, sees the shape plainly stated, and signs off on something the parser never saw. The
 `## Files` gap is the one that is not merely slow: it is the only thing standing between two
 concurrent Executors and the same path.
+
+**The UAT task is not exempt from the shape.** Its `## Files` is the record it writes — the results
+file or section, re-read at write time where the folder numbers its evidence — and is never left for
+the dispatch to name. Its `## Verification` lists every check the UAT re-runs, **restating** each
+one inherited from an earlier task under its own number, so a dispatch can cite a step that exists
+in the file the Executor holds.
 
 So **write the skeleton first and fill it in**, rather than writing the task and remembering the
 fields afterwards. A task file whose first line is not `status: pending`, or that reaches its first

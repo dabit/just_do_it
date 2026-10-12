@@ -34,6 +34,11 @@ Follow these steps:
    is still unchecked" stays true after a task has already been implemented, and re-running this
    check would re-resolve decisions the plan has already made.
 
+   One contradiction is worth naming rather than trusting the marker: `- Started:` present while
+   every task file is `status: pending` and `git rev-parse HEAD` still equals the base commit. That
+   state cannot arise from execution — the line was written at planning time or copied from a
+   sibling plan — so say so, and ask whether to treat the plan as never executed and run a–c.
+
    a. **Ensure the research findings reached the issue (durable-memory gate).** Read `Issue:` and
       `Issue URL:` from `PLAN.md`. If there is an issue, check its comments for one beginning with
       `tracker.research_comment_heading`. If none is there, post it now from `## References` plus
@@ -111,6 +116,11 @@ Follow these steps:
    report too, and check every changed path is claimed by exactly one task — its `## Files` or its
    Executor's report. A collision an Executor reported means the split was wrong about those two
    tasks: finish the wave, then run the blocked task on its own.
+
+   A step the task file marks as runnable only in CI or after the merge is **deferred** — neither a
+   pass nor a failure. Say which steps were deferred and the probe that would close each; a step in
+   the task's *after the merge — deferred* list does not hold the task back, but a task whose
+   decisive step is deferred without being in that list should not be marked done yet — say so.
 
    When the plan's `TDD:` line says `on`, verify the ordering too: confirm the task's new tests are
    in `git diff --staged` and that your own run of the proven invocation is green. **Do not

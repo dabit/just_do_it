@@ -42,7 +42,8 @@ The PR Writer summarises completed work into a clear, well-structured pull reque
 
 ## What it receives
 
-- The full (condensed) `PLAN.md` content
+- The full (condensed) `PLAN.md` content — or word that the branch carries no plan folder, in which
+  case the git log and any `CHANGELOG.md` entry are the record, and the body says there is no plan
 - The git log since the branch diverged from the default branch
 - The issue reference, if any
 

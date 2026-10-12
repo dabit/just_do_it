@@ -32,8 +32,18 @@ Follow these steps:
    exists so that **T4**'s state lookup can use **J3**. **With `jev.enabled` false or absent, say
    nothing at all** — nothing was skipped.
 
-1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
-   `reference/plan-store.md`. Read `PLAN.md` for the full scope and the issue reference.
+1. **Find this branch's plan** — Locate the plan matching `$ARGUMENTS` if the user named one;
+   otherwise the plan whose `Issue:` matches the issue ID in `git branch --show-current`
+   (case-insensitively), or whose slug the branch name carries. **Never fall back to the most
+   recent plan**: a plan that does not belong to this branch is the wrong object, and every later
+   step would condense and commit it for unrelated work. If several match, ask. Read `PLAN.md` for
+   the full scope and the issue reference.
+
+   **No plan matches** — say so once and take the short path: skip steps 2, 3, 5 and 6, since there
+   is nothing to reconcile or condense. If the branch has uncommitted work, ask before committing
+   it, with the repo's commit conventions — this command otherwise never commits an Executor's
+   work. In step 8, tell the PR Writer the branch carries no plan folder and hand it the git log and
+   any `CHANGELOG.md` entry the branch adds as the record instead.
 
 2. **Reconcile the UAT status** — If the UAT task is still unchecked, ask the user whether UAT
    actually ran. **Mark it done only on confirmation.** If it has not run — common when the PR ships
@@ -82,6 +92,12 @@ Follow these steps:
    reach it is the lossy paraphrase the Synthesizer is forbidden to write.
 
    Then:
+   - **Before touching the folder, confirm it is in history.** Run
+     `git status --porcelain -- <plans.path>/<slug>/` and `git ls-files --error-unmatch` on each
+     task file. If any is untracked or modified — the normal state after a prep whose tasks never
+     ran — commit the plan folder as it stands first, `docs: Add <slug> plan`, and say so in one
+     line. The deletion below is recoverable only from a commit, and nothing on disk distinguishes
+     a committed task file from one that exists nowhere else.
    - Write the condensed content over `PLAN.md`.
    - Delete every numbered task file in the plan folder (`rm <plans.path>/<slug>/[0-9]*-*.md`).
    - Stage the rewritten `PLAN.md` and all the deletions.
@@ -104,7 +120,8 @@ Follow these steps:
 7. **Push** — Push the branch to the remote with `-u`.
 
 8. **Delegate to the PR Writer** — Hand off to the **PR Writer** role. Pass
-   it the condensed `PLAN.md`, the git log since the branch diverged, and the issue reference.
+   it the condensed `PLAN.md` (or that there is none — step 1), the git log since the branch
+   diverged, and the issue reference.
    Instruct it to produce:
    - a PR title following the repo's own conventions (read `CLAUDE.md` / `AGENTS.md` and the recent
      `git log` for the house style)
@@ -129,3 +146,11 @@ Follow these steps:
     UAT, a tracker transition that did not happen, a task left pending. Where `split.pieces`
     mirrored the tasks into the tracker, say which pieces are still open there — condensing the
     plan deletes the task files, but it does not touch the tracker.
+
+**After the pull request is open, its body is a live record.** It has no diff, no test and no lint,
+and a reviewer reads it first. Any commit pushed to the branch from here on — a review fix, a
+walked UAT, a shipped follow-up — pulls the body to a file first (`gh pr view --json body -q .body`,
+`glab mr view`, or the forge's own tools), sweeps it beside the condensed `PLAN.md` for phrasing the
+commit retired and counts it moved — `NOT WALKED`, `pending`, `deferred`, a test tally — and updates
+it (`gh pr edit --body-file`, `glab mr update --description`) **in the same push**, along with every
+line of `PLAN.md` that carries the same fact.
