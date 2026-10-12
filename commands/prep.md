@@ -125,15 +125,22 @@ Follow these steps:
    - relevant docs
    - key code findings, with citations
    - recommended references to add to `PLAN.md`
-   - whether a missing architecture document should be drafted
+   - whether a missing architecture document should be drafted — or "no, it is the deliverable;
+     outline follows" when the issue or a record schedules it as part of this change
 
 9. **Update the references** — Merge the findings into `## References`, preserving anything useful
    that is already there. **Spot-check a couple of the load-bearing `file:line` citations against
    the real files before writing them in** — a plan built on a hallucinated reference misleads
    every later step.
 
-10. **Draft a missing architecture doc when one is needed** — If no useful architecture doc exists,
-    do not stop just to ask permission. Delegate to the **Researcher** again,
+10. **Draft a missing architecture doc when one is needed** — First ask whether the missing
+    document is **the deliverable**: named in the issue's scope, or scheduled by a record to land
+    with this change. If it is, do not draft it now — have the Researcher return its
+    required-sections outline, keyed to the records' own headings, and put that outline in
+    `## References` for the Planner to turn into a step. Drafting it here would decide questions
+    that belong to execution and leave two drafts of one artefact.
+
+    Otherwise, if no useful architecture doc exists, do not stop just to ask permission. Delegate to the **Researcher** again,
     have it draft a suitable architecture document, write that draft to `<docs.path>/` with a
     descriptive filename, and add it to `## References`. Stop only if a real ambiguity prevents a
     reasonable draft. An architecture doc goes in the repository and is committed with the code, in

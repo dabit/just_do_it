@@ -84,6 +84,8 @@ citation: every `file:line` you report is still one you read.
 - Relevant past plans found (paths and summaries)
 - Relevant architecture docs found (paths and summaries)
 - Key code findings, with `file:line` citations it actually read
-- Whether an architecture doc exists for this area
+- Whether an architecture doc exists for this area — and, where one is missing but the issue or a
+  record schedules it as part of this change, "no draft: it is the deliverable", with its
+  required-sections outline keyed to the records' own headings
 - Recommended references to add to `PLAN.md`
 - If writing a new doc: the complete architecture document content

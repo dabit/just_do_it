@@ -67,7 +67,12 @@ Follow these steps:
    later step.
    - Add relevant past plans to `PLAN.md` under `## References`.
    - Summarise the key points of any relevant architecture doc and reference it from `PLAN.md`.
-   - If **no relevant doc exists**, tell the user and ask whether to write one.
+   - If **no relevant doc exists**, tell the user and ask whether to write one — but first check
+     whether that document is **the deliverable**: named in the issue's scope, or scheduled by a
+     record to land with this change. If it is, say so instead of offering a draft, and add the
+     Researcher's required-sections outline, keyed to the records' own headings, to
+     `## References` for the plan to turn into a step. A draft written now decides questions that
+     belong to execution and leaves two drafts of one artefact.
 
 5. **Write the missing doc (if approved)** — If the user agrees, delegate to the **Researcher**
    again to explore the codebase and understand the current architecture:
