@@ -1,5 +1,63 @@
 # Changelog
 
+## 1.0.10
+
+**Commands report the state they actually reached, and a check that did not run is never counted as
+one that passed.** Each fix below closes a gap a real run fell into — an ending that read as a
+hand-off, a marker written by the wrong phase, a destructive step that never looked at what it
+deleted. No config key is added or changed; a repo upgrading from 1.0.9 runs exactly as before
+except where a command now asks, checks, or says one more thing.
+
+- **`/jdi:prep` ends where it ends.** Every decision in the plan is recorded as *asked and answered*
+  or *Butler default, not asked* — never as the user's choice by default. Before suggesting
+  `/jdi:yolo`, prep checks any issue the plan gates on and, if it has not landed, says "blocked on
+  #N; yolo would stop at task NN" and offers the buildable slice. It reports unpushed commits rather
+  than pushing, and its last line is *prep ends here; execution is a separate command*.
+- **A first-of-its-kind artefact is asked, not filed as a risk.** `/jdi:prep` step 12 and
+  `/jdi:plan` step 5 confirm in one line when a plan would create the project's first CI pipeline,
+  service account, scheduled job — anything with a count of zero today — even when a record
+  prescribes it.
+- **A missing doc that is the deliverable gets an outline, not a draft.** `/jdi:prep` step 10 and
+  `/jdi:research` step 4 first ask whether the issue or a record schedules the document as part of
+  this change; if so, its required-sections outline goes in `## References` instead.
+- **Plan metadata is measured.** The `/jdi:start` and `/jdi:prep` templates name `git rev-parse HEAD`
+  for `Base commit`, run `git cat-file -t` on any 40-character hex value before saving, and write
+  "none named by the source" for a field with no sourced value. **`- Started:` has one writer** — the
+  first execution command — and `/jdi:execute` and `/jdi:yolo` name the contradiction of a
+  `Started:` line on a plan whose tasks are all pending at the base commit.
+- **The split decision weighs the count.** `/jdi:split` step 2 names three outcomes — one combined
+  task file plus UAT (the default), several written by the Butler, several from the Splitter — and
+  any result above one file needs a reason that argues for more than one.
+- **`## Tasks` is an interface.** `PLAN.md` carries exactly one `## Tasks` heading with the
+  checklist directly under it; a shape rationale goes in a `### Shape` subsection below.
+  `/jdi:split` step 6 probes it with `grep -c '^## Tasks$'`, and `/jdi:prep` now runs that step's
+  checks.
+- **UAT is not exempt from the task shape.** Its `## Files` is the record it writes, its
+  `## Verification` restates every inherited check under its own number, and `/jdi:split` refuses a
+  task file missing either heading.
+- **Deferred is a third outcome.** In `/jdi:yolo`, `/jdi:execute` and `/jdi:next`, a verification
+  step the task file marks CI-only or after-merge is neither a pass nor a failure: it does not stop
+  the loop, a decisive step deferred outside the task's *after the merge — deferred* list keeps the
+  task pending, and every completion message names each owed check and the probe that would close
+  it.
+- **The CI job is the last gate.** The Splitter reads the CI configuration for the touched app and
+  makes the job's own commands, verbatim, the UAT's last Verification bullet; a task that establishes
+  an environment is certified by a whole-tree command reading installed state, never a manifest
+  diff or one smoke test.
+- **`/jdi:pr` checks before it deletes.** Immediately before removing the task files it runs
+  `git status --porcelain` and `git ls-files --error-unmatch` on the plan folder, and commits the
+  plan first when anything is untracked or modified.
+- **`/jdi:pr` matches the plan to the branch.** The "most recent plan" fallback is gone; with no
+  plan for the branch, the command says so, skips the plan steps, asks before committing
+  uncommitted work, and tells the PR Writer there is no plan folder.
+- **The PR body is reconciled with every later commit.** After the pull request is open, each
+  pushed commit sweeps the body beside the condensed plan for retired phrasing and moved counts and
+  updates it in the same push. Ticking a human-authored tracker checklist is left out: it does not
+  fit `reference/tracker.md` as a T-op.
+- **A config edit names its disposition.** `/jdi:init` ends by offering to commit `.jdi/config.yml`
+  on its own and, in a linked worktree, says the edit dies with it unless it lands or is applied to
+  the main checkout.
+
 ## 1.0.9
 
 **A personal `.jdi/config.local.yml` overrides the repository's `.jdi/config.yml`, key by key, and is
