@@ -142,4 +142,5 @@ the repository and is committed with the code in both modes.
 Commands that say "find the plan" mean: the plan matching `$ARGUMENTS` if the user named one,
 otherwise the most recently modified plan in `<plans.path>/` (repo mode) or in `plans.location`
 (external mode). If several are plausible, ask rather than guess — operating on the wrong plan
-corrupts two of them.
+corrupts two of them. `/jdi:pr` is the exception: it matches the plan to the current branch and has
+no recency fallback, because condensing a plan is irreversible and a branch may carry none.
