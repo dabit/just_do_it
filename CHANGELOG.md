@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.0.11
+
+**Two kinds of failure that advice never stopped are now fields a role must fill and the Butler
+probes for: a check that cannot tell a broken result from a correct one, and a premise relayed as
+a fact.** Each had an advisory sentence already — "prefer pairing a probe with a control", "never
+treat one environment as evidence about another" — and kept recurring with that sentence loaded,
+so each sentence is extended in place into a field, a refusal, or a grep the Butler runs after a
+role hands back. No config key is added or changed.
+
+- **Every Verification step names its red state.** A numbered step carries `red when:` — the
+  wrong state it catches — and a step whose pass condition is empty, zero or absent carries a
+  `control:` that must print non-empty. `/jdi:split` step 6 runs an awk probe over each task file
+  that prints a line per file, so its own silence is a broken probe, and refuses a step without
+  the field; `/jdi:prep` step 16 runs it, and the Butler's own skip-Splitter files are held to it.
+- **Expected values are observed, not predicted.** Every grep, count or probe step records
+  `at base: <output>` from a run at the base commit (`none — written by task NN` when the corpus
+  does not exist yet); a hit-expecting grep quotes its `file:line`; a structural text search
+  states `compliant hits:`; a suite run records its example count and known reds. The step 6
+  probe lists a grep or count step without `at base:`.
+- **Verification forms that read moving state are refused.** The Splitter's new *Refused in a
+  Verification step* list names six: a bare `git diff`/`--cached`/`HEAD` over a path the task
+  writes, a `..HEAD` range over an Executor's own edits, a guard list overlapping `## Files`, a
+  `path:N` into a file the task edits, a `git diff` over an untracked path, and an unscoped
+  whole-tree status in a wave. The UAT reads commit ranges only. Step 6 greps for them.
+- **Testing Strategy cases carry their colour, mutation and reach.** Each case states `at HEAD:`
+  (a green one is labelled as guarding a decision, not the fix), `reddened by:` and
+  `reaches the guard:`; an all-negative case adds a positive delivery assertion. `/jdi:plan` step
+  7 and `/jdi:prep` step 15 count the fields.
+- **The Executor shows a guard ran.** After adding N tests the same command reports N more
+  collected than its baseline; a zero-example exit 0 is a failed guard; a per-file checker over a
+  new file shows what it applied; each `control:` is run and reported.
+- **Premises are tagged.** `reference/delegation.md` gains *Premises in a brief*: every premise a
+  brief, dispatch or commission relays is `VERIFIED (<command or file:line>)` or `ASSUMED`, and a
+  dispatch cites the task file instead of restating it. Every role's *What it receives* lists the
+  tagged premises, and the prep, plan, research and execution briefs point at the section.
+- **The Researcher opens with `§0 Premises`.** Each brief premise is CONFIRMED, REFUTED or
+  UNCHECKED with evidence; `REFUTED: none — checked: <list>` is a complete answer. `/jdi:research`
+  and `/jdi:prep` send back a return without it.
+- **A blocker enters an artefact only as a record.** *Blocker records* in
+  `reference/delegation.md`: the verbatim message, the tool and its arguments, "Arguments checked
+  against the schema: yes", one line per target, the date and commit. The Researcher, the
+  Planner's untestable list and the Executor's cannot-perform report use it; the Butler relays a
+  bare one as `ASSUMED`; tracker rule 5 gains its mirror.
+- **The Butler offers only options it has read.** `roles/butler.md`: no option whose premise the
+  Butler has not read itself — ask for the fact; a "settled" brief closes the outcome, not its
+  stated reason. `/jdi:prep` step 12 and `/jdi:plan` step 5 cite it, and the `/jdi:split` and
+  `/jdi:pr` rows of the ownership table now say what 1.0.10 made them do.
+- **Both ends are pinned.** `tests/test_structural_checks.py` holds each field to its probe —
+  and runs the step 6 and plan step 7 probes — so neither side can be dropped silently.
+
 ## 1.0.10
 
 **Commands report the state they actually reached, and a check that did not run is never counted as

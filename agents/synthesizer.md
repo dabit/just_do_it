@@ -50,6 +50,8 @@ why.
 - All numbered task files, including UAT
 - The branch git log since it diverged from the default branch
 - The plan folder path
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 

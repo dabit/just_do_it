@@ -75,7 +75,9 @@ Follow these steps:
    **(a) Skip-Splitter path.** Write the task files yourself:
    - `01-<implement-slug>.md` — Why, Description (copy the Implementation Plan verbatim or
      summarise its steps, keeping the file paths and snippets), Files, and Verification commands
-     (lint plus targeted tests).
+     (lint plus targeted tests), numbered and in the Splitter's *Task file shape* — a `red when:`
+     on every step, a `control:` on every empty or zero one, an `at base:` on every grep or count
+     — since step 6 checks your files too.
    - `02-uat.md` — the UAT task, per the UAT rules below, with `Depends on: 01`, and its own
      `## Files` and `## Verification` like any other task.
 
@@ -178,8 +180,31 @@ Follow these steps:
    below it. And refuse any task file, UAT included, that `grep -L '^## Files$'` or
    `grep -L '^## Verification$'` lists: send it back rather than presenting it, since the
    Executor's territory and the checks it must run resolve against those sections and nothing
-   else. Note which path step 2 took and why if it was a close call, name the pieces that were
-   mirrored to the tracker (or say the run is `commits`), and suggest `/jdi:execute` — or
-   `/jdi:yolo` to run them all.
+   else.
+
+   Then, in the plan folder, probe each task file's Verification steps, one file at a time:
+
+   ```sh
+   for f in [0-9]*.md; do awk 'function shut(){if(s&&!r)m=m" "s; if(s&&g&&!b)a=a" "s}
+     /^## /{v=($0=="## Verification")} v&&/^[0-9]+\./{shut(); n++; s=$1; r=g=b=0}
+     v&&/red when:/{r=1} v&&/grep|wc -|rg /{g=1} v&&/at base:/{b=1}
+     END{shut(); print FILENAME": steps "n+0", missing red when:"(m?m:" none"),
+       "/ missing at base:"(a?a:" none")}' "$f"
+   done
+   ```
+
+   Every file prints a line, so silence is a broken probe, never a pass. Refuse a file that shows
+   `steps 0` or lists a step after either `missing` — a check with no named wrong state cannot be
+   told from one that cannot fail, and an expected count nobody ran at base is a prediction — and
+   read every step whose pass condition is empty, zero or absent for its `control:`, and every
+   structural text search for its `compliant hits:`.
+
+   Last, the forms the Splitter's *Refused in a Verification step* lists.
+   `grep -cE 'git (diff|status)|merge-base|\.[a-z]+:[0-9]+' [0-9]*.md` prints a count for every
+   file; read each hit (`grep -nE` with the same pattern) against that list, and send back a
+   task — the UAT for a working-tree or index read, any other task for a `..HEAD` range over its
+   own edits — that uses one. Note which path step 2 took and why if it was
+   a close call, name the pieces that were mirrored to the tracker (or say the run is `commits`),
+   and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 
 Do **not** write any implementation code. This command produces task documents only.

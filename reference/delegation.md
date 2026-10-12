@@ -88,6 +88,52 @@ separate model for the phase; it keeps every other property of the workflow. **D
 a role because delegation is unavailable** — a phase that never ran is the failure, not the
 mechanism it ran through.
 
+## Premises in a brief
+
+Every brief, dispatch or commission the Butler hands a role states its **premises** — what the role
+is asked to build on rather than establish — as a `Premises:` list, one line each, tagged:
+
+- `VERIFIED (<command or file:line>)` — the Butler ran that command or read that line in this
+  session, and names it so the role can run it again
+- `ASSUMED` — relayed from a document, a memory note, an issue, an earlier role, or the framing of
+  the request, and not read by the Butler
+
+A count, a list position, a pointer ("the lines in Y"), a composed identifier, a status ("CI is
+green", "deployed"), a verdict handed down, and an inherited blocker are all premises. One with a
+shelf life — deploy state, a blocker, an impossibility claim — carries the probe that would
+falsify it. Artefacts that cite one another are one source, not several. The receiving role treats
+an `ASSUMED` line as a claim to check, never as context, and an untagged one as `ASSUMED`. A brief
+with nothing to relay says `Premises: none`; a brief with no `Premises:` line at all is a defect in
+the handover, because a dropped list and an empty one both arrive as silence — the role says so in
+its return.
+
+**A dispatch cites; it does not restate.** Where it wants to stress a task's figure, scope or rule,
+it points at the location — `task §Verification 3`, `PLAN.md:171` — instead of retyping it. It
+never asserts a value a Verification step greps for, never waives a Verification step, and never
+restates a status in a more finished tense than its source. Where a dispatch and the task file
+disagree, the task file governs and the role reports the divergence.
+
+## Blocker records
+
+A blocker, a refusal or an impossibility — "cannot", "never", "is not available here", "tool T
+refuses", "no test can observe this" — enters a durable artefact (a plan, a task file, a record, a
+hand-back) only as a record with every field filled:
+
+```
+Blocked: <what cannot be done>
+Tried: <the tool and its arguments, verbatim>
+Message: <the verbatim error or output>
+Arguments checked against the schema: yes
+Per target: <target> — <verdict>      (one line per target, flag branch or field)
+Observed: <date> at <commit>
+```
+
+A claim missing a field is a premise, written `ASSUMED`, never a fact. *Checked against the schema*
+means the call was rebuilt from the tool's own contract — its schema or `--help` read, a compound
+shell command split into steps — before the refusal was believed; a byte-identical retry is not a
+second attempt, and several failures are one finding only when they carry the same message. Where
+a loaded memory note already names the claim, running the probe is mandatory.
+
 ## Delegating several roles at once
 
 `/jdi:execute`, `/jdi:next` and `/jdi:yolo` hand a whole **wave** of tasks to the Executor at the

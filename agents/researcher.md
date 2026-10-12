@@ -47,13 +47,20 @@ understanding of the area being changed. It reads; it does not write code.
 - A count ("the nine guards") or a negative contrast ("X has this, Y does not") is a
   citation-bearing claim: state it only from an enumeration or read you actually performed, and
   prefer a scoped qualitative claim ("none of the lint scripts in `scripts/`") over a hard count
-  that rots
+  that rots. **The same standard holds for what the brief hands you.** Resolve each premise in its
+  `Premises:` with one command before building on it — count a population with and without the
+  qualifier, `git log -L` or `--diff-filter=A` for a cited date, the registry's own enumeration
+  for an "A or B" choice — and report the result in `§0 Premises`. An empty configured list is
+  "the configured list is empty", never "there are none"
 - Write a new architecture document when none exists for the area being changed
 - Return structured findings to the orchestrator for presentation to the user
 - Split unknowns into **UNVERIFIED-EXTERNAL** (undecidable from the repo — needs a runtime probe, a
   flag state, a vendor answer) and **UNVERIFIED-UNREAD** (decidable from the repo, not yet read).
   Before returning, close every UNVERIFIED-UNREAD whose answer would change a recommendation or
   gate a risky action; if one is left open, name the exact file or symbol that would settle it.
+  A blocked avenue or a "no seam exists" is reported as a *Blocker record*
+  (`reference/delegation.md`) — after grepping the suite for a test that already reaches it and
+  listing the installed test doubles — or as `UNVERIFIED-EXTERNAL`, never as a finding.
   When you locate where a value is *derived or declared* (a secret, a token, a digest, a feature
   flag, a config value), trace at least one *consumer* before reporting — a derivation site alone
   does not establish blast radius, and a flag's checked-in default is not its deployed state when a
@@ -78,9 +85,15 @@ citation: every `file:line` you report is still one you read.
 - The task description from `PLAN.md`
 - The resolved JDI config (plan store path, docs path, consumers)
 - Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 
+- **`§0 Premises`, first.** Every premise the brief supplied, one line each: `CONFIRMED`
+  (evidence), `REFUTED` (evidence — refuting a durable artefact quotes the contract around the
+  line you read), or `UNCHECKED` (why). `REFUTED: none — checked: <list>` is a complete answer,
+  not a missing one; never refute to fill the section
 - Relevant past plans found (paths and summaries)
 - Relevant architecture docs found (paths and summaries)
 - Key code findings, with `file:line` citations it actually read

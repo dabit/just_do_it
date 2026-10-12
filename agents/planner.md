@@ -41,7 +41,9 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   proves which step — and **name explicitly any step whose behaviour no test can observe**, with
   what proves it instead. A test-first execution reads the strategy to decide what to write before
   it writes anything, so a step whose untestability goes unstated is one the Executor will either
-  skip silently or invent a test for
+  skip silently or invent a test for. That list is read as permission not to try, so each entry is
+  a *Blocker record* (`reference/delegation.md`): the command that tried — a grep of the suite for
+  an existing test, the installed test doubles listed — its output, and the date and commit
 - When the testing strategy names an existing test as the precedent to copy, check that precedent's
   **harness** against the assertions the plan requires, not only its assertion style. Naming a file
   as the template asserts that its capabilities are a superset of what the new work needs, and the
@@ -55,6 +57,19 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
   re-parents the row out of the queried subtree, so it is already gone regardless of the filter),
   plan an in-place state flip instead, mirroring the precedent test the plan cites, so the filter
   itself is exercised. A guard that still passes with the filter removed is vacuous
+- **Every case in the Testing Strategy carries three fields**, and the Butler sends back a case
+  missing one:
+  - `at HEAD:` — `red`, or `green`. A case green at HEAD does not prove the fix; label it
+    `green — guards <decision id>, not the fix`, so nobody counts it as the fix's evidence
+  - `reddened by:` — the mutation that turns it red, at its definition site (the trace below)
+  - `reaches the guard:` — why its stimulus and precondition arrive where the assertion looks:
+    every early return, idempotence latch, pagination bound and test-environment setting on the
+    path, and the state the fixture must be in for the code not to produce the value for free
+
+  A case whose assertions are all negative — nothing raised, nothing sent, a value still at its
+  seed — cannot tell "the guard held" from "the stimulus never arrived", so it carries one
+  positive assertion that the stimulus was delivered: a request count, a recorded call, a side
+  effect on the path before the guard
 - When the plan claims a specific test fails under a specific regression ("fails the moment X is
   removed"), trace the regressed value through **every** construction between it and the asserted
   seam — splats, coercions, defaults, wrapping — and confirm the named assertion is the one that
@@ -110,10 +125,12 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - Full `PLAN.md` content, including references
 - The referenced architecture docs
 - The user's answers to clarifying questions
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 
 - A complete implementation plan ready to be written into `PLAN.md`
-- A testing strategy
+- A testing strategy, each case carrying `at HEAD:`, `reddened by:` and `reaches the guard:`
 - Risks and watchouts
 - Open questions, only when the plan genuinely cannot be completed safely without them

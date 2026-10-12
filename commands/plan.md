@@ -73,7 +73,10 @@ Follow these steps:
    - *Dependencies*: "This touches feature X — handle that here, or separately?"
 
    **Do not guess or assume.** Get clarity first, then plan. Ask only what materially changes the
-   output; for the rest, pick the obvious default and say which one you picked.
+   output; for the rest, pick the obvious default and say which one you picked. Offer no option
+   whose premise you have not read yourself — ask for the fact instead — and when a brief calls a
+   decision settled, it settles the outcome, not its stated reason (`roles/butler.md`, *Offer only
+   options whose premise you have read*).
 
    Ask one more even when nothing is ambiguous: when the plan would create the project's **first
    instance of a kind** — its first CI pipeline, service account, scheduled job, container image,
@@ -87,6 +90,8 @@ Follow these steps:
    - the full `PLAN.md` content, including the references
    - the referenced architecture docs
    - the user's answers to the clarifying questions
+   - the brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in
+     a brief* in JDI's `reference/delegation.md`
 
    Instruct it to produce a detailed implementation plan with:
    - a numbered list of implementation steps, each naming the files to create or modify and the
@@ -97,6 +102,16 @@ Follow these steps:
 
 7. **Update `PLAN.md`** — Write the Planner's output into `## Implementation Plan`,
    `## Testing Strategy`, and `## Risks`, preserving the metadata and references above them.
+
+   Then check that every Testing Strategy case carries the Planner's three fields:
+
+   ```sh
+   for k in 'at HEAD:' 'reddened by:' 'reaches the guard:'; do printf '%s %s\n' "$k" \
+     "$(awk '/^## /{v=($0=="## Testing Strategy")} v' PLAN.md | grep -c "$k")"; done
+   ```
+
+   It prints three counts, which must be equal and at least the number of cases; send the strategy
+   back to the Planner otherwise. A case with no `reddened by:` is one nobody has shown can fail.
 
    When a user decision lands after the Planner returned — a declined step, a follow-up issue now
    filed — **reconcile every mention of it across the whole plan**: the decisions, the steps, the
