@@ -126,7 +126,10 @@ Follow these steps:
 8. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
    Give it the task description from `PLAN.md`, the `docs.path`, the plan store location, the
-   `consumers` list, and whether Jev is available. Instruct it to return:
+   `consumers` list, whether Jev is available, and the brief's `Premises:` — each tagged
+   `VERIFIED (<command or file:line>)` or `ASSUMED` per *Premises in a brief* in
+   `reference/delegation.md`, inherited blockers and the issue's own claims included. Instruct it
+   to return:
    - related past plans
    - relevant docs
    - key code findings, with citations
@@ -175,7 +178,8 @@ Follow these steps:
     the attribution as the owner's choice.
 
 13. **Delegate to the Planner** — Hand off to the **Planner** role. Pass it the
-    current `PLAN.md`, the referenced docs, and the clarified answers. Instruct it to produce:
+    current `PLAN.md`, the referenced docs, the clarified answers, and the brief's `Premises:`,
+    tagged per *Premises in a brief* in `reference/delegation.md`. Instruct it to produce:
     - a detailed implementation plan
     - a testing strategy
     - the risks and watchouts

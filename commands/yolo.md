@@ -107,8 +107,9 @@ Step 2. For **each** task in the set, in number order, one at a time:
    adopting the role inline if there are no subagents at all. Say which tasks are running
    together. Pass each Executor its own task file content, the sibling tasks running alongside it
    with their `## Files` (or that it runs alone), `PLAN.md` for context, and the referenced
-   architecture docs. Read the
-   `TDD:` line in `PLAN.md` as well: `on` means pass that decision and the proven invocation the
+   architecture docs; the dispatch cites the task file and never restates it (*Premises in a
+   brief*, `reference/delegation.md`). Read the `TDD:` line in `PLAN.md` as well: `on` means pass
+   that decision and the proven invocation the
    line names, and instruct the Executor to perform **TS2** from JDI's `reference/testing.md` — the
    failing test first, the implementation after it, and both runs returned as evidence. A line
    reading `off`, a missing line, and an unparseable line all mean the same thing: this plan runs

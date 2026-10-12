@@ -123,6 +123,8 @@ architecture, trade-offs, and sequencing. It writes no implementation code.
 - Full `PLAN.md` content, including references
 - The referenced architecture docs
 - The user's answers to clarifying questions
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 

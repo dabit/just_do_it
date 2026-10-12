@@ -78,6 +78,8 @@ citation: every `file:line` you report is still one you read.
 - The task description from `PLAN.md`
 - The resolved JDI config (plan store path, docs path, consumers)
 - Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 

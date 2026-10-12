@@ -142,6 +142,10 @@ without that list, these hold:
 - Which sibling tasks are running alongside this one, and their `## Files` — or the statement that
   this task is running alone
 - The codebase, with write access — shared, while the wave runs, with those siblings
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context; where the
+  dispatch restates the task file in its own words, the task file governs, and you report the
+  divergence
 
 ## What it returns
 

@@ -18,11 +18,19 @@ import unittest
 import jdi_files
 
 
-def step(text, number):
-    """The lines of a top-level numbered command step, up to the next one."""
+def step(text, number, title=""):
+    """The lines of a numbered command step, up to the next one.
+
+    `title` picks between steps that share a number, as yolo's nested loops do.
+    """
     lines = text.split("\n")
     start = next(
-        (i for i, line in enumerate(lines) if line.startswith("%d. " % number)), None
+        (
+            i
+            for i, line in enumerate(lines)
+            if line.startswith("%d. " % number) and title in line
+        ),
+        None,
     )
     if start is None:
         raise AssertionError("step %d not found" % number)
@@ -148,6 +156,44 @@ class CollectedCountTest(unittest.TestCase):
         returns = flat("\n".join(jdi_files.section(text, "## What it returns")))
         self.assertIn("collected count before and after", returns)
         self.assertIn("`control:`", returns)
+
+
+class PremisesSlotTest(unittest.TestCase):
+    """The premise tags in delegation.md ⇔ every role's inputs ⇔ every brief that fills them."""
+
+    BRIEFS = (
+        ("commands/prep.md", 8, ""),
+        ("commands/prep.md", 13, ""),
+        ("commands/plan.md", 6, ""),
+        ("commands/research.md", 3, ""),
+        ("commands/execute.md", 5, ""),
+        ("commands/next.md", 7, ""),
+        ("commands/yolo.md", 3, "Delegate to the Executor"),
+    )
+
+    def test_the_slot_is_defined_with_both_tags(self):
+        section = flat("\n".join(
+            jdi_files.section(jdi_files.read("reference/delegation.md"), "## Premises in a brief")
+        ))
+        tags = ("`VERIFIED (<command or file:line>)`", "`ASSUMED`", "cites; it does not restate")
+        for tag in tags:
+            with self.subTest(tag=tag):
+                self.assertIn(tag, section)
+
+    def test_every_role_receives_the_slot(self):
+        for path in jdi_files.markdown_files("agents"):
+            with self.subTest(path=path):
+                receives = flat("\n".join(
+                    jdi_files.section(jdi_files.read(path), "## What it receives")
+                ))
+                self.assertIn("Premises in a brief", receives)
+                self.assertIn("`ASSUMED`", receives)
+
+    def test_every_brief_points_at_the_slot(self):
+        for path, number, title in self.BRIEFS:
+            with self.subTest(path=path, step=number):
+                text = flat(step(jdi_files.read(path), number, title))
+                self.assertIn("Premises in a brief", text)
 
 
 if __name__ == "__main__":

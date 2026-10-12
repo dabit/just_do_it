@@ -87,6 +87,8 @@ Follow these steps:
    - the full `PLAN.md` content, including the references
    - the referenced architecture docs
    - the user's answers to the clarifying questions
+   - the brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in
+     a brief* in JDI's `reference/delegation.md`
 
    Instruct it to produce a detailed implementation plan with:
    - a numbered list of implementation steps, each naming the files to create or modify and the

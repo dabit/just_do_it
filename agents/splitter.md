@@ -279,6 +279,8 @@ not the task's work. Write the form beside it instead; `/jdi:split` step 6 greps
 - The referenced architecture docs
 - The plan folder path
 - Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 

@@ -50,8 +50,8 @@ Follow these steps:
 3. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md` for how to delegate under this harness, and adopt the role
    inline if it has no subagents. Give it the task description from `PLAN.md`, the `docs.path`, the
-   plan store location, the `consumers` list, and whether Jev is available, and instruct it
-   to:
+   plan store location, the `consumers` list, whether Jev is available, and the brief's
+   `Premises:`, tagged per *Premises in a brief* in `reference/delegation.md`, and instruct it to:
 
    a. **Search for past plans** — Search the plan store for previous plans that touched the same
       area or a related feature. Read their `PLAN.md` files and note the relevant ones.
