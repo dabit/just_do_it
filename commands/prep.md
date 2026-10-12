@@ -149,6 +149,11 @@ Follow these steps:
     continue.** Ask only what materially changes the output; for the rest, pick the obvious default
     and say which one you picked.
 
+    Record every decision with its provenance — **asked and answered**, or **Butler default, not
+    asked**. Never write "confirmed by the user" or "user decision" for a default: a run with nobody
+    at the keyboard cannot tell no answer from approval, and a later reader of the plan will take
+    the attribution as the owner's choice.
+
 13. **Delegate to the Planner** — Hand off to the **Planner** role. Pass it the
     current `PLAN.md`, the referenced docs, and the clarified answers. Instruct it to produce:
     - a detailed implementation plan
@@ -183,6 +188,15 @@ Follow these steps:
     (and why, if it was a close call), list the generated tasks wave by wave — which run together,
     and the critical path — and suggest `/jdi:yolo` as the next step.
 
+    **Check the gate before saying "Next: yolo".** Where the plan makes a task wait on another issue
+    landing — a prerequisite, a blocker, "begins only after #N" — perform **T2** on that issue now.
+    If it has not landed, do not suggest `/jdi:yolo`: say "blocked on #N; yolo would stop at task
+    NN", and offer the slice that is buildable today, if the plan has one.
+
+    Report the state as it is. Prep never pushes and never executes a task or walks UAT; name any
+    unpushed commits on this branch (`git log --oneline @{u}..HEAD`, or every commit since
+    `origin/<default>` when the branch has no upstream) rather than pushing them.
+
     Also offer the pause: because the branch was created in step 6, the plan and task files can be
     committed on their own — `docs: Add <slug> plan` — leaving the work resumable later or by
     someone else with nothing implemented. In `external` plan mode there is nothing to commit; say
@@ -190,3 +204,6 @@ Follow these steps:
     the user asks; never as a side effect of preparing.**
 
 Do **not** write implementation code. Do **not** stop for approval between phases.
+
+End the report with this line, verbatim: **prep ends here; execution is a separate command.**
+Suggesting `/jdi:yolo` is an offer to the user, never an instruction to run it.
