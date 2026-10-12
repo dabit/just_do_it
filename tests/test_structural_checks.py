@@ -196,5 +196,25 @@ class PremisesSlotTest(unittest.TestCase):
                 self.assertIn("Premises in a brief", text)
 
 
+class PremisePassTest(unittest.TestCase):
+    """The Researcher's `§0 Premises` return ⇔ the Butler's check before relaying findings."""
+
+    def test_the_return_opens_with_the_premise_pass(self):
+        returns = jdi_files.section(jdi_files.read("agents/researcher.md"), "## What it returns")
+        first = flat("\n".join(returns)).split(" - ")[0]
+        self.assertIn("`§0 Premises`", first)
+        self.assertIn("`REFUTED: none — checked: <list>`", flat("\n".join(returns)))
+
+    def test_every_receiving_step_checks_for_it(self):
+        for path, number in (
+            ("commands/research.md", 3),
+            ("commands/research.md", 4),
+            ("commands/prep.md", 8),
+            ("commands/prep.md", 9),
+        ):
+            with self.subTest(path=path, step=number):
+                self.assertIn("§0 Premises", flat(step(jdi_files.read(path), number)))
+
+
 if __name__ == "__main__":
     unittest.main()

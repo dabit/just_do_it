@@ -130,6 +130,7 @@ Follow these steps:
    `VERIFIED (<command or file:line>)` or `ASSUMED` per *Premises in a brief* in
    `reference/delegation.md`, inherited blockers and the issue's own claims included. Instruct it
    to return:
+   - `§0 Premises`, first — each premise `CONFIRMED`, `REFUTED` or `UNCHECKED`, with evidence
    - related past plans
    - relevant docs
    - key code findings, with citations
@@ -137,10 +138,11 @@ Follow these steps:
    - whether a missing architecture document should be drafted — or "no, it is the deliverable;
      outline follows" when the issue or a record schedules it as part of this change
 
-9. **Update the references** — Merge the findings into `## References`, preserving anything useful
-   that is already there. **Spot-check a couple of the load-bearing `file:line` citations against
-   the real files before writing them in** — a plan built on a hallucinated reference misleads
-   every later step.
+9. **Update the references** — First check the return opens with `§0 Premises`, one line per premise
+   you passed, and send it back if not; a `REFUTED` line reaches the user at step 12, not only the
+   plan. Merge the findings into `## References`, preserving anything useful that is already there.
+   **Spot-check a couple of the load-bearing `file:line` citations against the real files before
+   writing them in** — a plan built on a hallucinated reference misleads every later step.
 
 10. **Draft a missing architecture doc when one is needed** — First ask whether the missing
     document is **the deliverable**: named in the issue's scope, or scheduled by a record to land

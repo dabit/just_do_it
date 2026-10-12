@@ -47,7 +47,11 @@ understanding of the area being changed. It reads; it does not write code.
 - A count ("the nine guards") or a negative contrast ("X has this, Y does not") is a
   citation-bearing claim: state it only from an enumeration or read you actually performed, and
   prefer a scoped qualitative claim ("none of the lint scripts in `scripts/`") over a hard count
-  that rots
+  that rots. **The same standard holds for what the brief hands you.** Resolve each premise in its
+  `Premises:` with one command before building on it — count a population with and without the
+  qualifier, `git log -L` or `--diff-filter=A` for a cited date, the registry's own enumeration
+  for an "A or B" choice — and report the result in `§0 Premises`. An empty configured list is
+  "the configured list is empty", never "there are none"
 - Write a new architecture document when none exists for the area being changed
 - Return structured findings to the orchestrator for presentation to the user
 - Split unknowns into **UNVERIFIED-EXTERNAL** (undecidable from the repo — needs a runtime probe, a
@@ -83,6 +87,10 @@ citation: every `file:line` you report is still one you read.
 
 ## What it returns
 
+- **`§0 Premises`, first.** Every premise the brief supplied, one line each: `CONFIRMED`
+  (evidence), `REFUTED` (evidence — refuting a durable artefact quotes the contract around the
+  line you read), or `UNCHECKED` (why). `REFUTED: none — checked: <list>` is a complete answer,
+  not a missing one; never refute to fill the section
 - Relevant past plans found (paths and summaries)
 - Relevant architecture docs found (paths and summaries)
 - Key code findings, with `file:line` citations it actually read
