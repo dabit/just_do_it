@@ -41,8 +41,14 @@ possible can run at the same time. It focuses on structure, not implementation.
   actually runs in** — a check that runs after an earlier task's change must expect the world
   *after* that change. Where the source plan describes the same probe in more than one context
   (before vs after a change, or under a rejected alternative), identify which context the task
-  inherits and discard the others. Prefer pairing a probe with a control whose opposite result is
-  expected, so a misread outcome is self-evident
+  inherits and discard the others. **Every numbered Verification step carries a `red when:` line**
+  naming the wrong state it exists to catch — and the command must actually separate that state from
+  the right one; a step you cannot write the line for checks nothing. **A step whose pass condition
+  is empty output, a zero or an absence carries, in the same step, a `control:`** — the same
+  pattern, flags and file set run over a corpus known to contain the thing, which must print
+  non-empty. Silence passes when the instrument is dead, so the control is what lets it fail. A
+  terminal-state arm (non-zero exit, absent file, closed gate) names two runs: the opposite-state
+  control first, then the arm
 - When a task names an existing file as the template for a new test's harness — *copy the seam from
   X **exactly*** — that sentence is a claim that X can express **every** case the same task lists.
   Read the template's return shape against your own case list before you write it: a seam that
@@ -199,8 +205,13 @@ Every path the task creates, modifies, or deletes — complete, and disjoint fro
 task it could run alongside.
 
 ## Verification
-Commands to run and the expected outcome of each.
+1. <command> — expected: <outcome>
+   red when: <the wrong state this step catches>
+   control: <same pattern over a corpus that contains it — non-empty> (empty/zero/absence only)
 ```
+
+`/jdi:split` step 6 refuses a task file with a numbered Verification step lacking `red when:`.
+The UAT's *after the merge — deferred* list is bulleted, not numbered, so it is not a step.
 
 **Three of these are read by a machine, and the rest by a person.** `status:` is the flag
 `/jdi:done` flips; `Depends on:` is the *only* input to the wave computation; `## Files` is both the

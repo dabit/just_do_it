@@ -193,7 +193,9 @@ Follow these steps:
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
 16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5, and run step 6's checks on the
-    result before step 17 presents it: judge whether splitting is worth it, then take one of its
+    result before step 17 presents it — the `## Tasks` probe, the section refusals, and the
+    per-file Verification probe that refuses a step without `red when:` — whatever wrote the
+    files. Judge whether splitting is worth it, then take one of its
     three outcomes — one combined task file plus UAT written by you (the default), several task
     files written by you, or several from the **Splitter**, passing it whether Jev is available
     along with the plan, and instructing it to prioritise parallelisation exactly as `/jdi:split`
