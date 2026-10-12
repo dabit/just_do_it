@@ -102,7 +102,10 @@ A count, a list position, a pointer ("the lines in Y"), a composed identifier, a
 green", "deployed"), a verdict handed down, and an inherited blocker are all premises. One with a
 shelf life — deploy state, a blocker, an impossibility claim — carries the probe that would
 falsify it. Artefacts that cite one another are one source, not several. The receiving role treats
-an `ASSUMED` line as a claim to check, never as context, and an untagged one as `ASSUMED`.
+an `ASSUMED` line as a claim to check, never as context, and an untagged one as `ASSUMED`. A brief
+with nothing to relay says `Premises: none`; a brief with no `Premises:` line at all is a defect in
+the handover, because a dropped list and an empty one both arrive as silence — the role says so in
+its return.
 
 **A dispatch cites; it does not restate.** Where it wants to stress a task's figure, scope or rule,
 it points at the location — `task §Verification 3`, `PLAN.md:171` — instead of retyping it. It

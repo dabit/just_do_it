@@ -175,7 +175,8 @@ class PremisesSlotTest(unittest.TestCase):
         section = flat("\n".join(
             jdi_files.section(jdi_files.read("reference/delegation.md"), "## Premises in a brief")
         ))
-        tags = ("`VERIFIED (<command or file:line>)`", "`ASSUMED`", "cites; it does not restate")
+        tags = ("`VERIFIED (<command or file:line>)`", "`ASSUMED`", "`Premises: none`",
+                "cites; it does not restate")
         for tag in tags:
             with self.subTest(tag=tag):
                 self.assertIn(tag, section)
