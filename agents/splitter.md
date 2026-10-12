@@ -151,7 +151,8 @@ Do this before writing any task file, and again once they are written.
    creates, modifies, or deletes — because the Butler also commits each task by exactly those
    paths. The plan folder's own files are the Butler's and never belong in a task's `## Files`.
 4. **Keep verification independent.** A task's Verification must be able to pass or fail on that
-   task's work alone, with its same-wave siblings half-finished or absent. Prefer a targeted
+   task's work alone, with its same-wave siblings half-finished or absent — every working-tree
+   read scoped to the task's own paths (*Refused in a Verification step*, item 6). Prefer a targeted
    invocation (one test file, one command) over the whole suite; leave whole-suite runs to the
    task that joins the branches back together, and to UAT.
 5. **Weigh it against task count.** Parallelism is a real boundary: a cut that lets two pieces run
@@ -248,6 +249,29 @@ So **write the skeleton first and fill it in**, rather than writing the task and
 fields afterwards. A task file whose first line is not `status: pending`, or that reaches its first
 prose heading without `Depends on:` above it, is the wrong shape — not a stylistic variant of the
 right one.
+
+### Refused in a Verification step
+
+Each of these reads a state the workflow itself moves, so it passes or fails for a reason that is
+not the task's work. Write the form beside it instead; `/jdi:split` step 6 greps for them.
+
+1. **A bare `git diff`, `git diff --cached` or `git diff HEAD` over a path the task writes.** The
+   Executor stages every edit, so the first is empty by construction, and the wave moves the
+   others. Ask whether the path is in the change set: `git status --porcelain -- <path>`, or
+   `git diff <base-sha> -- <path>`.
+2. **`<base>..HEAD` or `$(git merge-base …)..HEAD` as evidence of the task's own edits**, in any
+   task but the UAT. Executors do not commit, so HEAD holds none of them. The UAT is the reverse:
+   it is walked after every earlier task is committed, so it reads a commit range and never the
+   working tree or the index.
+3. **A "not edited" guard whose path list shares a path with the task's `## Files`.** It forbids
+   the edit the task mandates. Quantify it over the paths the task does not edit, and protect
+   what must survive in an edited file by name or content.
+4. **A bare `path:N` into a file the task itself edits.** The task's own edit moves the line.
+   Address it by a description (`-e "<example name>"`), a symbol, or a content grep.
+5. **A `git diff` absence proof over an untracked path.** Git cannot diff what it does not track;
+   it prints nothing either way. Use `git status --porcelain -- <path>` with a `control:`.
+6. **A whole-tree `git status` or `git diff --stat` in a task that can run beside a sibling**,
+   without the task's `## Files` as its pathspec — a sibling's edit fails it, or satisfies it.
 
 ## What it receives
 

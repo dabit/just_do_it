@@ -197,7 +197,13 @@ Follow these steps:
    `steps 0` or lists a step after either `missing` — a check with no named wrong state cannot be
    told from one that cannot fail, and an expected count nobody ran at base is a prediction — and
    read every step whose pass condition is empty, zero or absent for its `control:`, and every
-   structural text search for its `compliant hits:`. Note which path step 2 took and why if it was
+   structural text search for its `compliant hits:`.
+
+   Last, the forms the Splitter's *Refused in a Verification step* lists.
+   `grep -cE 'git (diff|status)|merge-base|\.[a-z]+:[0-9]+' [0-9]*.md` prints a count for every
+   file; read each hit (`grep -nE` with the same pattern) against that list, and send back a
+   task — the UAT for a working-tree or index read, any other task for a `..HEAD` range over its
+   own edits — that uses one. Note which path step 2 took and why if it was
    a close call, name the pieces that were mirrored to the tracker (or say the run is `commits`),
    and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 

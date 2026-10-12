@@ -82,5 +82,27 @@ class VerificationProbeTest(unittest.TestCase):
         self.assertIn("02-bad.md: steps 2, missing red when: 1. 2. / missing at base: 2.", out)
 
 
+class RefusedFormsTest(unittest.TestCase):
+    """The Splitter's refused-forms list ⇔ the grep split step 6 runs for it."""
+
+    def test_the_list_exists_and_both_commands_cite_it(self):
+        splitter = jdi_files.read("agents/splitter.md").split("\n")
+        self.assertIn("### Refused in a Verification step", splitter)
+        for path, number in (("commands/split.md", 6), ("commands/prep.md", 16)):
+            with self.subTest(path=path):
+                text = flat(step(jdi_files.read(path), number))
+                self.assertIn("*Refused in a Verification step*", text)
+
+    def test_the_grep_reaches_every_greppable_form(self):
+        text = step(jdi_files.read("commands/split.md"), 6)
+        match = re.search(r"`grep -cE '([^']+)' \[0-9\]\*\.md`", text)
+        self.assertIsNotNone(match, "split step 6 no longer greps for the refused forms")
+        pattern = re.compile(match.group(1))  # this ERE is also a Python regex
+        for line in ("1. `git diff -- a.rb`", "2. `git diff $(git merge-base a b)..HEAD`",
+                     "3. `git status --short`", "4. `sed -n 1p app/x.rb:42`"):
+            with self.subTest(line=line):
+                self.assertRegex(line, pattern)
+
+
 if __name__ == "__main__":
     unittest.main()
