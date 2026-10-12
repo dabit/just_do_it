@@ -135,7 +135,9 @@ Follow these steps:
    user-facing scenarios derived from the plan, with step-by-step instructions the user can follow
    to verify the feature end to end, the expected outcome of each, and the edge cases to check.
    It carries the task shape like every other task: its `## Files` is the record it writes, and its
-   `## Verification` restates, under its own numbers, every earlier task's check it re-runs.
+   `## Verification` restates, under its own numbers, every earlier task's check it re-runs. Its
+   last Verification bullet is the CI job's own commands for the touched app, verbatim, run
+   locally — the gate the branch will actually face.
 
    **UAT is walked before `/jdi:pr`.** It never contains a merge, a push to the default branch, or
    any step that presupposes one — those come after the pull request this task precedes, so a UAT

@@ -88,6 +88,15 @@ possible can run at the same time. It focuses on structure, not implementation.
   instead, and record where the deferral will be picked up — the probe or run that will close it,
   since the execute loop treats a listed step as deferred, neither passed nor failed. An acceptance criterion with no
   scenario is how work gets closed on an unobserved claim
+- **The gate the branch will face is the UAT's last check.** Read the CI configuration for the app
+  the plan touches and make the CI job's own commands, **verbatim**, the last Verification bullet of
+  the UAT — run locally, before the pull request. Narrow targets prove a task; only the pipeline's
+  commands prove the branch will pass it. Waiting for a green pipeline run stays in the *after the
+  merge — deferred* list; running its commands here does not
+- A task that **establishes an environment** for later tasks — a borrowed dependency tree, an
+  install, a generated toolchain — is certified by a whole-tree command that reads the installed
+  state (the typecheck, the build, the full suite, `npm ls`), never by a diff of the manifests or a
+  single smoke test, whose reach is only its own import closure
 - Update `PLAN.md` with the master task checklist, grouped by wave
 
 The Splitter never writes to the issue tracker. Where `split.pieces` mirrors the tasks as tracker
