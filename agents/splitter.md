@@ -205,6 +205,12 @@ the file, sees the shape plainly stated, and signs off on something the parser n
 `## Files` gap is the one that is not merely slow: it is the only thing standing between two
 concurrent Executors and the same path.
 
+**The UAT task is not exempt from the shape.** Its `## Files` is the record it writes — the results
+file or section, re-read at write time where the folder numbers its evidence — and is never left for
+the dispatch to name. Its `## Verification` lists every check the UAT re-runs, **restating** each
+one inherited from an earlier task under its own number, so a dispatch can cite a step that exists
+in the file the Executor holds.
+
 So **write the skeleton first and fill it in**, rather than writing the task and remembering the
 fields afterwards. A task file whose first line is not `status: pending`, or that reaches its first
 prose heading without `Depends on:` above it, is the wrong shape — not a stylistic variant of the
