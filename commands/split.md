@@ -39,6 +39,12 @@ Follow these steps:
    granularity. Over-splitting bloats the commit history with mark-done ceremony and forces context
    shifts that help neither reviewers nor `git bisect`.
 
+   There are **three** outcomes, not two: **one combined task file plus UAT**, written by you — the
+   default; **several task files written by you**; or **several task files from the Splitter**. The
+   criteria below choose between the first and the last. The middle one is the one taken without
+   noticing — work with phases looks like it describes its own split — so it carries the same burden
+   of proof as the Splitter path.
+
    **Skip the Splitter** — write one combined task file plus UAT yourself — when any of:
    - three or fewer files touched, and all the changes must land atomically
    - the plan reads as a single coherent edit (add a flag and the tests that prove it; gate a job
@@ -59,6 +65,10 @@ Follow these steps:
    - more than roughly five distinct edits with non-trivial sequencing
 
    When in doubt, prefer fewer tasks. **State the decision and the reason** before proceeding.
+   Whenever the result is more than one task file plus UAT, whoever writes them, the reason must
+   argue for **more than one** — name the pieces that share no files or state, or the checkpoint
+   that could ship alone. A reason that reads the same at any count ("they are sequential") has
+   justified the order or the delegation, not the count.
 
 3. **Generate the task files** — Two paths, depending on step 2.
 
