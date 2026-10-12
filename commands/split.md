@@ -76,7 +76,8 @@ Follow these steps:
    - `01-<implement-slug>.md` — Why, Description (copy the Implementation Plan verbatim or
      summarise its steps, keeping the file paths and snippets), Files, and Verification commands
      (lint plus targeted tests), numbered and in the Splitter's *Task file shape* — a `red when:`
-     on every step, a `control:` on every empty or zero one — since step 6 checks your files too.
+     on every step, a `control:` on every empty or zero one, an `at base:` on every grep or count
+     — since step 6 checks your files too.
    - `02-uat.md` — the UAT task, per the UAT rules below, with `Depends on: 01`, and its own
      `## Files` and `## Verification` like any other task.
 
@@ -184,17 +185,20 @@ Follow these steps:
    Then, in the plan folder, probe each task file's Verification steps, one file at a time:
 
    ```sh
-   for f in [0-9]*.md; do awk '/^## /{v=($0=="## Verification")}
-     v&&/^[0-9]+\./{n++; if(s&&!r)m=m" "s; s=$1; r=0} v&&/red when:/{r=1}
-     END{if(s&&!r)m=m" "s; print FILENAME": steps "n+0", missing red when:"(m?m:" none")}' "$f"
+   for f in [0-9]*.md; do awk 'function shut(){if(s&&!r)m=m" "s; if(s&&g&&!b)a=a" "s}
+     /^## /{v=($0=="## Verification")} v&&/^[0-9]+\./{shut(); n++; s=$1; r=g=b=0}
+     v&&/red when:/{r=1} v&&/grep|wc -|rg /{g=1} v&&/at base:/{b=1}
+     END{shut(); print FILENAME": steps "n+0", missing red when:"(m?m:" none"),
+       "/ missing at base:"(a?a:" none")}' "$f"
    done
    ```
 
    Every file prints a line, so silence is a broken probe, never a pass. Refuse a file that shows
-   `steps 0` or lists a step after `missing red when:` — a check with no named wrong state cannot
-   be told from one that cannot fail — and read every step whose pass condition is empty, zero or
-   absent for its `control:`. Note which path step 2 took and why if it was a close call, name the
-   pieces that were mirrored to the tracker (or say the run is `commits`), and suggest
-   `/jdi:execute` — or `/jdi:yolo` to run them all.
+   `steps 0` or lists a step after either `missing` — a check with no named wrong state cannot be
+   told from one that cannot fail, and an expected count nobody ran at base is a prediction — and
+   read every step whose pass condition is empty, zero or absent for its `control:`, and every
+   structural text search for its `compliant hits:`. Note which path step 2 took and why if it was
+   a close call, name the pieces that were mirrored to the tracker (or say the run is `commits`),
+   and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 
 Do **not** write any implementation code. This command produces task documents only.

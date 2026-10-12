@@ -39,7 +39,7 @@ def flat(text):
 
 
 class VerificationProbeTest(unittest.TestCase):
-    """`red when:` in the Splitter's task template ⇔ the probe in split step 6."""
+    """The Splitter's task-template fields ⇔ the probe in split step 6."""
 
     def setUp(self):
         self.template = "\n".join(
@@ -53,25 +53,33 @@ class VerificationProbeTest(unittest.TestCase):
         return "\n".join(line[3:] for line in match.group(1).split("\n"))
 
     def test_the_template_and_the_probe_name_the_same_field(self):
-        for field in ("red when:", "control:"):
+        for field in ("red when:", "control:", "at base:", "compliant hits:"):
             with self.subTest(field=field):
                 self.assertIn(field, self.template)
                 self.assertIn(field, self.split_step)
 
     def test_prep_runs_the_same_probe(self):
-        self.assertIn("red when:", flat(step(jdi_files.read("commands/prep.md"), 16)))
+        prep = flat(step(jdi_files.read("commands/prep.md"), 16))
+        for field in ("red when:", "at base:"):
+            with self.subTest(field=field):
+                self.assertIn(field, prep)
 
     def test_the_probe_refuses_a_step_without_the_field_and_is_never_silent(self):
-        good = "## Verification\n1. `make` — expected: ok\n   red when: build breaks\n"
-        bad = "## Verification\n1. `make` — expected: ok\n2. `ls` — expected: a\n"
+        good = (
+            "## Verification\n1. `make` — expected: ok\n   red when: build breaks\n"
+            "2. `grep -c x f` — expected: 1\n   red when: x gone\n   at base: 1\n"
+        )
+        bad = "## Verification\n1. `make` — expected: ok\n2. `grep x f` — expected: a\n"
         with tempfile.TemporaryDirectory() as folder:
             for name, body in (("01-good.md", good), ("02-bad.md", bad)):
                 (pathlib.Path(folder) / name).write_text(body, encoding="utf-8")
             out = subprocess.run(
                 ["bash", "-c", self.probe()], cwd=folder, capture_output=True, text=True
             ).stdout.split("\n")
-        self.assertIn("01-good.md: steps 1, missing red when: none", out)
-        self.assertIn("02-bad.md: steps 2, missing red when: 1. 2.", out)
+        self.assertIn(
+            "01-good.md: steps 2, missing red when: none / missing at base: none", out
+        )
+        self.assertIn("02-bad.md: steps 2, missing red when: 1. 2. / missing at base: 2.", out)
 
 
 if __name__ == "__main__":

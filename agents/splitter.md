@@ -49,6 +49,15 @@ possible can run at the same time. It focuses on structure, not implementation.
   non-empty. Silence passes when the instrument is dead, so the control is what lets it fail. A
   terminal-state arm (non-zero exit, absent file, closed gate) names two runs: the opposite-state
   control first, then the arm
+- **Observe an expected value; never predict it.** Every step that runs a grep, a count or a probe
+  records `at base: <output>` — what *you* got running it at the base commit while writing the
+  task — and derives its expected value from that. A grep expected to hit quotes the `file:line`
+  and text it hits, not just a count. Where the corpus does not exist at base (a section or a file
+  a later task writes), write `at base: none — written by task NN`. A text search asserting a
+  structural property (an import edge, a call site, a ban) also records `compliant hits:` — would
+  a comment, a docstring or this task file match it in a tree that complies? — as `none`, or as
+  the residue expected and where it comes from. A suite or whole-file run records, at base, its
+  example count and its known reds by identity — never a bare "all green"
 - When a task names an existing file as the template for a new test's harness — *copy the seam from
   X **exactly*** — that sentence is a claim that X can express **every** case the same task lists.
   Read the template's return shape against your own case list before you write it: a seam that
@@ -208,9 +217,12 @@ task it could run alongside.
 1. <command> — expected: <outcome>
    red when: <the wrong state this step catches>
    control: <same pattern over a corpus that contains it — non-empty> (empty/zero/absence only)
+   at base: <what the command printed at the base commit> (grep, count or probe)
+   compliant hits: <none | the expected residue and its source> (structural text search)
 ```
 
-`/jdi:split` step 6 refuses a task file with a numbered Verification step lacking `red when:`.
+`/jdi:split` step 6 refuses a task file with a numbered Verification step lacking `red when:`,
+or a grep or count step lacking `at base:`.
 The UAT's *after the merge — deferred* list is bulleted, not numbered, so it is not a step.
 
 **Three of these are read by a machine, and the rest by a person.** `status:` is the flag
