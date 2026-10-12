@@ -159,6 +159,12 @@ wrong. UAT depends on every other task, so it is always the last wave, alone.
 - [ ] 04 — UAT (depends on: 03)
 ```
 
+`PLAN.md` carries **exactly one** `## Tasks` heading, and the checklist starts directly under it.
+The commands read that section by name, so prose above the first `- [ ]` — even a useful note on
+why the shape differs from the plan's proposal — is something a parser sees instead of the
+checklist. Put that rationale in a `### Shape` subsection **below** the checklist, or in your
+hand-back; never under a second `## Tasks`.
+
 A plan that is honestly a strict chain is written as one: one task per wave, no invented
 independence. Report the shape when you hand back — how many waves, the widest wave, and the
 critical path — and name any dependency you declared only because of a shared file.

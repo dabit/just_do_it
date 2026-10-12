@@ -167,7 +167,10 @@ Follow these steps:
    and the critical path — the longest dependency chain, which is the floor on how long execution
    takes. Name any dependency that exists only because two tasks share a file. Before presenting,
    check the Splitter's work yourself: no dependency points at a later number, and no two tasks
-   without a dependency path between them share a path in `## Files`. Note which path step 2 took
+   without a dependency path between them share a path in `## Files`. Probe the structure the
+   commands parse, too: `grep -c '^## Tasks$' PLAN.md` prints `1`, and the first `- [ ]` line comes
+   after it — fold a second heading or prose above the checklist into a `### Shape` subsection
+   below it. Note which path step 2 took
    and why if it was a close call, name the pieces that were mirrored to the tracker (or say the run
    is `commits`), and suggest `/jdi:execute` — or `/jdi:yolo` to run them all.
 

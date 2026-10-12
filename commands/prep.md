@@ -192,14 +192,14 @@ Follow these steps:
     the existing issue ID instead of re-instructing creation. A decision recorded in one section and
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
-16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
-    it, then take one of its three outcomes — one combined task file plus UAT written by you (the
-    default), several task files written by you, or several from the **Splitter**, passing it
-    whether Jev is available along with the plan, and instructing it to prioritise
-    parallelisation exactly as `/jdi:split` step 3 does. State the decision and the reason; for
-    more than one task file, the reason must argue for the count, not only the order. The
-    final task is always UAT, and it maps every clause of the issue's acceptance criteria to the
-    scenario or test that proves it.
+16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5, and run step 6's checks on the
+    result before step 17 presents it: judge whether splitting is worth it, then take one of its
+    three outcomes — one combined task file plus UAT written by you (the default), several task
+    files written by you, or several from the **Splitter**, passing it whether Jev is available
+    along with the plan, and instructing it to prioritise parallelisation exactly as `/jdi:split`
+    step 3 does. State the decision and the reason; for more than one task file, the reason must
+    argue for the count, not only the order. The final task is always UAT, and it maps every clause
+    of the issue's acceptance criteria to the scenario or test that proves it.
 
     Then materialise the pieces per `split.pieces`: `commits` (the default) writes nothing to the
     tracker, while `tasks` and `subtickets` mirror each task file onto the issue via **T7** from
