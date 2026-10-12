@@ -313,7 +313,10 @@ models:                      models:                        models:
 - **`/jdi:init` writes `config.yml` only.** It reads the local file to report what it overrides, and
   it checks that `.jdi/config.local.yml` is gitignored — a personal override that gets committed is
   applied to everyone, which is the destructive direction — but it never writes the local file: a
-  personal override is written by the person it belongs to.
+  personal override is written by the person it belongs to. It ends by naming the edit's
+  disposition — committed on its own or left for the user — and, in a linked worktree, that an
+  uncommitted `config.yml` edit is lost with the worktree unless it lands or is applied to the main
+  checkout.
 - **Branch and commit message conventions are not configured here.** They come from the repo's own
   `CLAUDE.md` / `AGENTS.md`, which is where a team already writes them down.
 - Run `/jdi:init` to generate this file interactively.
