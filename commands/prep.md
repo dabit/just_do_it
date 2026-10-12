@@ -149,6 +149,13 @@ Follow these steps:
     continue.** Ask only what materially changes the output; for the rest, pick the obvious default
     and say which one you picked.
 
+    **One trigger beside ambiguity: a first-of-its-kind artefact.** When the plan would create the
+    project's first instance of a kind it has never had — a CI pipeline, a service account, a
+    scheduled job, a container image: a measured count of zero today — ask a one-line confirmation
+    even when a record prescribes it ("this would be the project's first CI pipeline; the records
+    call for it — confirm, or say where the gate runs instead"). A record settles *what*, not whether
+    the project wants the category at all, and a risk entry is read after the shape is approved.
+
     Record every decision with its provenance — **asked and answered**, or **Butler default, not
     asked**. Never write "confirmed by the user" or "user decision" for a default: a run with nobody
     at the keyboard cannot tell no answer from approval, and a later reader of the plan will take
