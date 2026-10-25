@@ -255,5 +255,30 @@ class ClarificationOptionsTest(unittest.TestCase):
                 self.assertIn("*%s*" % self.RULE, flat(step(jdi_files.read(path), number)))
 
 
+class DoPlanShapeTest(unittest.TestCase):
+    """`/jdi:do` keeps its plan in chat, so its shape lives only in step 4.
+
+    Mark's `/build` caps the same plan with a hook; here the cap is prose, and
+    1.0.11's lesson is that prose drifts unless something reads it. This pins
+    the four fields and the word cap, and that the plan is shown, not submitted.
+    """
+
+    def setUp(self):
+        self.step = flat(step(jdi_files.read("commands/do.md"), 4))
+
+    def test_the_plan_names_exactly_its_four_fields_and_the_cap(self):
+        for field in ("**Change:**", "**Files:**", "**Proof:**", "**Stops:**"):
+            with self.subTest(field=field):
+                self.assertEqual(self.step.count(field), 1, "%s must appear once in step 4" % field)
+        self.assertIn("at most 60 words", self.step)
+
+    def test_the_plan_is_not_a_gate_and_not_a_file(self):
+        self.assertIn("do not wait for approval", self.step)
+        self.assertIn("No plan folder", self.step)
+
+    def test_a_container_is_refused_in_step_1(self):
+        self.assertIn("do not build the parent", flat(step(jdi_files.read("commands/do.md"), 1)))
+
+
 if __name__ == "__main__":
     unittest.main()

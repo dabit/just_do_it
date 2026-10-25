@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.0.12
+
+**`/jdi:do` — just do it.** A new command that takes one change from request to merged pull
+request in a single session: read the code, post a ten-line plan in chat, build with tests, verify,
+open the PR, work the review to green, and merge. No plan folder, no task files, no Synthesizer,
+and no stop between phases — running the command is the authorization for the whole path.
+
+- **The plan belongs to the session that can see the road.** The same session reads, plans and
+  builds, and the plan is four capped fields in the message body (Change, Files, Proof, Stops),
+  shown rather than submitted. It is corrected by the code, out loud, when the code disagrees.
+- **It takes one slice, never a container.** An epic, a parent with sub-issues or a commission
+  with seams is refused at step 1 with its unfinished children listed and one recommended.
+- **Five named stops, and only five:** work too big for one session (hand off to `/jdi:prep`), a
+  product decision outside the request, a change the repository reserves for a person (CI,
+  deploy, permissions, secrets, destructive migrations — whatever its own instructions name), a
+  review loop that is not converging, and a user who said to stop. Anything immaterial gets the
+  obvious default, said once.
+- **It ships through the repository's own path.** A named ship script or procedure wins; the merge
+  method is read, never assumed; no admin override, no bypassed or skipped required check; merging
+  is not deploying.
+- **The review loop is bounded.** Rounds are counted; two rounds of threads about its own fixes, or
+  threads about wording rather than behaviour, end the loop with the open threads handed back.
+- Enumerations updated: `AGENTS.md`, `/jdi:help`, the Codex dispatcher allowlist, the README count
+  (17 commands), the Butler's ownership table, and the config-load count in
+  `docs/config-key-lifecycle.md` (thirteen of seventeen).
+
 ## 1.0.11
 
 **Two kinds of failure that advice never stopped are now fields a role must fill and the Butler

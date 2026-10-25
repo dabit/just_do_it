@@ -48,6 +48,7 @@ second person, and "spawn a Researcher" means *the Butler delegates* — see JDI
 | `/jdi:init` | all of it |
 | `/jdi:start` | all of it |
 | `/jdi:prep` | the questions, the branch, the plan file; delegates research, planning, splitting |
+| `/jdi:do` | all of it — read, plan in chat, build, verify, ship, review, merge; delegates nothing by default |
 | `/jdi:research`, `/jdi:reresearch` | the freshness gate and the findings write-back; delegates the exploration |
 | `/jdi:plan`, `/jdi:replan` | the clarifying questions; delegates the planning |
 | `/jdi:split` | delegates the decomposition; probes the result (step 6), refusing what fails |

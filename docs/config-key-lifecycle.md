@@ -48,8 +48,8 @@ Level 2 is worth dwelling on. It exists because a repo often already states, in 
 key wants to know. A new key that has no plausible level-2 source is a hint that it is
 JDI-internal machinery rather than a fact about this repository — see section 5.
 
-The load itself is repeated in twelve of the sixteen command files as a step 0 that begins
-**"Load the JDI config"** — `commands/done.md:14`, `commands/execute.md:15`,
+The load itself is repeated in thirteen of the seventeen command files as a step 0 that begins
+**"Load the JDI config"** — `commands/do.md:27`, `commands/done.md:14`, `commands/execute.md:15`,
 `commands/feedback.md:18`, `commands/next.md:13`, `commands/plan.md:14`, `commands/pr.md:15`,
 `commands/research.md:14`, `commands/split.md:14`, `commands/start.md:14`,
 `commands/status.md:14`, `commands/yolo.md:13`, and `commands/prep.md:19` (numbered 1 there rather

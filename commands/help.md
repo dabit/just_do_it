@@ -27,6 +27,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 |---|---|---|
 | `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, Jev, plan store, docs folder, models. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
+| `/jdi:do` | Butler | Just do it: read the code, post a ten-line plan in chat, build with tests, verify, open the PR, work the review to green, and merge. No plan folder, no task files, no stop between phases. Stops only for work too big for one session, a product decision outside the request, a change the repo reserves for a person, or a review that will not converge. |
 | `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. Ranks the candidate docs and screens `consumers` with Jev when `jev.enabled` is on. |
 | `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
@@ -48,6 +49,8 @@ edits a prompt without your sign-off.
 ### Typical flow
 
 ```
+/jdi:do "Add presence indicators to pages"   ←── one session, request to merge
+  — or, for work too big or too risky for that —
 /jdi:prep "Add presence indicators to pages"
 /jdi:yolo
 /jdi:pr

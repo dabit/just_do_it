@@ -16,6 +16,7 @@ location of JDI's installed support files.
 ## Exact command allowlist
 
 ```text
+do
 done
 execute
 feedback
