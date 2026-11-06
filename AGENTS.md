@@ -25,6 +25,7 @@ The commands are:
 | `commands/init.md` | Set JDI up for a repo — writes `.jdi/config.yml` |
 | `commands/help.md` | Print the workflow's command table and flow |
 | `commands/prep.md` | Start, research, plan, and split in one pass |
+| `commands/do.md` | Read, plan in ten lines, build, verify, open the PR, work the review, and merge — no plan folder |
 | `commands/start.md` | Create the branch and the initial plan |
 | `commands/research.md` | Find or write the architecture docs for the area |
 | `commands/plan.md` | Write the implementation plan |
