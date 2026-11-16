@@ -30,13 +30,15 @@ Follow these steps:
    is the personal, per-checkout override and is never committed. Say in one line which top-level
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
-   Everything below reads `herd`, `harnesses`, `git`, `tracker` and `plans` from it: `herd.kind`,
+   Everything below reads `herd`, `herdr`, `harnesses`, `git`, `tracker` and `plans` from it:
+   `herdr.surface` (which Herdr, step 2), `herd.kind`,
    `herd.max_parallel` and `herd.seed`, and the arguments and environment of the kind in use from
    `harnesses.<kind>.args` and `harnesses.<kind>.env`. The defaults are `claude`, `5`, no seeding,
    no arguments, and no environment variables.
 
 2. **Validate Herdr - report the first failure and stop** - First, perform **H1** from
-   `reference/herdr.md`. Then perform **H2** for `herd.kind`, or for the kind a `--kind <kind>` in
+   `reference/herdr.md`. H1 settles which Herdr (`herdr.surface`) this is, the Herdr TUI or the
+   Herdr app, and every Herdr step below follows that surface's variant. Then perform **H2** for `herd.kind`, or for the kind a `--kind <kind>` in
    `$ARGUMENTS` names, which wins over the configured one. For a herd, H2 checks that kind directly,
    and it accepts only a kind that has a row in H9's invocation table.
 
@@ -119,8 +121,9 @@ Follow these steps:
 6. **Create one worktree per issue** - For issue *N*, perform **H9** from `reference/herdr.md`
    with the step-5 name, the suffix, the herd ID, *N*, `<default>`, and the workspace label. H9
    builds the path `<worktrees dir>/<repo>/<name>`, creates the worktree on the scratch branch
-   `jdi-herd-scratch-<herd-id>-<N>` from `origin/<default>`, and returns the worktree path, the
-   root pane, the workspace, and the tab.
+   `jdi-herd-scratch-<herd-id>-<N>` from `origin/<default>`. H9 returns the worktree path, and on
+   the TUI also the workspace, tab and root pane. On the app, the space is opened in step 8, after
+   seeding, so the agent never starts in a half-seeded tree.
 
    **The workspace label is the issue title**, in full, after the short ID: for the commission in
    step 5, `f4960613 Seam 1 - A copy lands directly below the original as a sibling` (with the
@@ -144,9 +147,9 @@ Follow these steps:
    and use the returned one. The returned root pane is a fresh shell in the worktree, which is what
    step 8 claims; do not split anything.
 
-   **When `harnesses.<kind>.env` is not empty, the agent needs one more pane.** H9 creates a tab
-   with that environment inside the returned workspace, and that tab's root pane is the pane for
-   step 8. **Expand every path in a value first.** A value goes to the process verbatim, so a
+   **When `harnesses.<kind>.env` is not empty, the agent needs that environment.** H9 says what
+   the environment needs on the surface in use: on the TUI, H9 creates a tab with that environment
+   inside the returned workspace, and that tab's root pane is the pane for step 8. **Expand every path in a value first.** A value goes to the process verbatim, so a
    leading `~` arrives as a literal tilde and the variable silently points nowhere.
 
    H9 labels the tab with the step-5 name.
@@ -221,8 +224,9 @@ Follow these steps:
    `setup` takes minutes each, say so before starting rather than after.
 
 8. **Start one agent per worktree** - Perform **H4b** from `reference/herdr.md` with the step-5
-   name, the kind from step 2, and the pane from step 6. Its arguments are `harnesses.<kind>.args`,
-   verbatim, and nothing else. Pass **no model flag**: a herd Butler has no `models` key, so its CLI
+   name, the kind from step 2, and the pane from step 6. On the app, H9 first opens the worktree's
+   space with the agent in it, and H4b then runs on that space's terminal. Its arguments are
+   `harnesses.<kind>.args`, verbatim, and nothing else. Pass **no model flag**: a herd Butler has no `models` key, so its CLI
    runs on its own default model.
 
    **Start no agent for a worktree step 7 disqualified.** A failed `setup` command means the
@@ -239,8 +243,9 @@ Follow these steps:
    worktree isolates the branch and the working tree, and nothing else. The same credentials, the
    same network, and the same machine stay in reach.
 
-   H4b returns only once Herdr sees the agent ready for input. An `agent_not_ready` result still
-   leaves the name usable: inspect the pane per H9 *Watch* and report it as blocked at startup.
+   H4b returns only once Herdr sees the agent ready for input. An agent that is not ready is
+   blocked at startup (on the TUI, `agent_not_ready`): inspect the pane per H9 *Watch*, report it
+   as blocked at startup, and send it nothing in step 9. Leave its workspace open for the user.
    **A first-run trust or permission prompt is the usual cause, unless `harnesses.<kind>.args`
    turned approvals off.** Do not answer it.
 
@@ -251,12 +256,12 @@ Follow these steps:
    one issue at a time and defeat the whole command. Send to every agent first, then read the
    states once.
 
-   An `agent_blocked` result means the agent already sits at an approval or question dialog and
-   the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
+   A blocked result (on the TUI, `agent_blocked`) means the agent already sits at an approval or
+   question dialog and the prompt was not sent. Report it. **Do not answer another agent's dialog on the user's
    behalf.**
 
-10. **Report what exists now** - One row per issue: issue ID, agent name, pane ID, workspace ID,
-    and the state per H9 *Watch*. List any issue that failed in step 6, 7, 8 or 9, with the
+10. **Report what exists now** - One row per issue: issue ID, agent name, pane or terminal ID,
+    workspace (space on the app) ID, and the state per H9 *Watch*. List any issue that failed in step 6, 7, 8 or 9, with the
     reason. For a seed failure, name the command and its exit status.
 
     Under a **Worktree** heading, list each issue's worktree path and scratch branch, so the
@@ -269,13 +274,14 @@ Follow these steps:
     set and ran, or that it seeded nothing.** An unseeded herd looks identical until an agent trips
     over it.
 
-    Say that the Herdr sidebar shows `blocked` and `done` per pane, and that it is how to follow the
-    herd from here: JDI starts no poll. Close the report with H9's reattach command, which
+    Say that the Herdr sidebar shows `blocked` and `done` per pane (the app also rolls it up per
+    space and tab), and that it is how to follow the herd from here: JDI starts no poll. Close the report with H9's reattach command, which
     opens an existing worktree as a workspace again after a restart.
 
 11. **Say how to clean up - clean nothing** - List, for each issue, the workspace ID, the worktree
-    path, and the scratch branch, with the commands that remove them, per H9's *Cleanup*: the
-    worktree removal by workspace, then `git branch -D jdi-herd-scratch-<herd-id>-<N>` once the
+    path, and the scratch branch, with the commands that remove them, per H9's *Cleanup* for the
+    surface in use: the worktree removal (on the app, closing the space before removing the
+    worktree), then `git branch -D jdi-herd-scratch-<herd-id>-<N>` once the
     real feature branch exists. A worktree that `herd.seed` wrote into is dirty, so its removal
     needs the force option; say that rather than let the plain command fail.
 

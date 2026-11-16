@@ -581,7 +581,7 @@ Gate: passed (after amendment)
 - [x] [07](07-callers-step-zero-and-delegation.md) — Callers: the step-0 line in nine commands, and `reference/delegation.md`, name either surface (depends on: 03) — Planner Task 6, minus `commands/herd.md`
 
 **Wave 4**
-- [ ] [08](08-h9-app-worktrees-and-herd.md) — H9 on the app (worktree create, open, list, remove) and `/jdi:herd` on either surface (depends on: 06) — Planner Task 5 + Task 6's `commands/herd.md` part
+- [x] [08](08-h9-app-worktrees-and-herd.md) — H9 on the app (worktree create, open, list, remove) and `/jdi:herd` on either surface (depends on: 06) — Planner Task 5 + Task 6's `commands/herd.md` part
 
 **Wave 5**
 - [ ] [09](09-release-1-0-11.md) — Release 1.0.11: version bump and CHANGELOG (depends on: 01, 02, 03, 04, 05, 06, 07, 08) — Planner Task 9

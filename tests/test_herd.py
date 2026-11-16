@@ -19,6 +19,7 @@ import jdi_files
 HERD_COMMAND = "commands/herd.md"
 HERDR_REFERENCE = "reference/herdr.md"
 H9_HEADING = "## H9 - Give a Butler its own worktree"
+H9_APP_HEADING = "### H9 on the app"
 
 INVOCATION_ROWS = (
     "| `claude` | `/jdi:prep <ISSUE-ID>` |",
@@ -42,6 +43,18 @@ class HerdCommandTest(unittest.TestCase):
     def h9_lines(self):
         return jdi_files.section(jdi_files.read(HERDR_REFERENCE), H9_HEADING)
 
+    def h9_app_lines(self):
+        return jdi_files.section(jdi_files.read(HERDR_REFERENCE), H9_APP_HEADING)
+
+    def h9_app_text(self):
+        return normalized("\n".join(self.h9_app_lines()))
+
+    def assertH9AppContains(self, *fragments):
+        h9_app = self.h9_app_text()
+        for fragment in fragments:
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, h9_app, "H9 on the app lacks %r" % fragment)
+
     def test_herd_names_the_shared_operations_and_the_config_load(self):
         herd = normalized(self.herd_text())
         for fragment in (
@@ -56,6 +69,9 @@ class HerdCommandTest(unittest.TestCase):
             "one name per issue",
             "Worktree",
             "uncommitted plan files",
+            "`herd`, `herdr`, `harnesses`",
+            "H1 settles which Herdr",
+            "On the app, the space is opened in step 8",
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, herd, "%s lacks %r" % (HERD_COMMAND, fragment))
@@ -147,6 +163,71 @@ class HerdCommandTest(unittest.TestCase):
             "--branch jdi-herd-scratch-<N> ",
             h9,
             "H9 still creates PR #5's collision-prone `jdi-herd-scratch-<N>` branch",
+        )
+
+    def test_h9_app_folder_matches_the_app_dialog(self):
+        self.assertH9AppContains(
+            "${HERDR_APP_HOME:-~/.config/herdr-app}/settings.json",
+            "worktrees.directory",
+            "~/.herdr/worktrees",
+            "--git-common-dir",
+            "<worktrees dir>/<repo>/<name>",
+        )
+
+    def test_h9_app_branches_from_the_default_branch(self):
+        self.assertH9AppContains(
+            "git worktree add -b jdi-herd-scratch-<herd-id>-<N> <path> origin/<default>",
+        )
+
+    def test_h9_app_opens_the_space_after_seeding(self):
+        self.assertH9AppContains(
+            "herdr-app do space.new --name",
+            "--folder <path> --tab <name>",
+            "--focus false",
+            "after `herd.seed`",
+        )
+
+    def test_h9_app_hands_off_by_send(self):
+        """Type only into an idle agent; a trust dialog reports no status and is the user's."""
+        self.assertH9AppContains(
+            "hc wait <terminal> --timeout 120",
+            "status: idle",
+            'hc send <terminal> "<invocation>" --if idle',
+            "Never `--task`",
+            "blocked at startup",
+        )
+
+    def test_h9_app_cleanup_order(self):
+        h9_app = self.h9_app_text()
+        steps = (
+            "git -C <worktree> status --porcelain -- <plans.path>",
+            "herdr-app do space.close --id <space> --confirmed true",
+            "worktree remove",
+        )
+        positions = []
+        for step in steps:
+            self.assertIn(step, h9_app, "H9 on the app lacks %r" % step)
+            positions.append(h9_app.index(step))
+        self.assertEqual(
+            positions,
+            sorted(positions),
+            "H9 on the app must check the plan files, then close the space, then remove "
+            "the worktree; found them at %r" % (positions,),
+        )
+        self.assertEqual(len(set(positions)), len(positions))
+
+    def test_h9_app_reattach_and_list(self):
+        self.assertH9AppContains(
+            "herdr-app do space.select --id <space>",
+            "git worktree list --porcelain",
+        )
+
+    def test_surfaces_no_longer_calls_h9_tui_only(self):
+        reference = normalized(jdi_files.read(HERDR_REFERENCE))
+        self.assertNotIn(
+            "H9 does not have its app subsection yet",
+            reference,
+            "`## Surfaces` still says H9 has only its TUI text",
         )
 
 

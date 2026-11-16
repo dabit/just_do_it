@@ -76,8 +76,7 @@ the user's core.
   the command that created it printed it, and never builds one.
 - **Shell.** The app variants assume a POSIX `sh`. Windows is not verified.
 - **Variants.** Each operation has a TUI subsection and an app subsection. Text outside those
-  subsections applies to both surfaces. H9 does not have its app subsection yet, so it has only its
-  TUI text.
+  subsections applies to both surfaces.
 
 ## H1 - Detect Herdr
 
@@ -841,3 +840,118 @@ uncommitted plan files: stop, name them, and offer the plan commit in that workt
 used only after that check is empty or the user has said yes to losing the files. Under
 `plans.mode: external` the plan is not in the worktree, and the check finds nothing. JDI removes
 nothing unless the user asks.
+
+### H9 on the app
+
+The app has no worktree command, so H9 on the app is a recipe that lays the worktree out where the
+app's own new-worktree dialog would. **Shared with the TUI:** the kind check, the name rules, the
+suffix check for an existing folder, the scratch branch name, the invocation table and the plan-file
+guard. Only the commands below differ.
+
+**The folder.** Read `worktrees.directory` from the app's
+`${HERDR_APP_HOME:-~/.config/herdr-app}/settings.json`, resolved at run time in the Butler's shell.
+The app does not read the TUI's `config.toml`.
+
+- When the key is absent, the folder is the app's default, `~/.herdr/worktrees`.
+- A leading `~` becomes `$HOME`. Any other relative value fails H9 with its reason: the value read
+  and that it is not absolute.
+- Drop a trailing `/`.
+
+**`<repo>`** is the basename of `git rev-parse --path-format=absolute --git-common-dir` with the
+trailing `/.git` removed, so a herd started from a linked worktree still uses the main checkout's
+name. That `--git-common-dir` path minus `/.git` is also `<main checkout>` below. The path is
+`<worktrees dir>/<repo>/<name>`.
+
+**Create it** at herd step 6. This returns the worktree path only, because the space is opened at
+step 8:
+
+```text
+git worktree add -b jdi-herd-scratch-<herd-id>-<N> <path> origin/<default>
+```
+
+Run it from the main checkout's repository. A non-zero exit fails H9 for that issue, with git's
+message. The path is the one asked for, so there is nothing to compare.
+
+**Open the space** at herd step 8, after `herd.seed` (step 7) has finished in the folder, so the
+agent starts in a seeded tree:
+
+```text
+herdr-app do space.new --name '<SHORT-ID> <TITLE>' --folder <path> --tab <name> --argv '<argv JSON>' --focus false
+```
+
+- **The argv** is `harnesses.<kind>.env` as an `env KEY=VALUE ...` prefix (only when that key is
+  not empty), then the absolute path of the kind from H2 on the app, then `harnesses.<kind>.args`
+  verbatim. No model flag, and no `sh` wrapper, because `--folder` sets the folder. This is where
+  the environment goes on the app: no extra tab is needed. Expand every path first, and quote the
+  JSON as H4 on the app says.
+- **The name** is the label the TUI passes to `--label`: the short ID and the issue title, or the
+  issue ID when no title was read. Single-quote it, writing each `'` as `'\''`, so a `'`, `$` or
+  backtick in a title arrives literally.
+- **The tab** is named `<name>` at creation, so there is no rename step.
+- **The output** is one JSON object, `{space, tab, terminal}`. Read all three from it. Read the
+  pane from `herdr-app ls`: the entry whose `terminal` equals the returned terminal. `herdr-app`
+  reports a failure as `{"error": ...}` on stdout with exit 1, and H9 fails for that issue with it.
+- **Where it shows.** The space keeps its name, and the sidebar nests it under the main checkout's
+  space. Only git decides the nesting, named or not.
+- **Not the Butler's child.** A space's terminal reports `"parent": null`, so it outlives the
+  Butler and is not stopped when the herd's session ends.
+
+Then perform `#### H4b on the app` on the returned terminal with `<name>`.
+
+**Readiness, for a herd.** H4b's readiness wait, `hc wait <terminal> --timeout 120`, decides
+whether anything is typed. A new worktree is a folder Claude and Codex have not seen, so they
+open a folder-trust dialog at start (Codex also a hook-review dialog), and while one is open the
+terminal reports no status.
+
+- `status: idle`: ready. Hand it the work.
+- Anything else, including `reason: timeout` with no `status`, or `status: blocked`: **type
+  nothing**. Report the issue as blocked at startup, say that its pane may show a dialog that is
+  the user's to answer (rule 7), and name the space and the pane. Leave its space open and tell the
+  user to answer the dialog there. Where the herd differs from H4 on the app: it closes nothing and
+  falls to no rung.
+- Finished (exit 11), not found (exit 3), or a JSON error: report the issue as failed at startup
+  with what came back, and leave the space for the user to inspect.
+
+**Hand it the work.** Only after the readiness wait reported `status: idle`:
+
+```text
+hc send <terminal> "<invocation>" --if idle
+```
+
+The invocation comes from the invocation table above, with the issue ID filled in. No `--wait`:
+the herd sends every handoff first and reads the states afterward. `--if idle` makes the app
+refuse to type unless the status is exactly `idle`, so the invocation never lands in a dialog. A
+refusal (exit 9 blocked, or exit 10 not idle) typed nothing: report the issue as blocked at
+startup, as above. Never `--task`: it hands the text over as a launch argument, not typed input,
+and the prep command must arrive typed into a ready agent.
+
+**Watch.** `hc get <terminal>` reports the state. `hc read <terminal> --lines 80` shows a blocked
+agent's question, for inspection only (rule 4). A herd Butler's dialogs belong to the user
+(rule 7).
+
+**Run files.** A herd Butler that delegates writes its run directory under
+`git rev-parse --absolute-git-dir`, which in a linked worktree is the worktree's own folder inside
+the main checkout's `.git`. It is writable from the worktree.
+
+**Reattach (open).** Look in `herdr-app ls` for a space whose `folder` is the worktree path or
+inside it. If there is one, `herdr-app do space.select --id <space>`. Otherwise open one with
+`herdr-app do space.new --folder <path> --focus false`. The report's closing line names this.
+
+**Cleanup (remove)**, in this order:
+
+1. The plan-file check: `git -C <worktree> status --porcelain -- <plans.path>`. Any output means
+   uncommitted plan files: stop, name them, and offer the plan commit in that worktree, as on the
+   TUI.
+2. Close the space: `herdr-app do space.close --id <space> --confirmed true`, with the space ID
+   from `herdr-app ls` (the space whose `folder` is inside the worktree). It ends the space's
+   terminals. Exit 1 with `{"error": ...}` on stdout naming that space means it is already gone,
+   and is harmless.
+3. Remove the worktree: `git -C <main checkout> worktree remove [--force] <path>`. `--force` is
+   needed when the worktree was seeded, and is used only after step 1 is empty or the user has said
+   yes to losing the files.
+
+Never `hc kill` or `hc rm`. JDI removes nothing unless the user asks. Under `plans.mode: external`
+the plan is not in the worktree, and step 1 finds nothing.
+
+**List.** `git worktree list --porcelain` lists every worktree with its path and branch. The app has
+no worktree list of its own.
