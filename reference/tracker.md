@@ -19,7 +19,9 @@ file says what each one means and how to carry it out against whichever tracker
    0.9 confidence, and it still never writes. Below that, ask the user which state to use.
 4. **Never create an issue without explicit user confirmation.**
 5. **Never claim a tracker write succeeded without seeing it succeed.** "No error" is not proof;
-   read the value back where the tracker offers a read.
+   read the value back where the tracker offers a read. The mirror holds too: never record a write
+   as refused without one schema-valid call — a *Blocker record* in JDI's
+   `reference/delegation.md`.
 
 ## T1 — Identify the issue
 

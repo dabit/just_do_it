@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.11
+## 1.0.14
 
 **JDI drives the Herdr app as well as the Herdr TUI.**
 
@@ -29,7 +29,7 @@
 - **Codex users on the app add `--no-daemon` to `harnesses.codex.args`.** JDI adds nothing itself,
   but notes once when the flag is missing.
 
-## 1.0.10
+## 1.0.13
 
 **A Butler inside Herdr can run a delegated role as its own agent process, wait for it, and accept
 its work only through a validated result file.**
@@ -105,6 +105,140 @@ its work only through a validated result file.**
   same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
   `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
   removal without an explicit yes.
+
+## 1.0.12
+
+**`/jdi:do` — just do it.** A new command that takes one change from request to merged pull
+request in a single session: read the code, post a ten-line plan in chat, build with tests, verify,
+open the PR, work the review to green, and merge. No plan folder, no task files, no Synthesizer,
+and no stop between phases — running the command is the authorization for the whole path.
+
+- **The plan belongs to the session that can see the road.** The same session reads, plans and
+  builds, and the plan is four capped fields in the message body (Change, Files, Proof, Stops),
+  shown rather than submitted. It is corrected by the code, out loud, when the code disagrees.
+- **It takes one slice, never a container.** An epic, a parent with sub-issues or a commission
+  with seams is refused at step 1 with its unfinished children listed and one recommended.
+- **Five named stops, and only five:** work too big for one session (hand off to `/jdi:prep`), a
+  product decision outside the request, a change the repository reserves for a person (CI,
+  deploy, permissions, secrets, destructive migrations — whatever its own instructions name), a
+  review loop that is not converging, and a user who said to stop. Anything immaterial gets the
+  obvious default, said once.
+- **It ships through the repository's own path.** A named ship script or procedure wins; the merge
+  method is read, never assumed; no admin override, no bypassed or skipped required check; merging
+  is not deploying.
+- **The review loop is bounded.** Rounds are counted; two rounds of threads about its own fixes, or
+  threads about wording rather than behaviour, end the loop with the open threads handed back.
+- Enumerations updated: `AGENTS.md`, `/jdi:help`, the Codex dispatcher allowlist, the README count
+  (17 commands), the Butler's ownership table, and the config-load count in
+  `docs/config-key-lifecycle.md` (thirteen of seventeen).
+
+## 1.0.11
+
+**Two kinds of failure that advice never stopped are now fields a role must fill and the Butler
+probes for: a check that cannot tell a broken result from a correct one, and a premise relayed as
+a fact.** Each had an advisory sentence already — "prefer pairing a probe with a control", "never
+treat one environment as evidence about another" — and kept recurring with that sentence loaded,
+so each sentence is extended in place into a field, a refusal, or a grep the Butler runs after a
+role hands back. No config key is added or changed.
+
+- **Every Verification step names its red state.** A numbered step carries `red when:` — the
+  wrong state it catches — and a step whose pass condition is empty, zero or absent carries a
+  `control:` that must print non-empty. `/jdi:split` step 6 runs an awk probe over each task file
+  that prints a line per file, so its own silence is a broken probe, and refuses a step without
+  the field; `/jdi:prep` step 16 runs it, and the Butler's own skip-Splitter files are held to it.
+- **Expected values are observed, not predicted.** Every grep, count or probe step records
+  `at base: <output>` from a run at the base commit (`none — written by task NN` when the corpus
+  does not exist yet); a hit-expecting grep quotes its `file:line`; a structural text search
+  states `compliant hits:`; a suite run records its example count and known reds. The step 6
+  probe lists a grep or count step without `at base:`.
+- **Verification forms that read moving state are refused.** The Splitter's new *Refused in a
+  Verification step* list names six: a bare `git diff`/`--cached`/`HEAD` over a path the task
+  writes, a `..HEAD` range over an Executor's own edits, a guard list overlapping `## Files`, a
+  `path:N` into a file the task edits, a `git diff` over an untracked path, and an unscoped
+  whole-tree status in a wave. The UAT reads commit ranges only. Step 6 greps for them.
+- **Testing Strategy cases carry their colour, mutation and reach.** Each case states `at HEAD:`
+  (a green one is labelled as guarding a decision, not the fix), `reddened by:` and
+  `reaches the guard:`; an all-negative case adds a positive delivery assertion. `/jdi:plan` step
+  7 and `/jdi:prep` step 15 count the fields.
+- **The Executor shows a guard ran.** After adding N tests the same command reports N more
+  collected than its baseline; a zero-example exit 0 is a failed guard; a per-file checker over a
+  new file shows what it applied; each `control:` is run and reported.
+- **Premises are tagged.** `reference/delegation.md` gains *Premises in a brief*: every premise a
+  brief, dispatch or commission relays is `VERIFIED (<command or file:line>)` or `ASSUMED`, and a
+  dispatch cites the task file instead of restating it. Every role's *What it receives* lists the
+  tagged premises, and the prep, plan, research and execution briefs point at the section.
+- **The Researcher opens with `§0 Premises`.** Each brief premise is CONFIRMED, REFUTED or
+  UNCHECKED with evidence; `REFUTED: none — checked: <list>` is a complete answer. `/jdi:research`
+  and `/jdi:prep` send back a return without it.
+- **A blocker enters an artefact only as a record.** *Blocker records* in
+  `reference/delegation.md`: the verbatim message, the tool and its arguments, "Arguments checked
+  against the schema: yes", one line per target, the date and commit. The Researcher, the
+  Planner's untestable list and the Executor's cannot-perform report use it; the Butler relays a
+  bare one as `ASSUMED`; tracker rule 5 gains its mirror.
+- **The Butler offers only options it has read.** `roles/butler.md`: no option whose premise the
+  Butler has not read itself — ask for the fact; a "settled" brief closes the outcome, not its
+  stated reason. `/jdi:prep` step 12 and `/jdi:plan` step 5 cite it, and the `/jdi:split` and
+  `/jdi:pr` rows of the ownership table now say what 1.0.10 made them do.
+- **Both ends are pinned.** `tests/test_structural_checks.py` holds each field to its probe —
+  and runs the step 6 and plan step 7 probes — so neither side can be dropped silently.
+
+## 1.0.10
+
+**Commands report the state they actually reached, and a check that did not run is never counted as
+one that passed.** Each fix below closes a gap a real run fell into — an ending that read as a
+hand-off, a marker written by the wrong phase, a destructive step that never looked at what it
+deleted. No config key is added or changed; a repo upgrading from 1.0.9 runs exactly as before
+except where a command now asks, checks, or says one more thing.
+
+- **`/jdi:prep` ends where it ends.** Every decision in the plan is recorded as *asked and answered*
+  or *Butler default, not asked* — never as the user's choice by default. Before suggesting
+  `/jdi:yolo`, prep checks any issue the plan gates on and, if it has not landed, says "blocked on
+  #N; yolo would stop at task NN" and offers the buildable slice. It reports unpushed commits rather
+  than pushing, and its last line is *prep ends here; execution is a separate command*.
+- **A first-of-its-kind artefact is asked, not filed as a risk.** `/jdi:prep` step 12 and
+  `/jdi:plan` step 5 confirm in one line when a plan would create the project's first CI pipeline,
+  service account, scheduled job — anything with a count of zero today — even when a record
+  prescribes it.
+- **A missing doc that is the deliverable gets an outline, not a draft.** `/jdi:prep` step 10 and
+  `/jdi:research` step 4 first ask whether the issue or a record schedules the document as part of
+  this change; if so, its required-sections outline goes in `## References` instead.
+- **Plan metadata is measured.** The `/jdi:start` and `/jdi:prep` templates name `git rev-parse HEAD`
+  for `Base commit`, run `git cat-file -t` on any 40-character hex value before saving, and write
+  "none named by the source" for a field with no sourced value. **`- Started:` has one writer** — the
+  first execution command — and `/jdi:execute` and `/jdi:yolo` name the contradiction of a
+  `Started:` line on a plan whose tasks are all pending at the base commit.
+- **The split decision weighs the count.** `/jdi:split` step 2 names three outcomes — one combined
+  task file plus UAT (the default), several written by the Butler, several from the Splitter — and
+  any result above one file needs a reason that argues for more than one.
+- **`## Tasks` is an interface.** `PLAN.md` carries exactly one `## Tasks` heading with the
+  checklist directly under it; a shape rationale goes in a `### Shape` subsection below.
+  `/jdi:split` step 6 probes it with `grep -c '^## Tasks$'`, and `/jdi:prep` now runs that step's
+  checks.
+- **UAT is not exempt from the task shape.** Its `## Files` is the record it writes, its
+  `## Verification` restates every inherited check under its own number, and `/jdi:split` refuses a
+  task file missing either heading.
+- **Deferred is a third outcome.** In `/jdi:yolo`, `/jdi:execute` and `/jdi:next`, a verification
+  step the task file marks CI-only or after-merge is neither a pass nor a failure: it does not stop
+  the loop, a decisive step deferred outside the task's *after the merge — deferred* list keeps the
+  task pending, and every completion message names each owed check and the probe that would close
+  it.
+- **The CI job is the last gate.** The Splitter reads the CI configuration for the touched app and
+  makes the job's own commands, verbatim, the UAT's last Verification bullet; a task that establishes
+  an environment is certified by a whole-tree command reading installed state, never a manifest
+  diff or one smoke test.
+- **`/jdi:pr` checks before it deletes.** Immediately before removing the task files it runs
+  `git status --porcelain` and `git ls-files --error-unmatch` on the plan folder, and commits the
+  plan first when anything is untracked or modified.
+- **`/jdi:pr` matches the plan to the branch.** The "most recent plan" fallback is gone; with no
+  plan for the branch, the command says so, skips the plan steps, asks before committing
+  uncommitted work, and tells the PR Writer there is no plan folder.
+- **The PR body is reconciled with every later commit.** After the pull request is open, each
+  pushed commit sweeps the body beside the condensed plan for retired phrasing and moved counts and
+  updates it in the same push. Ticking a human-authored tracker checklist is left out: it does not
+  fit `reference/tracker.md` as a T-op.
+- **A config edit names its disposition.** `/jdi:init` ends by offering to commit `.jdi/config.yml`
+  on its own and, in a linked worktree, says the edit dies with it unless it lands or is applied to
+  the main checkout.
 
 ## 1.0.9
 

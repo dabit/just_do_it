@@ -111,7 +111,7 @@ Follow these steps:
    - Issue: <issue id, or none>
    - Issue URL: <url, or none>
    - Created: YYYY-MM-DD
-   - Base commit: <default-branch ref> @ <SHA>
+   - Base commit: <default-branch ref> @ <full SHA from `git rev-parse HEAD`>
    - Summary: <one line>
 
    ## References
@@ -127,29 +127,49 @@ Follow these steps:
 
    Leave the sections empty for now.
 
+   **Every metadata value is a measurement, never a format to fill.** Run `git cat-file -t` on any
+   40-character hex value before saving the file — a short SHA padded to length passes every check
+   short of that one. A required field with no sourced value says "none named by the source". Leave
+   `Started:` out: it is written only by the first execution command (`/jdi:execute`,
+   `/jdi:yolo`), never at planning time, and not copied from a sibling plan further along.
+
 8. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md`, and adopt the role inline if this harness has no subagents.
    Give it the task description from `PLAN.md`, the `docs.path`, the plan store location, the
-   `consumers` list, and whether Jev is available. Instruct it to return:
+   `consumers` list, whether Jev is available, and the brief's `Premises:` — each tagged
+   `VERIFIED (<command or file:line>)` or `ASSUMED` per *Premises in a brief* in
+   `reference/delegation.md`, inherited blockers and the issue's own claims included. Instruct it
+   to return:
+   - `§0 Premises`, first — each premise `CONFIRMED`, `REFUTED` or `UNCHECKED`, with evidence
    - related past plans
    - relevant docs
    - key code findings, with citations
    - recommended references to add to `PLAN.md`
-   - whether a missing architecture document should be drafted
+   - whether a missing architecture document should be drafted — or "no, it is the deliverable;
+     outline follows" when the issue or a record schedules it as part of this change
 
-9. **Update the references** — When the Researcher ran as a separate process, its findings are the
-   result file the transport validated (`reference/delegation.md`), never a terminal transcript; a
-   result that failed validation was already announced and the role re-run another way. Merge the
-   findings into `## References`, preserving anything useful that is already there. **Spot-check a
-   couple of the load-bearing `file:line` citations against the real files before writing them in**
-   — a plan built on a hallucinated reference misleads every later step.
+9. **Update the references** — First check the return opens with `§0 Premises`, one line per premise
+   you passed, and send it back if not; a `REFUTED` line reaches the user at step 12, not only the
+   plan. When the Researcher ran as a separate process, its findings are the result file the
+   transport validated (`reference/delegation.md`), never a terminal transcript; a result that
+   failed validation was already announced and the role re-run another way. Merge the findings into
+   `## References`, preserving anything useful that is already there. **Spot-check a couple of the
+   load-bearing `file:line` citations against the real files before writing them in** — a plan
+   built on a hallucinated reference misleads every later step.
 
-10. **Draft a missing architecture doc when one is needed** — If no useful architecture doc exists,
-    do not stop just to ask permission. Delegate to the **Researcher** again,
-    delegated exactly as in step 8, have it draft a suitable architecture document, write that draft
-    to `<docs.path>/` with a descriptive filename, and add it to `## References`. Stop only if a
-    real ambiguity prevents a reasonable draft. An architecture doc goes in the repository and is
-    committed with the code, in both plan-store modes.
+10. **Draft a missing architecture doc when one is needed** — First ask whether the missing
+    document is **the deliverable**: named in the issue's scope, or scheduled by a record to land
+    with this change. If it is, do not draft it now — have the Researcher return its
+    required-sections outline, keyed to the records' own headings, and put that outline in
+    `## References` for the Planner to turn into a step. Drafting it here would decide questions
+    that belong to execution and leave two drafts of one artefact.
+
+    Otherwise, if no useful architecture doc exists, do not stop just to ask permission. Delegate
+    to the **Researcher** again, delegated exactly as in step 8, have it draft a suitable
+    architecture document, write that draft to `<docs.path>/` with a descriptive filename, and add
+    it to `## References`. Stop only if a real ambiguity prevents a reasonable draft. An
+    architecture doc goes in the repository and is committed with the code, in both plan-store
+    modes.
 
 11. **Record the findings on the issue (durable memory)** — Once `## References` is populated,
     perform **T5** from `reference/tracker.md`: upsert the research-findings comment on the issue.
@@ -159,10 +179,25 @@ Follow these steps:
 12. **Clarify only the true ambiguities** — If something important about the scope, the behaviour,
     or the constraints is still unclear, ask before planning. **Do not ask for approval to
     continue.** Ask only what materially changes the output; for the rest, pick the obvious default
-    and say which one you picked.
+    and say which one you picked. Offer no option whose premise you have not read yourself — ask
+    for the fact instead — and when a brief calls a decision settled, it settles the outcome, not
+    its stated reason (`roles/butler.md`, *Offer only options whose premise you have read*).
+
+    **One trigger beside ambiguity: a first-of-its-kind artefact.** When the plan would create the
+    project's first instance of a kind it has never had — a CI pipeline, a service account, a
+    scheduled job, a container image: a measured count of zero today — ask a one-line confirmation
+    even when a record prescribes it ("this would be the project's first CI pipeline; the records
+    call for it — confirm, or say where the gate runs instead"). A record settles *what*, not whether
+    the project wants the category at all, and a risk entry is read after the shape is approved.
+
+    Record every decision with its provenance — **asked and answered**, or **Butler default, not
+    asked**. Never write "confirmed by the user" or "user decision" for a default: a run with nobody
+    at the keyboard cannot tell no answer from approval, and a later reader of the plan will take
+    the attribution as the owner's choice.
 
 13. **Delegate to the Planner** — Hand off to the **Planner** role. Pass it the
-    current `PLAN.md`, the referenced docs, and the clarified answers. Instruct it to produce:
+    current `PLAN.md`, the referenced docs, the clarified answers, and the brief's `Premises:`,
+    tagged per *Premises in a brief* in `reference/delegation.md`. Instruct it to produce:
     - a detailed implementation plan
     - a testing strategy
     - the risks and watchouts
@@ -171,7 +206,9 @@ Follow these steps:
 14. **Resolve any follow-up gaps** — If the Planner returns open questions, ask them and re-run it.
 
 15. **Update `PLAN.md`** — Write the Planner's output into `## Implementation Plan`,
-    `## Testing Strategy`, and `## Risks`, preserving the metadata and references.
+    `## Testing Strategy`, and `## Risks`, preserving the metadata and references. Then run
+    `/jdi:plan` step 7's check that every Testing Strategy case carries `at HEAD:`,
+    `reddened by:` and `reaches the guard:`, and send the strategy back when one does not.
 
     When a user decision lands after the Planner returned — a declined step, a follow-up issue now
     filed — **reconcile every mention of it across `PLAN.md` and the task files**: the decisions,
@@ -179,11 +216,16 @@ Follow these steps:
     the existing issue ID instead of re-instructing creation. A decision recorded in one section and
     contradicted in another is not a blemish; it is an instruction a later agent will follow.
 
-16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5: judge whether splitting is worth
-    it, then either write the combined task file plus UAT yourself or delegate to the **Splitter**,
-    passing it whether Jev is available along with the plan, and instructing it to prioritise
-    parallelisation exactly as `/jdi:split` step 3 does. State the decision and the reason. The
-    final task is always UAT, and it maps every clause of the issue's acceptance criteria to the
+16. **Split into tasks** — Follow `/jdi:split` steps 2 through 5, and run step 6's checks on the
+    result before step 17 presents it — the `## Tasks` probe, the section refusals, the per-file
+    Verification probe (a step without `red when:`, a grep or count without `at base:`), and the
+    grep for the Splitter's *Refused in a Verification step* forms — whatever wrote the files. Judge
+    whether splitting is worth it, then take one of its three outcomes — one combined task file plus
+    UAT written by you (the default), several task files written by you, or several from the
+    **Splitter**, passing it whether Jev is available along with the plan, and instructing it to
+    prioritise parallelisation exactly as `/jdi:split` step 3 does. State the decision and the
+    reason; for more than one task file, the reason must argue for the count, not only the order.
+    The final task is always UAT, and it maps every clause of the issue's acceptance criteria to the
     scenario or test that proves it.
 
     Then materialise the pieces per `split.pieces`: `commits` (the default) writes nothing to the
@@ -195,6 +237,15 @@ Follow these steps:
     (and why, if it was a close call), list the generated tasks wave by wave — which run together,
     and the critical path — and suggest `/jdi:yolo` as the next step.
 
+    **Check the gate before saying "Next: yolo".** Where the plan makes a task wait on another issue
+    landing — a prerequisite, a blocker, "begins only after #N" — perform **T2** on that issue now.
+    If it has not landed, do not suggest `/jdi:yolo`: say "blocked on #N; yolo would stop at task
+    NN", and offer the slice that is buildable today, if the plan has one.
+
+    Report the state as it is. Prep never pushes and never executes a task or walks UAT; name any
+    unpushed commits on this branch (`git log --oneline @{u}..HEAD`, or every commit since
+    `origin/<default>` when the branch has no upstream) rather than pushing them.
+
     Also offer the pause: because the branch was created in step 6, the plan and task files can be
     committed on their own — `docs: Add <slug> plan` — leaving the work resumable later or by
     someone else with nothing implemented. In `external` plan mode there is nothing to commit; say
@@ -202,3 +253,6 @@ Follow these steps:
     the user asks; never as a side effect of preparing.**
 
 Do **not** write implementation code. Do **not** stop for approval between phases.
+
+End the report with this line, verbatim: **prep ends here; execution is a separate command.**
+Suggesting `/jdi:yolo` is an offer to the user, never an instruction to run it.

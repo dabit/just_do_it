@@ -52,15 +52,16 @@ Follow these steps:
    re-base the work on `origin/<default>` before researching** — a Researcher is only as accurate
    as the tree it reads, and every `file:line` it returns is silently wrong on a stale checkout.
 
-   Record the base commit in `PLAN.md`'s metadata. If the plan already records one and it no longer
+   Record the base commit in `PLAN.md`'s metadata — the full SHA from `git rev-parse HEAD`, checked
+   with `git cat-file -t` before saving. If the plan already records one and it no longer
    matches HEAD, say so, and treat **every** existing citation as needing re-verification against
    the new base — including those under `## References`, not only the sections being rewritten.
 
 3. **Delegate to the Researcher** — Hand off to the **Researcher** role; see
    JDI's `reference/delegation.md` for how to delegate under this harness, and adopt the role
    inline if it has no subagents. Give it the task description from `PLAN.md`, the `docs.path`, the
-   plan store location, the `consumers` list, and whether Jev is available, and instruct it
-   to:
+   plan store location, the `consumers` list, whether Jev is available, and the brief's
+   `Premises:`, tagged per *Premises in a brief* in `reference/delegation.md`, and instruct it to:
 
    a. **Search for past plans** — Search the plan store for previous plans that touched the same
       area or a related feature. Read their `PLAN.md` files and note the relevant ones.
@@ -68,18 +69,25 @@ Follow these steps:
    b. **Search for existing docs** — Search `<docs.path>` for architecture or design documents
       covering the area being changed.
 
-   c. **Report findings** — Return relevant past plans, relevant docs, key code findings with
-      citations, and whether an architecture doc exists for this area.
+   c. **Report findings** — Return `§0 Premises` first, then relevant past plans, relevant docs,
+      key code findings with citations, and whether an architecture doc exists for this area.
 
 4. **Present the findings** — Show the user what the Researcher found. **Sanity-check it yourself
-   first:** spot-check a couple of the load-bearing `file:line` citations against the real files
-   rather than relaying them unverified. A plan built on a hallucinated reference misleads every
-   later step. When the Researcher ran as a separate process, its findings are the result file the
-   transport validated (`reference/delegation.md`), never a terminal transcript; a result that
+   first:** a return that does not open with `§0 Premises`, one line per premise you passed, goes
+   back to the Researcher; every `REFUTED` line is relayed to the user before anything built on that
+   premise. Then spot-check a couple of the load-bearing `file:line` citations against the real
+   files rather than relaying them unverified. A plan built on a hallucinated reference misleads
+   every later step. When the Researcher ran as a separate process, its findings are the result file
+   the transport validated (`reference/delegation.md`), never a terminal transcript; a result that
    failed validation was already announced and the role re-run another way.
    - Add relevant past plans to `PLAN.md` under `## References`.
    - Summarise the key points of any relevant architecture doc and reference it from `PLAN.md`.
-   - If **no relevant doc exists**, tell the user and ask whether to write one.
+   - If **no relevant doc exists**, tell the user and ask whether to write one — but first check
+     whether that document is **the deliverable**: named in the issue's scope, or scheduled by a
+     record to land with this change. If it is, say so instead of offering a draft, and add the
+     Researcher's required-sections outline, keyed to the records' own headings, to
+     `## References` for the plan to turn into a step. A draft written now decides questions that
+     belong to execution and leaves two drafts of one artefact.
 
 5. **Write the missing doc (if approved)** — If the user agrees, delegate to the **Researcher**
    again, delegated exactly as in step 3, to explore the codebase and understand the current

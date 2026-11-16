@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented in 1.0.11 for issue #36, stacked on the `herdr-role-delegation` branch (PR #31). Every
+Implemented in 1.0.14 for issue #36, stacked on the `herdr-role-delegation` branch (PR #31). Every
 decision below is settled, and the live probes ran before the reference was written: the probe
 gate stopped once, on D6 and D7, and passed after both were amended (see *Decisions* and
 *App-side live probes*). The operations themselves are defined in `reference/herdr.md`; this
@@ -13,7 +13,7 @@ document records the design behind them and the observations that shaped it.
 JDI's Herdr operations (`reference/herdr.md`, H1 to H9) were first written against the Herdr TUI,
 the `herdr` CLI. Herdr also ships a desktop app, `herdr-app`, which runs its terminals in
 herdr-core, driven by the `hc` CLI. An agent running inside the app has no `herdr` server to talk
-to, so before 1.0.11 every Herdr path in JDI found nothing there: `delegation.transport: auto`
+to, so before 1.0.14 every Herdr path in JDI found nothing there: `delegation.transport: auto`
 silently ran natively, `herdr` announced a failed check, and `/jdi:herd` stopped at its first
 check.
 

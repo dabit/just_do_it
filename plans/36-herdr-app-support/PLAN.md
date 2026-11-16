@@ -9,6 +9,7 @@
 - Summary: Detect whether JDI runs inside the Herdr app (herdr-app + hc) or the Herdr TUI, make it configurable, and route every Herdr operation (role delegation, /jdi:herd, worktrees) through the detected surface.
 - Started: 2026-11-16
 - TDD: on — proven 2026-11-16 with `python3 -m unittest discover -s tests -v`
+- Merged: origin/main @ c7bc66b into this branch, 2026-11-16 (main had its own 1.0.10–1.0.12). Versions renumbered: PR #31's release is 1.0.13, this branch's is 1.0.14 (was 1.0.11; P12 and task 09's "1.0.11" are superseded).
 
 ## References
 

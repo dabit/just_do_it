@@ -76,12 +76,15 @@ Follow these steps:
    - Issue: <issue id, or none>
    - Issue URL: <url, or none>
    - Created: YYYY-MM-DD
-   - Base commit: <default-branch ref> @ <SHA from step 3>
+   - Base commit: <default-branch ref> @ <full SHA from `git rev-parse HEAD`, after step 3>
    - Summary: <one line>
    ```
 
    The plan is intentionally minimal at this stage — the details come later. The base commit
    matters: everything the later phases cite is only valid against the commit it was read from.
+   Run `git cat-file -t` on the SHA before saving — a short SHA padded to length passes every check
+   but that one — and write "none named by the source" in any field you have no sourced value for.
+   Leave `Started:` out: only the first execution command writes it, never planning.
 
 5. **Suggest the next step** — Tell the user the plan is ready, name the branch you created, and
    suggest `/jdi:research` to find or write the architecture docs for this area.

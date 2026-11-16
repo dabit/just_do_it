@@ -24,6 +24,12 @@ A task file also carries a `Ticket:` line when `split.pieces` mirrors the pieces
 tasks or subtickets — see **T7** in `reference/tracker.md`. That mirror is additive: the task files
 and the one-commit-per-task rhythm below are identical in all three `split.pieces` modes.
 
+`- Started:` has exactly one writer: the first execution command (`/jdi:execute` step 2,
+`/jdi:yolo`'s TDD gate), at the moment execution begins. `/jdi:start` and `/jdi:prep` never write
+it, and a plan's metadata is never copied from a sibling plan that is further along — that is how a
+marker of something that has not happened spreads. Its presence is what tells every later command
+the plan has run.
+
 `PLAN.md` itself carries a `TDD:` line, written into the metadata block alongside `- Started:`,
 when `tdd.enabled` was `true` at the start of that plan — see **TS1** in `reference/testing.md`.
 It has two shapes:
@@ -136,4 +142,5 @@ the repository and is committed with the code in both modes.
 Commands that say "find the plan" mean: the plan matching `$ARGUMENTS` if the user named one,
 otherwise the most recently modified plan in `<plans.path>/` (repo mode) or in `plans.location`
 (external mode). If several are plausible, ask rather than guess — operating on the wrong plan
-corrupts two of them.
+corrupts two of them. `/jdi:pr` is the exception: it matches the plan to the current branch and has
+no recency fallback, because condensing a plan is irreversible and a branch may carry none.

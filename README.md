@@ -327,6 +327,7 @@ workers at once, and the Butler waits for all of them before it does anything el
 Claude Code:
 
 ```sh
+/jdi:do "Fix the typo in the signup email"      # one session: plan in chat, build, PR, review, merge
 /jdi:prep "Add presence indicators to pages"   # research + plan + split, in one pass
 /jdi:yolo                                      # execute every task, in parallel waves, stopping on a real failure
 /jdi:pr                                        # condense the plan, push, open the PR
@@ -338,6 +339,7 @@ explicitly:
 ```text
 $jdi:run
 $jdi:run help
+$jdi:run do "Fix the typo in the signup email"
 $jdi:run prep 4
 $jdi:run yolo
 $jdi:run pr
@@ -387,7 +389,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 17 workflow commands. These canonical files are written to the orchestrator |
+| `commands/` | The 18 workflow commands. These canonical files are written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |

@@ -41,8 +41,23 @@ possible can run at the same time. It focuses on structure, not implementation.
   actually runs in** — a check that runs after an earlier task's change must expect the world
   *after* that change. Where the source plan describes the same probe in more than one context
   (before vs after a change, or under a rejected alternative), identify which context the task
-  inherits and discard the others. Prefer pairing a probe with a control whose opposite result is
-  expected, so a misread outcome is self-evident
+  inherits and discard the others. **Every numbered Verification step carries a `red when:` line**
+  naming the wrong state it exists to catch — and the command must actually separate that state from
+  the right one; a step you cannot write the line for checks nothing. **A step whose pass condition
+  is empty output, a zero or an absence carries, in the same step, a `control:`** — the same
+  pattern, flags and file set run over a corpus known to contain the thing, which must print
+  non-empty. Silence passes when the instrument is dead, so the control is what lets it fail. A
+  terminal-state arm (non-zero exit, absent file, closed gate) names two runs: the opposite-state
+  control first, then the arm
+- **Observe an expected value; never predict it.** Every step that runs a grep, a count or a probe
+  records `at base: <output>` — what *you* got running it at the base commit while writing the
+  task — and derives its expected value from that. A grep expected to hit quotes the `file:line`
+  and text it hits, not just a count. Where the corpus does not exist at base (a section or a file
+  a later task writes), write `at base: none — written by task NN`. A text search asserting a
+  structural property (an import edge, a call site, a ban) also records `compliant hits:` — would
+  a comment, a docstring or this task file match it in a tree that complies? — as `none`, or as
+  the residue expected and where it comes from. A suite or whole-file run records, at base, its
+  example count and its known reds by identity — never a bare "all green"
 - When a task names an existing file as the template for a new test's harness — *copy the seam from
   X **exactly*** — that sentence is a claim that X can express **every** case the same task lists.
   Read the template's return shape against your own case list before you write it: a seam that
@@ -85,8 +100,18 @@ possible can run at the same time. It focuses on structure, not implementation.
   marking it done, never as step 1 of the walk. Told a phase without being told its side of the
   boundary, a generated artefact resolves it by pulling the later phase into the earlier one.
   Name any clause that is not exercised on merge, say what proves the mechanism
-  instead, and record where the deferral will be picked up. An acceptance criterion with no
-  scenario is how work gets closed on an unobserved claim
+  instead, and record where the deferral will be picked up — the probe or run that will close it,
+  since the execute loop treats a listed step as deferred, neither passed nor failed. An
+  acceptance criterion with no scenario is how work gets closed on an unobserved claim
+- **The gate the branch will face is the UAT's last check.** Read the CI configuration for the app
+  the plan touches and make the CI job's own commands, **verbatim**, the last Verification bullet of
+  the UAT — run locally, before the pull request. Narrow targets prove a task; only the pipeline's
+  commands prove the branch will pass it. Waiting for a green pipeline run stays in the *after the
+  merge — deferred* list; running its commands here does not
+- A task that **establishes an environment** for later tasks — a borrowed dependency tree, an
+  install, a generated toolchain — is certified by a whole-tree command that reads the installed
+  state (the typecheck, the build, the full suite, `npm ls`), never by a diff of the manifests or a
+  single smoke test, whose reach is only its own import closure
 - Update `PLAN.md` with the master task checklist, grouped by wave
 
 The Splitter never writes to the issue tracker. Where `split.pieces` mirrors the tasks as tracker
@@ -126,7 +151,8 @@ Do this before writing any task file, and again once they are written.
    creates, modifies, or deletes — because the Butler also commits each task by exactly those
    paths. The plan folder's own files are the Butler's and never belong in a task's `## Files`.
 4. **Keep verification independent.** A task's Verification must be able to pass or fail on that
-   task's work alone, with its same-wave siblings half-finished or absent. Prefer a targeted
+   task's work alone, with its same-wave siblings half-finished or absent — every working-tree
+   read scoped to the task's own paths (*Refused in a Verification step*, item 6). Prefer a targeted
    invocation (one test file, one command) over the whole suite; leave whole-suite runs to the
    task that joins the branches back together, and to UAT.
 5. **Weigh it against task count.** Parallelism is a real boundary: a cut that lets two pieces run
@@ -159,6 +185,12 @@ wrong. UAT depends on every other task, so it is always the last wave, alone.
 - [ ] 04 — UAT (depends on: 03)
 ```
 
+`PLAN.md` carries **exactly one** `## Tasks` heading, and the checklist starts directly under it.
+The commands read that section by name, so prose above the first `- [ ]` — even a useful note on
+why the shape differs from the plan's proposal — is something a parser sees instead of the
+checklist. Put that rationale in a `### Shape` subsection **below** the checklist, or in your
+hand-back; never under a second `## Tasks`.
+
 A plan that is honestly a strict chain is written as one: one task per wave, no invented
 independence. Report the shape when you hand back — how many waves, the widest wave, and the
 critical path — and name any dependency you declared only because of a shared file.
@@ -183,8 +215,16 @@ Every path the task creates, modifies, or deletes — complete, and disjoint fro
 task it could run alongside.
 
 ## Verification
-Commands to run and the expected outcome of each.
+1. <command> — expected: <outcome>
+   red when: <the wrong state this step catches>
+   control: <same pattern over a corpus that contains it — non-empty> (empty/zero/absence only)
+   at base: <what the command printed at the base commit> (grep, count or probe)
+   compliant hits: <none | the expected residue and its source> (structural text search)
 ```
+
+`/jdi:split` step 6 refuses a task file with a numbered Verification step lacking `red when:`,
+or a grep or count step lacking `at base:`.
+The UAT's *after the merge — deferred* list is bulleted, not numbered, so it is not a step.
 
 **Three of these are read by a machine, and the rest by a person.** `status:` is the flag
 `/jdi:done` flips; `Depends on:` is the *only* input to the wave computation; `## Files` is both the
@@ -199,10 +239,39 @@ the file, sees the shape plainly stated, and signs off on something the parser n
 `## Files` gap is the one that is not merely slow: it is the only thing standing between two
 concurrent Executors and the same path.
 
+**The UAT task is not exempt from the shape.** Its `## Files` is the record it writes — the results
+file or section, re-read at write time where the folder numbers its evidence — and is never left for
+the dispatch to name. Its `## Verification` lists every check the UAT re-runs, **restating** each
+one inherited from an earlier task under its own number, so a dispatch can cite a step that exists
+in the file the Executor holds.
+
 So **write the skeleton first and fill it in**, rather than writing the task and remembering the
 fields afterwards. A task file whose first line is not `status: pending`, or that reaches its first
 prose heading without `Depends on:` above it, is the wrong shape — not a stylistic variant of the
 right one.
+
+### Refused in a Verification step
+
+Each of these reads a state the workflow itself moves, so it passes or fails for a reason that is
+not the task's work. Write the form beside it instead; `/jdi:split` step 6 greps for them.
+
+1. **A bare `git diff`, `git diff --cached` or `git diff HEAD` over a path the task writes.** The
+   Executor stages every edit, so the first is empty by construction, and the wave moves the
+   others. Ask whether the path is in the change set: `git status --porcelain -- <path>`, or
+   `git diff <base-sha> -- <path>`.
+2. **`<base>..HEAD` or `$(git merge-base …)..HEAD` as evidence of the task's own edits**, in any
+   task but the UAT. Executors do not commit, so HEAD holds none of them. The UAT is the reverse:
+   it is walked after every earlier task is committed, so it reads a commit range and never the
+   working tree or the index.
+3. **A "not edited" guard whose path list shares a path with the task's `## Files`.** It forbids
+   the edit the task mandates. Quantify it over the paths the task does not edit, and protect
+   what must survive in an edited file by name or content.
+4. **A bare `path:N` into a file the task itself edits.** The task's own edit moves the line.
+   Address it by a description (`-e "<example name>"`), a symbol, or a content grep.
+5. **A `git diff` absence proof over an untracked path.** Git cannot diff what it does not track;
+   it prints nothing either way. Use `git status --porcelain -- <path>` with a `control:`.
+6. **A whole-tree `git status` or `git diff --stat` in a task that can run beside a sibling**,
+   without the task's `## Files` as its pathspec — a sibling's edit fails it, or satisfies it.
 
 ## What it receives
 
@@ -210,6 +279,8 @@ right one.
 - The referenced architecture docs
 - The plan folder path
 - Whether Jev is available, resolved by the Butler — never a key to read or a ladder to run
+- The brief's `Premises:`, each `VERIFIED (<command or file:line>)` or `ASSUMED` — *Premises in a
+  brief*, `reference/delegation.md`. An `ASSUMED` one is a claim to check, never context
 
 ## What it returns
 
