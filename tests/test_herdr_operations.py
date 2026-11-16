@@ -34,6 +34,19 @@ HEADINGS = (
     "## When a step fails",
     "## Why the agent surface, not pane run",
     "## Waves",
+    "### H2 on the TUI",
+    "### H2 on the app",
+    "### H3 on the app",
+    "### H4 on the TUI",
+    "### H4 on the app",
+    "#### H4b on the app",
+    "### H5 on the TUI",
+    "### H5 on the app",
+    "### H6 on the TUI",
+    "### H6 on the app",
+    "### H8 on the TUI",
+    "### H8 on the app",
+    "### Waves on the app",
 )
 
 
@@ -338,6 +351,137 @@ class HerdrOperationsTest(unittest.TestCase):
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, body)
+
+    def test_h2_app(self):
+        self.assertSectionContains(
+            "### H2 on the app",
+            "`command -v <kind>`",
+            "absolute path",
+            "no kinds list",
+            "not ready",
+            "`--no-daemon`",
+            "`harnesses.codex.args`",
+        )
+
+    def test_h3_app(self):
+        self.assertSectionContains(
+            "### H3 on the app",
+            "`hc ls --json --label jdi.agent=<name>`",
+            "`herdr-app ls`",
+            '"surface"',
+            '"space_id"',
+            '"terminal_id"',
+        )
+
+    def test_h4_app_spawn_line_and_split_are_one_command(self):
+        lines = self.section_lines("### H4 on the app")
+        start = next(i for i, line in enumerate(lines) if line.startswith("1. "))
+        end = next(i for i, line in enumerate(lines) if line.startswith("2. "))
+        self.assertTrue(
+            lines[start].startswith("1. **Print the spawn line.**"),
+            "H4 on the app's first numbered step is %r, not the spawn line" % lines[start],
+        )
+        step = lines[start:end]
+        fence = [i for i, line in enumerate(step) if line.strip().startswith("```")]
+        self.assertGreaterEqual(len(fence), 2, "H4 on the app step 1 has no code block")
+        block = step[fence[0] + 1 : fence[1]]
+        joined = [
+            line
+            for line in block
+            if "printf '%s\\n' \"JDI spawn" in line
+            and "&& herdr-app do pane.split --pane <butler pane> --direction right --argv" in line
+        ]
+        self.assertTrue(
+            joined,
+            "H4 on the app step 1's code block has no line that prints the spawn line and splits the pane",
+        )
+
+    def test_h4_app_order(self):
+        body = self.section_text("### H4 on the app")
+        previous = -1
+        for marker in (
+            "pane.split",
+            "hc label <terminal> jdi.agent=<agent name>",
+            "**Write the run files.**",
+            "hc wait <terminal> --timeout 120",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, body, "H4 on the app lacks %r" % marker)
+                position = body.index(marker)
+                self.assertGreater(
+                    position, previous, "H4 on the app names %r out of order" % marker
+                )
+                previous = position
+
+    def test_h4_app_argv(self):
+        self.assertSectionContains(
+            "### H4 on the app",
+            'cd -- "$1"',
+            "env KEY=VALUE",
+            "Expand every path",
+        )
+
+    def test_h4b_app(self):
+        self.assertSectionContains(
+            "#### H4b on the app",
+            "hc label",
+            "hc wait <terminal> --timeout 120",
+        )
+
+    def test_h5_app(self):
+        heading = "### H5 on the app"
+        self.assertSectionContains(
+            heading,
+            'hc send <terminal> "<short prompt>" --if idle --wait --timeout 300',
+            "`--if idle`",
+            "hc wait <terminal> --timeout 300",
+            "seconds, not milliseconds",
+        )
+        lines = self.section_lines(heading)
+        for row in (
+            "| `working`",
+            "| `blocked`",
+            "| `idle` or `done` |",
+            "| `idle` or `done` with no `result.json`",
+            "| `error`",
+            "| no status",
+            "| overall timeout",
+            "| refused as blocked",
+            "| `not_started`",
+            "| `reason: message`",
+            "| finished",
+        ):
+            with self.subTest(row=row):
+                self.assertTrue(
+                    any(line.startswith(row) for line in lines),
+                    "H5 on the app's state table has no row starting with %r" % row,
+                )
+
+    def test_h6_app(self):
+        self.assertSectionContains(
+            "### H6 on the app",
+            "never `hc keys`",
+            "never `hc send --force`",
+            "never `hc interrupt`",
+            "hc read <terminal> --lines 80",
+            "herdr-app do agent.focus --terminal <terminal>",
+        )
+
+    def test_h8_app(self):
+        self.assertSectionContains(
+            "### H8 on the app",
+            "herdr-app do pane.close --pane <pane_id>",
+            "herdr-app do tab.close --id <tab_id> --confirmed true",
+            "already gone",
+        )
+
+    def test_waves_app(self):
+        self.assertSectionContains(
+            "### Waves on the app",
+            "herdr-app do tab.new --name jdi-wave-<first run id>",
+            "--focus false",
+            "hc wait <terminal> --timeout 30",
+        )
 
 
 if __name__ == "__main__":

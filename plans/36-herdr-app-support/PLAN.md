@@ -577,7 +577,7 @@ Gate: passed (after amendment)
 - [x] [05](05-architecture-docs.md) — Architecture docs: record the surfaces design as decided and probed (depends on: 02) — Planner Task 8
 
 **Wave 3** — run together
-- [ ] [06](06-herdr-h2-h8-waves-app.md) — `reference/herdr.md`: app variants of H2–H8 and waves (depends on: 03) — Planner Task 4
+- [x] [06](06-herdr-h2-h8-waves-app.md) — `reference/herdr.md`: app variants of H2–H8 and waves (depends on: 03) — Planner Task 4
 - [ ] [07](07-callers-step-zero-and-delegation.md) — Callers: the step-0 line in nine commands, and `reference/delegation.md`, name either surface (depends on: 03) — Planner Task 6, minus `commands/herd.md`
 
 **Wave 4**

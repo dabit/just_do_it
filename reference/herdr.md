@@ -76,8 +76,8 @@ the user's core.
   the command that created it printed it, and never builds one.
 - **Shell.** The app variants assume a POSIX `sh`. Windows is not verified.
 - **Variants.** Each operation has a TUI subsection and an app subsection. Text outside those
-  subsections applies to both surfaces. An operation that does not have its app subsection yet has
-  only its TUI text.
+  subsections applies to both surfaces. H9 does not have its app subsection yet, so it has only its
+  TUI text.
 
 ## H1 - Detect Herdr
 
@@ -164,12 +164,6 @@ There is no app counterpart to `compatible: yes`. The Butler records the version
 
 - The kind is `models.<role>.harness`, and only that. A role with no `harness`, or one that names
   the Butler's own kind, never reaches this operation.
-- Supported: the kind appears on the `kinds:` line of `herdr agent`. That line **lists the kinds
-  Herdr supports**, not the kinds installed.
-- Installed: `command -v <kind>` resolves.
-- `herdr integration status` affects only detection quality. The Butler records its answer in the
-  manifest and states it once when the kind's integration is missing or outdated (for example,
-  "lifecycle states for claude come from screen rules").
 
 The model flag, by kind:
 
@@ -184,6 +178,32 @@ before the verbatim `harnesses.<kind>.args`.
 
 With no `models.<role>.model`, no flag is passed, and the worker runs on its CLI's own default. The
 Butler says so in the `JDI spawn` line (H4).
+
+### H2 on the TUI
+
+- Supported: the kind appears on the `kinds:` line of `herdr agent`. That line **lists the kinds
+  Herdr supports**, not the kinds installed.
+- Installed: `command -v <kind>` resolves.
+- `herdr integration status` affects only detection quality. The Butler records its answer in the
+  manifest and states it once when the kind's integration is missing or outdated (for example,
+  "lifecycle states for claude come from screen rules").
+
+### H2 on the app
+
+The app has no kinds list and no integration status. An agent there has a status only when its own
+program reports one.
+
+- **The only check** is `command -v <kind>`, run in the Butler's shell. The **absolute path** it
+  prints goes into the worker's argv (H4 on the app), because an app terminal gets the core's
+  environment, not the Butler's `PATH`. A non-absolute answer, such as an alias or a function,
+  fails H2 on the app with that reason (rung 7).
+- **A kind is usable on the app only if it reports a status.** H2 cannot see that in advance. The
+  readiness wait (H4 on the app, step 5) treats an agent that never reaches `status: idle` as not
+  ready and types nothing. A trust or hook-review dialog at start-up reports no status either, so
+  an open one also ends as not ready.
+- **Codex.** Under hc, Codex needs `--no-daemon`, and the user puts it in
+  `harnesses.codex.args`. JDI adds nothing (universal rule 9), but when the kind is `codex` and
+  `--no-daemon` is missing from those args, the Butler says so once.
 
 ## H3 - Prepare the run
 
@@ -224,6 +244,7 @@ the pane exists, because `manifest.json` records the new pane's ID and is never 
   "cwd": "<abs worktree root>",
   "transport": "herdr",
   "herdr": {
+    "surface": "tui",
     "workspace_id": "<HERDR_WORKSPACE_ID>",
     "tab_id": "<HERDR_TAB_ID>",
     "butler_pane_id": "<HERDR_PANE_ID>",
@@ -303,7 +324,37 @@ inputs as absolute paths>
 Run directories are kept. JDI never deletes them in this release. Removing a linked worktree
 removes its git directory and its runs. The user may delete `<gitdir>/jdi/runs/` at any time.
 
+### H3 on the app
+
+The names, the run directory and its files are the same. What differs:
+
+- **The collision check** is `hc ls --json --label jdi.agent=<name>`. A terminal it lists already
+  holds the name, so the Butler draws a new suffix.
+- **The Butler's place.** The space and tab IDs come from the `herdr.space` and `herdr.tab` labels
+  in `hc get "$HC_TERMINAL_ID" --json`. The Butler's pane is the `herdr-app ls` entry whose
+  `terminal` equals `$HC_TERMINAL_ID`. `HC_TERMINAL_ID` itself is a terminal ID, not a pane ID.
+- **When the manifest is written.** On the app the split starts the agent, so the manifest is
+  written after the split and before the short prompt.
+- **The manifest's `"herdr"` object** is this one, in place of the TUI's. Both start with
+  `"surface"`, and `"schema"` stays `1`.
+
+```json
+"herdr": {
+  "surface": "app",
+  "space_id": "<herdr.space label of the Butler's terminal>",
+  "tab_id": "<herdr.tab label of the Butler's terminal>",
+  "butler_pane_id": "<the Butler terminal's pane, from herdr-app ls>",
+  "pane_id": "<from pane.split>",
+  "terminal_id": "<from pane.split>",
+  "agent_name": "jdi-<role>-<4 hex>",
+  "status_reported": "<true once hc get shows a status, else false>",
+  "versions": {"app": "<herdr-app --version>", "hc": "<hc --version>"}
+}
+```
+
 ## H4 - Start the worker
+
+### H4 on the TUI
 
 1. **Print the spawn line.** The pane split starts the spawn, so the `JDI spawn` line and the pane
    split are the same shell command, joined by `&&`: if the print does not run, the split does not
@@ -351,7 +402,73 @@ The start command alone, applied to a pane and a name the caller supplies:
 `herdr agent start <name> --kind <kind> --pane <pane_id> --timeout 120000 [-- <model flag> <args...>]`,
 with the same three outcomes as above. `/jdi:herd` reuses it for panes it creates itself.
 
+### H4 on the app
+
+On the app the worker is the split's own program, so there is no separate agent start. The split
+always goes to the `right`, and every command names its target by ID, because the app's commands
+otherwise act on whichever pane has focus.
+
+1. **Print the spawn line.** The `JDI spawn` line and the split are one shell command on one
+   physical line, joined by `&&`, so if the print does not run, the split does not run either. The
+   line's text is the one H4 on the TUI prints. The split moves focus to the new pane, so the same
+   command ends by giving focus back to the Butler's pane:
+
+   ```text
+   printf '%s\n' "JDI spawn <run-id>: <Role> on <kind> (<model | CLI default>) - args: <verbatim | none> - env keys: <keys | none> - run dir: <path> - agent: <agent name>" && herdr-app do pane.split --pane <butler pane> --direction right --argv '<argv JSON>' && herdr-app do pane.focus --pane <butler pane>
+   ```
+
+   The worker's `<argv JSON>` is also one physical line:
+
+   ```text
+   ["sh", "-c", "cd -- \"$1\" && shift && exec \"$@\"", "jdi-worker", "<worktree root>", "env", "KEY=VALUE", "<absolute path of kind>", "<model flag>", "<model>", "<args...>"]
+   ```
+
+   - **The folder.** The split takes no folder, environment or focus option, and it starts in the
+     Butler terminal's current folder, which can differ from the worktree root. So the argv
+     starts with the wrapper `sh -c 'cd -- "$1" && shift && exec "$@"' jdi-worker <worktree root>`.
+     Its `exec` keeps the agent's status reporting.
+   - **The environment.** `harnesses.<kind>.env` rides as an `env KEY=VALUE ...` prefix. The
+     `"env", "KEY=VALUE", ...` elements appear only when that key is not empty.
+   - **The kind** is the absolute path from H2 on the app. The model flag follows it, then
+     `harnesses.<kind>.args` verbatim, as on the TUI.
+   - **Expand every path** before it enters the argv. A `~` or a variable is expanded in the
+     Butler's shell, because nothing expands it later.
+   - **Quoting.** Each element is JSON-escaped, and the whole array is single-quoted, with each `'`
+     written as `'\''`.
+
+   The angle-bracket placeholders and `<args...>` are illustrative. The Butler repeats the line in
+   its visible message, as on the TUI, and a spawn without this line printed first is a defect.
+2. **Read the terminal.** The first line of the command's stdout is the spawn line, and the split's
+   JSON follows it. Read `.pane` and `.terminal` from that JSON. hc reports an error as JSON on
+   stderr, and `herdr-app` prints `{"error": ...}` on stdout with exit 1. A split that fails means
+   the pane cannot be created: rung 8, transport-level. A failed focus restore does not stop the
+   run, because the pane exists.
+3. **Label it.** `hc label <terminal> jdi.agent=<agent name>`. The app's terminals have no names,
+   so this label is how H3's collision check and the Butler find the worker again.
+4. **Write the run files.** Write `manifest.json`, with the app `"herdr"` object (H3 on the app)
+   holding the real `pane_id` and `terminal_id` from step 2 and the exact line step 1 printed in
+   `"spawn_line"`, then `prompt.md`. The split already started the agent, so this comes after it
+   and before the short prompt.
+5. **Wait for readiness.** `hc wait <terminal> --timeout 120`, in seconds. Then branch on hc's
+   JSON:
+
+   - `status: idle`: ready. Continue to H5.
+   - `status: blocked`: go to H6 with the prompt unsent.
+   - Finished (exit 11), not found (exit 3), or a JSON error: H8, then rung 8.
+   - Anything else, including `reason: timeout` with no `status`: **not ready**. An open trust or
+     hook-review dialog looks like this, and so does a kind that reports no status. Type nothing.
+     Say why: the agent reported no status, and its pane may show a dialog, which is the user's to
+     answer. Then H8, then rung 8.
+
+#### H4b on the app
+
+For a terminal the caller created itself: step 3's `hc label <terminal> jdi.agent=<name>`, then
+step 5's readiness wait `hc wait <terminal> --timeout 120`, with the same outcomes as H4 on the
+app. `/jdi:herd` reuses it for the terminal each of its spaces starts.
+
 ## H5 - Prompt and wait
+
+### H5 on the TUI
 
 Send the short prompt, then wait:
 
@@ -381,7 +498,42 @@ Classification reads the JSON Herdr prints on stdout and stderr. The exit code a
 evidence. The exact JSON field that holds the state is not assumed: the UAT's probe P6 (Task 10)
 records it.
 
+### H5 on the app
+
+Send only after H4's readiness wait reported `status: idle`, then wait:
+
+1. `hc send <terminal> "<short prompt>" --if idle --wait --timeout 300`
+2. Loop `hc wait <terminal> --timeout 300` until a settled state appears or the overall deadline
+   passes.
+
+`--if idle` makes the app refuse to type unless the status is exactly `idle`, so the prompt never
+lands in a dialog. hc timeouts are in seconds, not milliseconds. The overall deadline defaults to
+2700 s, and a value the user states in the conversation wins for that run. Set the shell tool's own
+timeout above each call. Where the shell tool caps lower than 300 s, use its cap minus 30 s as the
+`--timeout`. `hc send` also waits up to 60 s for a person's unfinished draft in the worker's input
+before it types.
+
+Classification reads the JSON hc prints, on stdout and stderr. The exit code only confirms it. A
+check-in whose `--timeout` expired prints `reason: timeout` on stdout with exit 0, and is not an
+error.
+
+| Observed | Meaning | Butler action |
+|---|---|---|
+| `working` or `reason: timeout` (a per-call `--timeout` expired) | still running | Under the overall deadline: print one progress line and loop `hc wait`. At the deadline: go to the overall timeout row |
+| `blocked` | approval, permission, question or auth UI (`status.kind`) | H6 on the app: inspect, show the user what was seen, and ask. Never `hc keys` |
+| `idle` or `done` | settled. **This is not proof of success**. An opencode turn ends on `idle`, never `done` | H7: validate `result.json` and `report.md`. `needs_input` goes to H6's question path |
+| `idle` or `done` with no `result.json` | the worker stopped without writing its result, often to ask something in chat | Inspect with `hc read <terminal> --lines 80`. If the pane ends in a question from the worker, tell the user which pane (agent name and pane ID) and that they can answer there, then keep waiting; this is not a resubmit. If it ends with no question and no result, it is an H7 validation failure: announce, H8, fall back |
+| `error` | the program reported an error state | Inspect with `hc get` and `hc read`, and show the user. Never count it as success. If `result.json` exists, H7 decides; otherwise ask: keep waiting or abandon (H8, then fallback) |
+| no status (mid-run: the status disappeared after readiness saw `idle`) | the program stopped reporting | Every check-in also checks whether `result.json` exists, and goes to H7 if it does. Otherwise keep waiting under the deadline. Readiness already rejected kinds that never report one |
+| overall timeout | no settled state in time | Inspect. Never count it as success and never resubmit. Show whether a result file exists and ask: keep waiting, accept the file the user has checked, or abandon (H8, then fallback) |
+| refused as blocked (exit 9, `"kind": "blocked"` on stderr), or refused as not idle (exit 10) | `hc send` typed nothing, so the prompt was **not** sent | Inspect with `hc get`. Blocked: H6. Anything else: show the user and ask. Sending once the worker is idle is the first submission, not a resubmit |
+| `not_started` (from `hc send --wait`) | the text was sent but no turn started | Do not resend. Read first: `hc read <terminal> --lines 80` and `hc get`. If the text is still unsubmitted in the input box, ask the user; otherwise continue the wait loop |
+| `reason: message` | the wait ended because the Butler itself received a message; not a worker state | Wait again |
+| finished (exit 11), not found (exit 3), or a JSON error | the worker exited or the transport broke | H8, announce, fall back. Treat as a transport failure |
+
 ## H6 - Handle a blocked worker
+
+### H6 on the TUI
 
 1. Inspect with `herdr agent get <name>`, `herdr agent explain <name>`, and
    `herdr agent read <name> --source recent-unwrapped --lines 80`. When that read (or
@@ -410,6 +562,24 @@ waiting.
 The reason for this path: `agent prompt` rejects a blocked agent before it sends any input, so the
 Butler can answer a question only once the worker is idle.
 
+### H6 on the app
+
+1. Inspect with `hc get <terminal> --json`, whose `status.kind` says which UI is open: permission,
+   question or auth. Then `hc read <terminal> --lines 80`. While the worker is blocked or working,
+   the read shows only the screen, not its history.
+2. Show the user what was seen.
+3. The dialog goes to the user, who answers it in the worker's pane. The Butler offers to focus the
+   pane and, only on a yes, runs `herdr-app do agent.focus --terminal <terminal>`. Then it resumes
+   `hc wait`.
+
+The Butler never answers a dialog for the user: never `hc keys`, never `hc send --force`, never
+`hc interrupt`, even where the hc manual suggests `hc keys` for a trust dialog.
+
+**`needs_input` in `result.json`** follows the TUI's four steps, with step 3 on the app:
+`hc send <terminal> "<answer>" --if idle --wait --timeout 300`. `--if idle` keeps the answer out of
+any dialog that opened meanwhile, and a refusal is read as in H5 on the app. Then resume H5 on the
+app.
+
 ## H7 - Validate the result
 
 `idle` or `done` is not proof of success. All of these checks must pass:
@@ -435,6 +605,9 @@ success.
 1. Write `outcome.json` with these fields: `run_id`; `states`, a list of `{at, state, via}`;
    `final`, one of `valid`, `invalid`, `abandoned` or `transport_failed`; `validation`; `answers`;
    `user_decisions`; `fallback`, null or the path taken; and `pane_closed`, a boolean.
+
+### H8 on the TUI
+
 2. Run `herdr pane close <pane_id>` on every exit: success, failure, abandon, or a fallback of any
    kind. After a wave, close the wave tab once its last pane is closed:
    `herdr tab close <tab_id>`. Herdr closes a tab itself when its last pane closes, so this call
@@ -442,6 +615,21 @@ success.
 
 Keep the pane open only when the user asks to inspect it, and then say that the user now owns
 closing it. A failed delegation must not leak one pane per attempt.
+
+### H8 on the app
+
+2. Run `herdr-app do pane.close --pane <pane_id>` on every exit: success, failure, abandon, or a
+   fallback of any kind. It ends the pane's terminal, and returns before the terminal has
+   finished. A split whose program exited is already gone, because its pane went with it: exit 1
+   with `{"error": "no pane \"<pane_id>\""}` on stdout is expected and harmless.
+3. After a wave, close the wave tab once its last worker pane is closed:
+   `herdr-app do tab.close --id <tab_id> --confirmed true`. The wave tab's first worker runs in a
+   shell that outlives it, so the tab does not close itself. Exit 1 with
+   `{"error": "no tab \"<tab_id>\""}` on stdout means it is already gone, and is harmless.
+
+JDI closes only through `pane.close`, `tab.close` or `space.close`. It never runs `hc kill`,
+`hc rm`, `hc keys`, `hc interrupt` or `hc send --force`. Keeping a pane open follows the TUI's
+rule: only when the user asks to inspect it, and the user then owns closing it.
 
 ## When a step fails
 
@@ -486,6 +674,10 @@ still stands. Rows lost to the alternate screen cannot be recovered
 This replaces the pane-split, pane-run, wait-output recipe and the "Not `herdr agent start`" line
 that `reference/delegation.md:136-141` carried.
 
+On the app the reason is the same. A worker's state comes from the program itself, which reports it
+to the core through OSC 7501, and hc reads it out (`hc get`, `hc wait`). A program that reports
+nothing has no state, which is why H4 on the app rejects it at readiness.
+
 ## Waves
 
 This section applies to Executors on another CLI, under `auto` or `herdr` with Herdr detected.
@@ -516,6 +708,34 @@ This section applies to Executors on another CLI, under `auto` or `herdr` with H
   `reference/plan-store.md` *Waves* says. H8 closes every pane and then the tab.
 - **Fallback.** A task whose worker failed falls back on its own, through the CLI's
   non-interactive mode, after the wave settles. The other tasks' results stand.
+
+### Waves on the app
+
+The cap of 4, settling first, validation, commits and fallback are shared. What differs is how
+worker panes are made and waited on.
+
+- **The first worker** opens the wave tab, in the same command that prints its spawn line, on one
+  physical line:
+
+  ```text
+  printf '%s\n' "<its JDI spawn line>" && herdr-app do tab.new --name jdi-wave-<first run id> --space <space_id> --folder <worktree root> --argv '<argv JSON without the sh wrapper>' --focus false
+  ```
+
+  It prints `{"space": ..., "tab": ..., "terminal": ...}`. `<space_id>` is the Butler's space
+  (H3 on the app). `--folder` starts it in the worktree root, so its argv has no `sh` wrapper: it
+  is H4 on the app's argv from `"env"` (or the kind's absolute path) on. The name is given at
+  creation, so there is no rename. The app runs this argv in an interactive shell that stays live
+  after the agent exits, so the tab and its pane stay open, and H8 must close them.
+- **Later workers** each split a live worker pane in the wave tab, with H4 on the app's step 1:
+  `pane.split --pane <a live worker pane in the wave tab>`, with the `sh` wrapper, the focus
+  restore, and the spawn line printed by the same command. If no worker pane in the tab is live,
+  open a new wave tab as for the first worker.
+- **Each worker** then follows H4 on the app from step 2: read the terminal, label it, write its
+  run files, and wait for readiness, before H5 on the app sends its prompt.
+- **The multi-worker wait.** The Butler cycles over every live worker with
+  `hc wait <terminal> --timeout 30` (or `hc get <terminal> --json`), under the overall deadline,
+  and applies H5 on the app's table to each.
+- **Close.** H8 on the app closes every worker pane, then the wave tab.
 
 ## H9 - Give a Butler its own worktree
 
