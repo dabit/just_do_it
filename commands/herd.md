@@ -1,6 +1,6 @@
 ---
-description: "Prep several issues in parallel - one Herdr worktree, pane, and agent for each."
-argument-hint: "<issue-id> [<issue-id> ...] [--kind <kind>]"
+description: "Prep several issues in parallel - one Herdr worktree, pane, and agent for each - or clean a herd up from its record."
+argument-hint: "<issue-id> [<issue-id> ...] [--kind <kind>] | --cleanup [<herd-id>]"
 ---
 
 # JDI: Herd
@@ -11,6 +11,9 @@ starts one independent agent session per issue, and each session runs `/jdi:prep
 Prepare several issues at the same time. Each issue gets its own git worktree, its own Herdr
 workspace, and its own agent, so the runs never share a branch or a working tree. The user asked
 for: $ARGUMENTS
+
+**With `--cleanup`, this command cleans a herd up instead.** Perform step 1, then
+*Clean up a herd from its record* below, instead of steps 2-11.
 
 **This command sets work up and hands it off.** It does no research, no planning, no splitting,
 and no code. Those happen inside the spawned agents, under `/jdi:prep`.
@@ -116,7 +119,9 @@ Follow these steps:
    `/jdi:status` or `/jdi:yolo`.
 
    Take the herd ID now: the UTC start time, `yyyymmddThhmmss`. H9 puts it in every scratch branch
-   name, so this run's branches never collide with the ones an earlier herd left behind.
+   name, so this run's branches never collide with the ones an earlier herd left behind. The herd's
+   record is `<git-common-dir>/jdi/herds/<herd-id>.json`, as H9's *The herd record* says; if a
+   record with that ID already exists, take a new herd ID.
 
 6. **Create one worktree per issue** - For issue *N*, perform **H9** from `reference/herdr.md`
    with the step-5 name, the suffix, the herd ID, *N*, `<default>`, and the workspace label. H9
@@ -156,6 +161,9 @@ Follow these steps:
 
    When one worktree fails, record the failure, continue with the rest, and list it in step 10.
    A partial herd is useful; a silent one is not.
+
+   H9 starts the herd's record at the first successful worktree and adds each issue's entry to it,
+   as *The herd record* says.
 
 7. **Seed each worktree - `herd.seed`** - A worktree is created from `origin/<default>`, so
    **nothing gitignored reaches it**: no `.env`, no installed dependency, no local database name.
@@ -223,11 +231,16 @@ Follow these steps:
    Dependency installs are the slow part of a herd, and they run once per worktree. Where
    `setup` takes minutes each, say so before starting rather than after.
 
+   H9 records a worktree that a seed step wrote into as seeded, as *The herd record* says.
+
 8. **Start one agent per worktree** - Perform **H4b** from `reference/herdr.md` with the step-5
    name, the kind from step 2, and the pane from step 6. On the app, H9 first opens the worktree's
    space with the agent in it, and H4b then runs on that space's terminal. Its arguments are
    `harnesses.<kind>.args`, verbatim, and nothing else. Pass **no model flag**: a herd Butler has no `models` key, so its CLI
    runs on its own default model.
+
+   On the app, H9 records the worktree's space and terminal in the herd's record once they are
+   open, as *The herd record* says.
 
    **Start no agent for a worktree step 7 disqualified.** A failed `setup` command means the
    tree is half-built; the issue is already recorded as failed, and starting an agent there
@@ -265,8 +278,9 @@ Follow these steps:
     reason. For a seed failure, name the command and its exit status.
 
     Under a **Worktree** heading, list each issue's worktree path and scratch branch, so the
-    cleanup in step 11 is not a surprise. Say that `/jdi:prep` renames the branch to one naming the
-    issue, so `git worktree list` finds it later.
+    cleanup in step 11 is not a surprise, and print the herd record's path. Say that `/jdi:prep`
+    leaves the scratch branch behind at its base and works on a branch of its own, and that the
+    record, not the branch name, is how cleanup finds the worktree.
 
     Print `harnesses.<kind>.args` and the `harnesses.<kind>.env` keys the run passed, verbatim, or
     say that it passed none. **Print the env keys and their values**: a herd on the wrong account is
@@ -278,8 +292,10 @@ Follow these steps:
     space and tab), and that it is how to follow the herd from here: JDI starts no poll. Close the report with H9's reattach command, which
     opens an existing worktree as a workspace again after a restart.
 
-11. **Say how to clean up - clean nothing** - List, for each issue, the workspace ID, the worktree
-    path, and the scratch branch, with the commands that remove them, per H9's *Cleanup* for the
+11. **Say how to clean up - clean nothing** - Name `/jdi:herd --cleanup <herd-id>`, with this
+    herd's ID filled in, as the way to clean this herd up later. List, for each issue, the
+    workspace ID, the worktree path, and the scratch branch, with the commands that remove them,
+    per H9's *Cleanup* for the
     surface in use: the worktree removal (on the app, closing the space before removing the
     worktree), then `git branch -D jdi-herd-scratch-<herd-id>-<N>` once the
     real feature branch exists. A worktree that `herd.seed` wrote into is dirty, so its removal
@@ -292,6 +308,37 @@ Follow these steps:
     such a worktree without the user's explicit yes**, because a forced removal deletes the plan.
 
     **Remove nothing yourself unless the user asks.**
+
+## Clean up a herd from its record
+
+`/jdi:herd --cleanup [<herd-id>]` removes what a herd left behind, from the record H9 wrote. Every
+rule it follows lives in H9's *The herd record* and *Cleanup from the herd record* in
+`reference/herdr.md`; this section calls them by name and restates none of them. Cleanup reads
+only the record: it never names or resumes a session.
+
+1. **Load the JDI config** - as step 1 says.
+2. **Parse the arguments** - Validate the herd ID, when one is given, as
+   *Cleanup from the herd record* says, and refuse the run when it fails. Issue IDs or `--kind`
+   alongside `--cleanup` stop the run with one sentence: `/jdi:herd <issue-id> ...` starts a herd,
+   and `/jdi:herd --cleanup [<herd-id>]` cleans one up; the two modes do not mix.
+3. **Learn which Herdr is reachable** - Perform **H1** only to learn which Herdr surface is
+   reachable from here. Unlike a herd, cleanup never stops on H1's answer: a worktree can be
+   removed with no Herdr at all, and *Cleanup from the herd record* says what changes when the
+   record's surface is not reachable.
+4. **Find the records** - as *The herd record* and *Cleanup from the herd record* say. Never guess
+   from folder names. With no record, or none for the given herd ID, say so, clean nothing, and
+   point at `git worktree list` and step 11's commands.
+5. **Sort the entries** - Decide, per entry, what is skipped and why, which entries hold
+   uncommitted plan files, and which removals need the force option, as
+   *Cleanup from the herd record* says.
+6. **Ask** - Show one list of what will be removed and what is skipped; cleanup asks once, for the
+   whole list. An entry with uncommitted plan files leaves that list and gets its own question,
+   with the plan commit offered.
+7. **Remove** - For each entry the user agreed to, close the space or workspace first, then
+   remove the worktree and the scratch branch and update the record, as
+   *Cleanup from the herd record* says.
+8. **Report** - Per issue: removed, or skipped and why. Then the record's state: what entries
+   remain, or that the record is gone.
 
 ## Limits worth stating in the report
 

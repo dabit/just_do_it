@@ -1351,7 +1351,7 @@ Finding carried to task 19: after an agent's turn ends its status is `done`, and
 
 **Wave 9** — run together
 - [x] [14](14-cleanup-from-record-reference.md) — `reference/herdr.md`: `### Cleanup from the herd record` (depends on: 12, 13) — Planner Task 14
-- [ ] [15](15-herd-command-cleanup-mode.md) — `commands/herd.md`: the `--cleanup` mode (depends on: 12, 13) — Planner Task 15
+- [x] [15](15-herd-command-cleanup-mode.md) — `commands/herd.md`: the `--cleanup` mode (depends on: 12, 13) — Planner Task 15
 - [ ] [16](16-user-docs-cleanup.md) — User docs and CHANGELOG: `/jdi:herd --cleanup` (depends on: 12, 13) — Planner Task 16
 - [ ] [17](17-architecture-docs-cleanup.md) — Architecture docs: the herd record and cleanup from it (depends on: 12, 13) — Planner Task 17
 

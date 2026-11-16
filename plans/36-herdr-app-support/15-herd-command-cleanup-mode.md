@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 15 — `commands/herd.md`: the `--cleanup` mode
 
 Depends on: 12, 13

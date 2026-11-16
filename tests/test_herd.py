@@ -78,7 +78,9 @@ class HerdCommandTest(unittest.TestCase):
 
     def test_herd_drops_the_superseded_keys_and_tools(self):
         herd = self.herd_text()
-        for fragment in ("herd.args", "herd.env", "AskUserQuestion", "herd record", "--resume"):
+        # #31 banned a *resume* record (its D12), so "--resume" stays banned. #37's
+        # herd record is for cleanup only, so "herd record" is no longer banned here.
+        for fragment in ("herd.args", "herd.env", "AskUserQuestion", "--resume"):
             with self.subTest(fragment=fragment):
                 self.assertNotIn(
                     fragment, herd, "%s still says %r" % (HERD_COMMAND, fragment)
@@ -96,6 +98,61 @@ class HerdCommandTest(unittest.TestCase):
             "the Herdr sidebar shows `blocked` and `done` per pane",
             herd,
             "%s does not point at the Herdr sidebar" % HERD_COMMAND,
+        )
+
+    def test_herd_cleanup_mode(self):
+        """`--cleanup` calls H9's record sections by name and restates none of their rules (C11)."""
+        herd = normalized(self.herd_text())
+        for fragment in (
+            "`--cleanup`",
+            "`/jdi:herd --cleanup <herd-id>`",
+            "*The herd record*",
+            "*Cleanup from the herd record*",
+            "asks once",
+            "Never guess from folder names",
+            "never names or resumes a session",
+            "cleanup never stops on H1's answer",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, herd, "%s lacks %r" % (HERD_COMMAND, fragment))
+
+    def test_argument_hint_names_cleanup(self):
+        frontmatter = jdi_files.split_frontmatter(self.herd_text())
+        self.assertIsNotNone(frontmatter, "%s has no frontmatter" % HERD_COMMAND)
+        hint = jdi_files.frontmatter_scalars(frontmatter[0]).get("argument-hint", "")
+        self.assertIn(
+            "--cleanup [<herd-id>]",
+            hint,
+            "%s's argument-hint does not name the cleanup mode: %r" % (HERD_COMMAND, hint),
+        )
+
+    def test_step_eleven_points_at_cleanup(self):
+        """C8: a normal herd's step 11 names the cleanup mode, in its first paragraph."""
+        paragraph = normalized(
+            "\n".join(
+                jdi_files.paragraph_starting_with(
+                    self.herd_text(), "11. **Say how to clean up"
+                )
+            )
+        )
+        self.assertIn(
+            "`/jdi:herd --cleanup <herd-id>`",
+            paragraph,
+            "step 11's first paragraph does not name `/jdi:herd --cleanup <herd-id>`",
+        )
+
+    def test_prep_leaves_the_scratch_branch_behind(self):
+        """C4's correction: `/jdi:prep` switches to a branch of its own; it renames nothing."""
+        herd = normalized(self.herd_text())
+        self.assertIn(
+            "leaves the scratch branch behind",
+            herd,
+            "%s does not say prep leaves the scratch branch behind" % HERD_COMMAND,
+        )
+        self.assertNotIn(
+            "`/jdi:prep` renames the branch",
+            herd,
+            "%s still says `/jdi:prep` renames the branch" % HERD_COMMAND,
         )
 
     def test_h9_exists_with_the_invocation_table(self):
