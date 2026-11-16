@@ -483,6 +483,44 @@ class HerdrOperationsTest(unittest.TestCase):
             "hc wait <terminal> --timeout 30",
         )
 
+    # Task 11, the UAT follow-ups (F2, F3, F5).
+
+    def test_h1_auto_silence_covers_summaries_and_a_pinned_surface(self):
+        """F5: under `auto`, silence means no mention of Herdr or H1 anywhere, summaries too."""
+        self.assertSectionContains(
+            "## H1 - Detect Herdr",
+            "Silent means the run never mentions Herdr or H1 at all, summaries included",
+            "A pinned surface whose first check fails under `auto` is silent too",
+            "No check runs after the first failure",
+        )
+
+    def test_h1_quotes_the_step_zero_note(self):
+        """F5: the one-time note is quoted from `## When a step fails`, naming the surface."""
+        self.assertSectionContains(
+            "## H1 - Detect Herdr",
+            "`delegation.transport is herdr, but Herdr (<surface>) is not usable here: "
+            "<failed check> returned <what came back>. Delegating natively for this run.`",
+            "Copy this note; do not paraphrase it",
+        )
+
+    def test_app_wave_tab_closes_with_its_last_pane(self):
+        """F3: on the app the wave tab goes when H8 closes its last pane; tab.close may find it gone."""
+        self.assertNotIn("does not close itself", self.text)
+        self.assertSectionContains(
+            "### H8 on the app",
+            "closing its last pane closes the tab with it",
+            '{"error": "no tab \\"<tab_id>\\""}',
+            "expected and harmless",
+        )
+        self.assertSectionContains(
+            "### Waves on the app",
+            "closing its last pane closes the tab with it",
+        )
+
+    def test_app_manifest_drops_status_reported(self):
+        """F2: written before the readiness wait, `status_reported` was always false."""
+        self.assertNotIn("status_reported", self.text)
+
 
 if __name__ == "__main__":
     unittest.main()

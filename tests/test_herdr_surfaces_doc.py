@@ -72,6 +72,21 @@ class HerdrSurfacesDocTest(unittest.TestCase):
     def test_no_personal_paths(self):
         self.assertNotIn("/home/", self.text, "%s contains a `/home/` path" % SURFACES_DOC)
 
+    # Task 11, the UAT follow-ups (F3, F4, F7).
+
+    def test_app_wave_tab_closes_with_its_last_pane(self):
+        self.assertNotIn("does not close itself", self.flat)
+        self.assertIn("closing its last pane closes the tab with it", self.flat)
+
+    def test_trust_is_inherited_not_always_a_dialog(self):
+        self.assertNotIn("always a new folder", self.flat)
+        self.assertIn("takes Claude's folder trust from its main checkout", self.flat)
+
+    def test_operation_map_single_quotes_the_space_name(self):
+        operation_map = " ".join(jdi_files.section(self.text, "## Operation map"))
+        self.assertNotIn('--name "<label>"', operation_map)
+        self.assertIn("--name '<label>'", operation_map)
+
 
 class TransportDocPointsAtSurfacesTest(unittest.TestCase):
     longMessage = False

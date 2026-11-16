@@ -994,7 +994,7 @@ Not run by the agent. Steps for the user:
 - [x] [10](10-uat.md) — UAT: JDI under the Herdr app, the Herdr TUI, and neither (depends on: 01, 02, 03, 04, 05, 06, 07, 08, 09) — Planner Task 10, folded in
 
 **Wave 7**
-- [ ] [11](11-uat-follow-ups.md) — UAT follow-ups: note wording, wave tab, worktree trust, `status_reported`, quoting (depends on: 10) — fixes F2, F3, F4, F5, F7
+- [x] [11](11-uat-follow-ups.md) — UAT follow-ups: note wording, wave tab, worktree trust, `status_reported`, quoting (depends on: 10) — fixes F2, F3, F4, F5, F7
 
 Critical path: 02 → 03 → 06 → 08 → 09 → 10 (six tasks).
 

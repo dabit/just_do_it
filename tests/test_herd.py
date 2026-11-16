@@ -230,6 +230,29 @@ class HerdCommandTest(unittest.TestCase):
             "`## Surfaces` still says H9 has only its TUI text",
         )
 
+    def test_h9_app_trust_is_inherited_from_the_main_checkout(self):
+        """F4: a linked worktree takes Claude's folder trust from its main checkout."""
+        h9_app = self.h9_app_text()
+        self.assertNotIn("has not seen", h9_app, "H9 on the app still says every new worktree is unseen")
+        self.assertNotIn("have not seen", h9_app, "H9 on the app still says every new worktree is unseen")
+        self.assertH9AppContains(
+            "takes Claude's folder trust from its main checkout",
+            "can open a folder-trust dialog",
+            "an untrusted main checkout",
+        )
+
+    def test_h9_app_space_name_is_single_quoted(self):
+        """F7: a literal single-quoted example, and why (A17)."""
+        lines = self.h9_app_lines()
+        examples = [
+            line
+            for line in lines
+            if line.strip().startswith("herdr-app do space.new --name 'f4960613 Seam 1 - ")
+        ]
+        self.assertTrue(examples, "H9 on the app has no literal single-quoted --name example line")
+        self.assertH9AppContains("A17", "'\\''", "never double quotes")
+        self.assertNotIn('--name "', self.h9_app_text(), "H9 on the app double-quotes --name")
+
 
 if __name__ == "__main__":
     unittest.main()

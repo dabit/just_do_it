@@ -85,7 +85,8 @@ or with no `delegation` key, H1 does not run at step 0: no Herdr command runs at
 in the run mentions the transport, summaries included. The one exception is rung 4 of
 `reference/delegation.md`, which runs H1 when it delegates a kind with no exec mode and announces
 what fails. H1 first chooses the surface (*Choosing the surface*), then runs that surface's checks
-(*H1 on the TUI* or *H1 on the app*) in order, and the first failure wins.
+(*H1 on the TUI* or *H1 on the app*) in order, and the first failure wins. No check runs after the
+first failure: a later check cannot change the answer.
 
 The answer is `tui`, `app` or `none`. With `none`, H1 also gives the first failed check and its
 output. The Butler uses that answer for every delegation in the run. No role re-probes.
@@ -95,8 +96,24 @@ The announcement depends on the configured `delegation.transport`:
 - `auto` stays silent when the chosen surface's first check fails (`HERDR_ENV` unset on the TUI,
   `HC_TERMINAL_ID` unset on the app) or when the answer is `none` because neither surface is
   present. That is the expected absence outside Herdr. It announces once when the chosen surface's
-  first check passes but a later check fails, because that is a malfunction.
+  first check passes but a later check fails, because that is a malfunction. A pinned surface
+  whose first check fails under `auto` is silent too, even when the other surface is the one
+  present (for example `herdr.surface: tui` inside the app).
 - `herdr` announces any failed check once.
+
+Silent means the run never mentions Herdr or H1 at all, summaries included: no progress line about
+the checks or the surface, no note, and no closing sentence about where a role ran relative to
+Herdr. Under `auto` the Butler says nothing about H1 while it runs, and speaks only if a note below
+is due.
+
+The note, when one is due, is exactly one line in the step-0 pattern from `## When a step fails`,
+which names the surface:
+
+`delegation.transport is herdr, but Herdr (<surface>) is not usable here: <failed check> returned
+<what came back>. Delegating natively for this run.`
+
+Under `auto` it is the same line with `auto` in place of `herdr`. `<surface>` is `TUI` or `app`, the
+surface whose checks ran. Copy this note; do not paraphrase it, and add no second line about H1.
 
 Capability comes from these checks, never from the harness name. Detect, never repair: a stopped
 server, an incompatible version, a missing window or a missing core socket is reported, and JDI
@@ -346,10 +363,13 @@ The names, the run directory and its files are the same. What differs:
   "pane_id": "<from pane.split>",
   "terminal_id": "<from pane.split>",
   "agent_name": "jdi-<role>-<4 hex>",
-  "status_reported": "<true once hc get shows a status, else false>",
   "versions": {"app": "<herdr-app --version>", "hc": "<hc --version>"}
 }
 ```
+
+The object records no status. It is written before the readiness wait (H4 on the app, step 4), and
+a worker that never reports a status is rejected at that wait, so every run that reaches H5 has
+reported one.
 
 ## H4 - Start the worker
 
@@ -622,9 +642,11 @@ closing it. A failed delegation must not leak one pane per attempt.
    finished. A split whose program exited is already gone, because its pane went with it: exit 1
    with `{"error": "no pane \"<pane_id>\""}` on stdout is expected and harmless.
 3. After a wave, close the wave tab once its last worker pane is closed:
-   `herdr-app do tab.close --id <tab_id> --confirmed true`. The wave tab's first worker runs in a
-   shell that outlives it, so the tab does not close itself. Exit 1 with
-   `{"error": "no tab \"<tab_id>\""}` on stdout means it is already gone, and is harmless.
+   `herdr-app do tab.close --id <tab_id> --confirmed true`. Run it every time. The wave tab's first
+   worker runs in a shell that outlives the agent, so the tab stays open while that shell is live,
+   but closing its last pane closes the tab with it. After step 2 the tab is therefore usually gone
+   already, and exit 1 with `{"error": "no tab \"<tab_id>\""}` on stdout is the expected and
+   harmless result.
 
 JDI closes only through `pane.close`, `tab.close` or `space.close`. It never runs `hc kill`,
 `hc rm`, `hc keys`, `hc interrupt` or `hc send --force`. Keeping a pane open follows the TUI's
@@ -724,7 +746,9 @@ worker panes are made and waited on.
   (H3 on the app). `--folder` starts it in the worktree root, so its argv has no `sh` wrapper: it
   is H4 on the app's argv from `"env"` (or the kind's absolute path) on. The name is given at
   creation, so there is no rename. The app runs this argv in an interactive shell that stays live
-  after the agent exits, so the tab and its pane stay open, and H8 must close them.
+  after the agent exits, so the tab and its pane stay open until H8 closes them. Then
+  closing its last pane closes the tab with it, so H8's `tab.close` may find no tab, which is
+  harmless.
 - **Later workers** each split a live worker pane in the wave tab, with H4 on the app's step 1:
   `pane.split --pane <a live worker pane in the wave tab>`, with the `sh` wrapper, the focus
   restore, and the spawn line printed by the same command. If no worker pane in the tab is live,
@@ -885,8 +909,15 @@ herdr-app do space.new --name '<SHORT-ID> <TITLE>' --folder <path> --tab <name> 
   the environment goes on the app: no extra tab is needed. Expand every path first, and quote the
   JSON as H4 on the app says.
 - **The name** is the label the TUI passes to `--label`: the short ID and the issue title, or the
-  issue ID when no title was read. Single-quote it, writing each `'` as `'\''`, so a `'`, `$` or
-  backtick in a title arrives literally.
+  issue ID when no title was read. **Single-quote it, never double quotes**, even for a plain
+  number. Inside single quotes a `'`, `$` or backtick arrives literally (A17); inside double quotes
+  the shell expands `$` and backticks first. A `'` inside the name is written as `'\''`. For
+  example:
+
+  ```text
+  herdr-app do space.new --name 'f4960613 Seam 1 - A copy lands directly below the original as a sibling' --folder <path> --tab <name> --argv '<argv JSON>' --focus false
+  herdr-app do space.new --name 'a1b2c3d4 Don'\''t lose the $HOME plan' --folder <path> --tab <name> --argv '<argv JSON>' --focus false
+  ```
 - **The tab** is named `<name>` at creation, so there is no rename step.
 - **The output** is one JSON object, `{space, tab, terminal}`. Read all three from it. Read the
   pane from `herdr-app ls`: the entry whose `terminal` equals the returned terminal. `herdr-app`
@@ -899,9 +930,12 @@ herdr-app do space.new --name '<SHORT-ID> <TITLE>' --folder <path> --tab <name> 
 Then perform `#### H4b on the app` on the returned terminal with `<name>`.
 
 **Readiness, for a herd.** H4b's readiness wait, `hc wait <terminal> --timeout 120`, decides
-whether anything is typed. A new worktree is a folder Claude and Codex have not seen, so they
-open a folder-trust dialog at start (Codex also a hook-review dialog), and while one is open the
-terminal reports no status.
+whether anything is typed. A new worktree can open a folder-trust dialog at start, and while one
+is open the terminal reports no status. A linked worktree takes Claude's folder trust from its main
+checkout, so a herd from a trusted repository usually starts straight at `idle`. The dialog appears
+for an untrusted main checkout, or for a CLI that does not carry trust over to a linked worktree
+(Codex also opens a hook-review dialog). Do not blame it on a missing permission-bypass flag in
+`harnesses.<kind>.args`: in UAT it came and went with the main checkout's trust alone.
 
 - `status: idle`: ready. Hand it the work.
 - Anything else, including `reason: timeout` with no `status`, or `status: blocked`: **type

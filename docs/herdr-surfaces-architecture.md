@@ -174,7 +174,7 @@ with the decision or probe behind it.
 | H1 Detect | `HERDR_ENV`, binary, `herdr status` | the app checks above |
 | H2 Check the kind | the kind is on `herdr agent`'s `kinds:` line; `command -v <kind>`; `herdr integration status` | `command -v <kind>` only, in the Butler's shell, and its **absolute path** goes into the argv; an alias or function fails H2 (P1). The app has no kinds list and no integration status: an agent has a status only if its program reports it (OSC 7501). Claude and opencode report it; a kind that never reports is rejected at readiness (D7). Codex needs `--no-daemon` in `harnesses.codex.args` (D8) |
 | H3 Names, collision check | `herdr agent list` | `hc ls --json --label jdi.agent=<name>` (D5) |
-| H3 Manifest identifiers | `HERDR_WORKSPACE_ID`, `HERDR_TAB_ID`, `HERDR_PANE_ID` | `herdr.space` and `herdr.tab` from the labels in `hc get "$HC_TERMINAL_ID" --json`; the Butler's pane is the `herdr-app ls` entry whose `terminal` equals `$HC_TERMINAL_ID`, which has the same ID form (A16). `HC_TERMINAL_ID` is not a pane ID. Both surfaces record `"surface"` (P8) |
+| H3 Manifest identifiers | `HERDR_WORKSPACE_ID`, `HERDR_TAB_ID`, `HERDR_PANE_ID` | `herdr.space` and `herdr.tab` from the labels in `hc get "$HC_TERMINAL_ID" --json`; the Butler's pane is the `herdr-app ls` entry whose `terminal` equals `$HC_TERMINAL_ID`, which has the same ID form (A16). `HC_TERMINAL_ID` is not a pane ID. Both surfaces record `"surface"` (P8). The app object records no status: it is written before the readiness wait, and a worker that reports none is rejected there (D7) |
 | H4 Choose a direction | `herdr pane layout` | always `right` (D10) |
 | H4 Spawn line and pane | `printf … && herdr pane split --current --direction <d> --cwd <root> [--env …] --no-focus` | `printf … && herdr-app do pane.split --pane <butler pane> --direction right --argv '[…]'`, which prints `{pane, terminal}`. The split takes no folder, env or focus option, so the argv is `sh -c 'cd -- "$1" && shift && exec "$@"' jdi-worker <worktree root>` (P2, A14), then the `env KEY=VALUE …` prefix (D3, A6), then the kind's absolute path (P1). The split moves focus (A13), so the same command ends `&& herdr-app do pane.focus --pane <butler pane>` (P3) |
 | H4 Start the agent | `herdr agent start <name> --kind <kind> --pane <id> --timeout 120000` | the agent is the split's `argv`. Then `hc label <terminal> jdi.agent=<agent name>` (D5), the run files, and a readiness `hc wait <terminal> --timeout 120`. Only `status: idle` is ready; anything else, including a timeout with no status, is not ready: H8 and the native rung (D7) |
@@ -184,9 +184,9 @@ with the decision or probe behind it.
 | H6 Never answer a dialog | never `send-keys` | never `hc keys`, never `hc send --force`, never `hc interrupt` (P9). `hc send` refuses a blocked terminal with exit 9 (A4), the counterpart of `agent_blocked`; `--if idle` extends that refusal to a terminal with no status, such as one showing a start-up dialog |
 | H7 Validate | unchanged | unchanged. The result still arrives through the run directory, which a worker on the app can write (A12) |
 | H8 Close | `herdr pane close <pane>`; `herdr tab close <tab>` | `herdr-app do pane.close --pane <pane>`, which ends its terminal; `herdr-app do tab.close --id <tab> --confirmed true`. A `pane.split --argv` terminal whose program exited is already finished and its pane removed, so exit 1 with `{"error": "no pane …"}` or `{"error": "no tab …"}` on stdout means "already gone" (A7) |
-| Waves, the tab | `herdr tab create --workspace … --cwd … [--env …] --no-focus`, then `herdr tab rename` | `herdr-app do tab.new --name jdi-wave-<first run id> --space <space> --folder <root> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A1). The name is given at creation, so there is no rename; `--folder` replaces the `sh` wrapper. The app runs the argv in an interactive shell that stays live after the agent exits, so H8 must close the tab. Later workers split a live pane of the wave tab (D4) |
+| Waves, the tab | `herdr tab create --workspace … --cwd … [--env …] --no-focus`, then `herdr tab rename` | `herdr-app do tab.new --name jdi-wave-<first run id> --space <space> --folder <root> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A1). The name is given at creation, so there is no rename; `--folder` replaces the `sh` wrapper. The app runs the argv in an interactive shell that stays live after the agent exits, so the tab stays open until H8 closes it; closing its last pane closes the tab with it (UAT, herdr-app 0.1.16), so H8's `tab.close` then returns the harmless `no tab` error (A7). Later workers split a live pane of the wave tab (D4) |
 | Waves, the wait | `herdr agent wait <name> --timeout 30000` per worker | `hc wait <terminal> --timeout 30` per worker |
-| H9 Create a worktree | `herdr worktree create --cwd … --path … --branch … --base … --label … --no-focus` | `git worktree add -b <scratch branch> <path> origin/<default>` only, at herd step 6 (P5). The space comes at step 8, after `herd.seed`: `herdr-app do space.new --name "<label>" --folder <path> --tab <name> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A8), then H4b's label and readiness wait |
+| H9 Create a worktree | `herdr worktree create --cwd … --path … --branch … --base … --label … --no-focus` | `git worktree add -b <scratch branch> <path> origin/<default>` only, at herd step 6 (P5). The space comes at step 8, after `herd.seed`: `herdr-app do space.new --name '<label>' --folder <path> --tab <name> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A8). The name is always single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick arrives literally (A17), then H4b's label and readiness wait |
 | H9 Hand it the work | `herdr agent prompt <name> "<invocation>"` | after the readiness wait reports `status: idle`, `hc send <terminal> "<invocation>" --if idle` (D6). Never `space.new --task` |
 | H9 Reattach | `herdr worktree open` | find the space in `herdr-app ls` whose folder is inside the worktree and `herdr-app do space.select --id <space>`; otherwise `herdr-app do space.new --folder <path> --focus false` |
 | H9 Watch | `herdr agent get <name>` | `hc get <terminal>`, `hc read <terminal> --lines 80`. In the window, a space's and a tab's status is its most urgent agent's (blocked, then done, then working, then idle) |
@@ -260,7 +260,8 @@ launcher had, in a different order from the Butler's (A15). Two decisions follow
 - `pane.split --argv X`: when X exits, its terminal is finished and its pane is removed. This
   matches H8's "the pane is gone" outcome.
 - `tab.new --argv X`: the app wraps X in an interactive shell, so when X exits the terminal stays
-  live with a shell and the tab and pane stay open (A1). H8 closes the wave tab.
+  live with a shell and the tab and pane stay open (A1). H8 closes the wave tab. In UAT, closing its
+  last pane closes the tab with it, so H8's `tab.close` usually finds `no tab`, which is harmless.
 - `space.new --argv X`: when X exits, the terminal falls back to a live shell. A herd space
   therefore outlives its agent, as a TUI workspace does.
 - `pane.close` returns before the terminal has finished; a `hc get` a moment later shows it
@@ -295,8 +296,10 @@ The same holds for a start-up dialog. Claude and Codex open a folder-trust dialo
 in a folder they have not seen, and Codex then opens a "Hooks need review" dialog. While either is
 open, `hc get` shows `status: null`, not `blocked`, and `hc wait` returns `reason: timeout` (A2).
 `hc send` refuses only a terminal whose status is `blocked`; a terminal with no status gets the
-text typed and Enter pressed (A4). A herd worktree is always a new folder, so this is the normal
-case for the herd. That is why the probe gate amended D6 and D7: JDI types only into an agent whose
+text typed and Enter pressed (A4). A herd worktree is a new folder, so the herd can meet this
+dialog, though not always: in UAT a linked worktree takes Claude's folder trust from its main checkout,
+so a herd from a trusted repository started at `idle`, and the dialog appeared only when the main
+checkout was untrusted. A CLI that does not carry trust over would show it every time. That is why the probe gate amended D6 and D7: JDI types only into an agent whose
 readiness wait ended in `status: idle`, always with `--if idle`, and treats any other readiness
 result as "not ready". Answering the dialog stays the user's job; JDI never does it.
 
@@ -332,7 +335,8 @@ what it replaced and why.
   `needs_input` answer and the herd handoff. Never `--task`. *Was:* `hc wait`, then `hc send`.
   *Why:* A2 and A4 showed that Claude's and Codex's trust and hook-review dialogs report no status
   rather than `blocked`, so `hc wait` times out and a plain `hc send` would type into the dialog;
-  a herd worktree is always a new folder.
+  a herd worktree is a new folder, which can open one (UAT later showed that Claude takes a linked
+  worktree's trust from its main checkout, so it does so only when that checkout is untrusted).
 - **D7, kinds without a status (amended after the probe gate).** Reject at readiness: if the
   readiness wait does not end with `status: idle`, the agent is not ready. JDI types nothing, says
   why (no status, possibly a dialog in its pane that is the user's to answer), and treats it like

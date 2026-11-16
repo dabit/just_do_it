@@ -15,8 +15,10 @@
   `/jdi:herd` now works instead of stopping at its first check. To keep the old behaviour, set
   `delegation.transport: native` or `herdr.surface: tui`.
 - **On the app, JDI types into an agent only once it reports `idle`, never into a dialog.** An
-  agent that never gets there is not ready: JDI types nothing and says why. Claude's or Codex's
-  "trust this folder" dialog in a new worktree is the usual cause, and answering it is yours. Role
+  agent that never gets there is not ready: JDI types nothing and says why. A "trust this folder"
+  dialog is the usual cause, and answering it is yours. A new worktree takes Claude's trust from
+  its main checkout, so a herd from a trusted repository usually sees none; it shows when that
+  checkout is untrusted, or for a CLI that does not carry trust over. Role
   delegation then closes the pane and falls back to `native`. `/jdi:herd` reports that issue as
   blocked at startup and leaves its space open so you can answer the dialog there.
 - **App worktrees follow the app dialog's layout, `<worktrees.directory>/<repo>/<name>`.** The
