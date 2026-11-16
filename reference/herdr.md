@@ -866,6 +866,7 @@ uncommitted plan files: stop, name them, and offer the plan commit in that workt
 used only after that check is empty or the user has said yes to losing the files. Under
 `plans.mode: external` the plan is not in the worktree, and the check finds nothing. JDI removes
 nothing unless the user asks.
+A whole herd is cleaned from its record with `/jdi:herd --cleanup`, as *Cleanup from the herd record* says.
 
 ### H9 on the app
 
@@ -990,6 +991,7 @@ inside it. If there is one, `herdr-app do space.select --id <space>`. Otherwise 
 
 Never `hc kill` or `hc rm`. JDI removes nothing unless the user asks. Under `plans.mode: external`
 the plan is not in the worktree, and step 1 finds nothing.
+A whole herd is cleaned from its record with `/jdi:herd --cleanup`, as *Cleanup from the herd record* says.
 
 **List.** `git worktree list --porcelain` lists every worktree with its path and branch. The app has
 no worktree list of its own.
@@ -1060,3 +1062,83 @@ record and flags it.
 
 **A failed write.** A record that cannot be written gets one sentence in the run, and the herd
 continues; step 11's manual commands still cover that herd.
+
+### Cleanup from the herd record
+
+`/jdi:herd --cleanup [<herd-id>]` cleans a herd from its record, on either surface. This section is
+the single definition: `commands/herd.md` calls it by name and restates none of it.
+
+**Choosing the records.**
+
+- A herd ID must match `^[0-9]{8}T[0-9]{6}$`, or the run refuses: JDI never builds a path from an
+  unchecked argument.
+- With a herd ID, the record is `<git-common-dir>/jdi/herds/<herd-id>.json`. A `creating` record is
+  included, but flagged in the list.
+- Without one, every record in `<git-common-dir>/jdi/herds/`. A `creating` record is skipped with
+  "its herd may still be running; pass its herd ID to clean it anyway".
+- No record, or an unknown herd ID: say so, clean nothing, and point at `git worktree list` and
+  step 11's manual commands. Never guess from folder names.
+
+**Which surface is reachable.** H1's answer, compared with each record's `surface`. A record whose
+surface is not reachable from here (another surface, or none) skips the space or workspace close
+and is still offered the worktree removal, marked "agent state unknown": its removal is the git
+removal alone. Cleanup never stops on H1's answer.
+
+**Per entry, before anything is listed:**
+
+- **Find by path, never by a recorded ID alone.** App terminal IDs and TUI workspace IDs are
+  reused, so a recorded ID can name something else by now.
+  - App: the `herdr-app ls` space whose `folder`, resolved with `(cd -- <folder> && pwd -P)`, is
+    the entry's `worktree` or inside it; a folder that no longer exists matches nothing. The app
+    keeps a folder in the form it was opened with, while the record holds git's resolved form.
+  - TUI: the `herdr worktree list --cwd <main checkout>` entry whose `path` equals the record's
+    `worktree`, and its `open_workspace_id` (absent or `null` means no open workspace).
+- **Gone or prunable.** An entry whose worktree is no longer in `git worktree list --porcelain` has
+  nothing to remove: the cleanup removes the entry from the record. A worktree that is listed but
+  missing (marked `prunable`) keeps its entry, and the user is told to run `git worktree prune`.
+- **Own location.** Skip an entry whose worktree contains the session running the cleanup (its
+  `$PWD`, resolved with `pwd -P`), or whose space or workspace is the Butler's own (on the app, the
+  space of the `herdr-app ls` entry whose `terminal` equals `$HC_TERMINAL_ID`; on the TUI,
+  `$HERDR_WORKSPACE_ID`).
+- **Busy.** Checked across the whole space or workspace: app, the `status` of every terminal in
+  `hc ls --json --label herdr.space=<space>` (a string; absent when the terminal reports none;
+  `state` there is the terminal's lifecycle, not the agent's); TUI, the workspace's `agent_status`
+  from `herdr workspace get <workspace_id>`. An agent that is `working` or `blocked` skips the
+  entry. A reattached session counts as busy. An agent blocked at startup (a dialog open) is skipped
+  with a reason telling the user to answer the dialog or close the space.
+- **Plan-file guard.** `git -C <worktree> status --porcelain -- <plans.path>`. Entries with
+  uncommitted plan files leave the batch and get their own yes, with the plan commit offered in
+  that worktree.
+- **The whole tree.** `git -C <worktree> status --porcelain`, run on the whole tree. When it shows
+  anything and the entry is seeded, list the files: the removal uses `--force`. When it shows
+  anything and the entry is not seeded, skip it with "uncommitted changes". `--force` only when the
+  entry's `seeded` is true. Ignored files do not show here and do not block a plain removal: they
+  are deleted with the worktree.
+
+**One list, one question.** Show one list of everything that will be closed and removed, per entry:
+the space or workspace, the worktree, `--force` and the files it discards, the scratch branch, and
+that ignored files (for example `.jdi/config.local.yml`) go with the worktree. Then the cleanup asks
+once. Entries with uncommitted plan files are asked separately, each its own yes.
+
+**The removal, per entry, in this order:**
+
+1. Re-check the plan files: `git -C <worktree> status --porcelain -- <plans.path>`. Any output stops
+   this entry.
+2. Close. App: `herdr-app do space.close --id <space> --confirmed true`, with the space found by
+   path above. TUI: `herdr worktree remove --workspace <workspace_id>`, plus `--force` per the force
+   rule, which closes the workspace and removes the worktree in one step and deletes no branch.
+   Skipped when the record's surface is not reachable from here or nothing is open.
+3. Remove the worktree: `git -C <main checkout> worktree remove [--force] <path>`, with `--force`
+   per the force rule. On the TUI this runs only when step 2 did not already remove it.
+4. The scratch branch, only if all of these hold: its name is `jdi-herd-scratch-<herd-id>-<N>` for
+   this record's `herd_id`; it still exists (`git show-ref --verify --quiet refs/heads/<scratch branch>`);
+   `git rev-list --count <base_commit>..refs/heads/<scratch branch>` is `0`; and its worktree is
+   gone. Then `git branch -D <scratch branch>`. Never delete any other branch. The reason:
+   `/jdi:prep` leaves the scratch branch behind at its base and works on a branch of its own, so the
+   scratch branch holds nothing, and any other branch may hold the work.
+5. Update the record: the cleanup removes the entry once its worktree is no longer in
+   `git worktree list --porcelain`, and deletes the record file when the last entry goes. The record
+   is written as *The herd record* says: whole, then `mv -f`.
+
+**The report.** Per issue: removed, or skipped with its reason. Then the record's state afterwards:
+the entries left, or that the record file was deleted.

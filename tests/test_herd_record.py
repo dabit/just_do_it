@@ -17,6 +17,8 @@ HERDR_REFERENCE = "reference/herdr.md"
 H9_HEADING = "## H9 - Give a Butler its own worktree"
 H9_APP_HEADING = "### H9 on the app"
 RECORD_HEADING = "### The herd record"
+CLEANUP_HEADING = "### Cleanup from the herd record"
+REMOVAL_MARKER = "**The removal, per entry, in this order:**"
 
 
 def normalized(text):
@@ -124,6 +126,119 @@ class HerdRecordTest(unittest.TestCase):
                 self.assertIn(
                     "*The herd record*", body, "%s lacks '*The herd record*'" % label
                 )
+
+
+class HerdCleanupFromRecordTest(unittest.TestCase):
+    """Guards `### Cleanup from the herd record`: how `/jdi:herd --cleanup` cleans a herd.
+
+    The rules live only in `reference/herdr.md`; `commands/herd.md` calls them by
+    name. Fragments follow the #37 probe gate (PLAN.md, `## Probe log (#37)`).
+    """
+
+    longMessage = False
+
+    def cleanup_text(self):
+        return normalized(
+            "\n".join(jdi_files.section(jdi_files.read(HERDR_REFERENCE), CLEANUP_HEADING))
+        )
+
+    def assertCleanupContains(self, *fragments):
+        cleanup = self.cleanup_text()
+        for fragment in fragments:
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment, cleanup, "Cleanup from the herd record lacks %r" % fragment
+                )
+
+    def test_selects_records_safely(self):
+        self.assertCleanupContains(
+            "`^[0-9]{8}T[0-9]{6}$`",
+            "never builds a path from",
+            "`creating`",
+            "Never guess from folder names",
+            "git worktree list",
+        )
+
+    def test_resolves_by_worktree_path(self):
+        """Every ID is re-found by worktree path.
+
+        Gate amendments from `## Probe log (#37)`: G1 (a TUI worktree with no open
+        workspace has no `open_workspace_id` key, so absent or `null` both mean
+        none), G2 (the app's busy check reads each terminal's `status` string from
+        `hc ls --json`, never its `state`), G3 (the app's space `folder` is resolved
+        with `pwd -P` before it is compared with git's path).
+        """
+        self.assertCleanupContains(
+            "never by a recorded ID alone",
+            "herdr-app ls",
+            "pwd -P",
+            "hc ls --json --label herdr.space=<space>",
+            "the `status` of every terminal",
+            "herdr worktree list --cwd <main checkout>",
+            "open_workspace_id",
+            "absent or `null` means no open workspace",
+            "herdr workspace get <workspace_id>",
+        )
+
+    def test_skips(self):
+        self.assertCleanupContains(
+            "`working` or `blocked`",
+            "not reachable from here",
+            "agent state unknown",
+            "the session running the cleanup",
+            "prunable",
+            "git worktree prune",
+        )
+
+    def test_guards_and_force(self):
+        self.assertCleanupContains(
+            "git -C <worktree> status --porcelain -- <plans.path>",
+            "git -C <worktree> status --porcelain",
+            "the whole tree",
+            "`--force` only when the entry's `seeded` is true",
+            "uncommitted changes",
+            "one list",
+            "asks once",
+            "its own yes",
+            "ignored files",
+        )
+
+    def test_scratch_branch_rule(self):
+        self.assertCleanupContains(
+            "jdi-herd-scratch-<herd-id>-<N>",
+            "git show-ref --verify --quiet refs/heads/<scratch branch>",
+            "git rev-list --count <base_commit>..refs/heads/<scratch branch>",
+            "git branch -D <scratch branch>",
+            "Never delete any other branch",
+        )
+
+    def test_record_upkeep(self):
+        self.assertCleanupContains("removes the entry", "deletes the record file")
+
+    def test_removal_order(self):
+        cleanup = self.cleanup_text()
+        self.assertIn(
+            REMOVAL_MARKER, cleanup, "Cleanup from the herd record lacks %r" % REMOVAL_MARKER
+        )
+        removal = cleanup[cleanup.index(REMOVAL_MARKER) + len(REMOVAL_MARKER) :]
+        steps = (
+            "git -C <worktree> status --porcelain -- <plans.path>",
+            "herdr-app do space.close --id <space> --confirmed true",
+            "git -C <main checkout> worktree remove",
+            "git branch -D <scratch branch>",
+            "removes the entry",
+        )
+        positions = []
+        for step in steps:
+            self.assertIn(step, removal, "The removal lacks %r" % step)
+            positions.append(removal.index(step))
+        self.assertEqual(
+            positions,
+            sorted(positions),
+            "The removal must re-check the plan files, close, remove the worktree, delete "
+            "the scratch branch, then update the record; found them at %r" % (positions,),
+        )
+        self.assertEqual(len(set(positions)), len(positions))
 
 
 if __name__ == "__main__":

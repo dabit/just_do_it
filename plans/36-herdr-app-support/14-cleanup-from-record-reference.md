@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 14 — `reference/herdr.md`: `### Cleanup from the herd record`
 
 Depends on: 12, 13
