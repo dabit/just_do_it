@@ -64,22 +64,26 @@ the worker.
 ## Capability detection
 
 The Butler performs H1 once, at step 0, and only when `delegation.transport` is `auto` or
-`herdr`. The checks run in order, and the first failure wins:
-
-1. `HERDR_ENV` is `1`.
-2. The `herdr` binary resolves (`$HERDR_BIN_PATH`, else `PATH`).
-3. `herdr status` reports a running, compatible server, and `HERDR_SOCKET_PATH`, when set, is an
-   existing socket.
+`herdr`. H1 also picks the surface, from `herdr.surface` (`auto | app | tui`): the Herdr TUI or the
+Herdr app. Under `auto` it observes which one this session runs in, and when one runs inside the
+other the innermost wins. A pinned `app` or `tui` runs only that surface's checks and never falls
+to the other. Each surface's checks run in order, and the first failure wins; they are listed, with
+the nested case and the safety rules, in `docs/herdr-surfaces-architecture.md` ("Detection"), and
+defined in `reference/herdr.md`. The answer is `tui`, `app` or `none`.
 
 The answer is used for every delegation in the run, and no role probes again. `auto` stays silent
-when `HERDR_ENV` is unset, because that is the expected state outside Herdr. It announces once when
-`HERDR_ENV=1` but a later check fails. `herdr` announces any failed check once.
+when this session is in neither surface, because that is the expected state outside Herdr. It
+announces once when the chosen surface's signal is present but a later check fails. `herdr`
+announces any failed check once.
 
-Detection never uses the harness name. The same harness can run inside or outside Herdr, with or
-without a server, and with a compatible or incompatible version. Only an observation in this
-session says whether Herdr can be used now (`reference/herdr.md`, universal rule 1). H2 applies the
-same rule to the worker kind: the kind must appear on the `kinds:` line of `herdr agent` (the kinds
-Herdr supports, not the kinds installed), and `command -v <kind>` must resolve.
+Detection never uses the harness name. The same harness can run inside or outside Herdr, on either
+surface, with or without a server or window, and with a compatible or incompatible version. Only an
+observation in this session says whether Herdr can be used now (`reference/herdr.md`, universal
+rule 1). Detection observes and never starts, stops or repairs anything: "detect, never repair".
+H2 applies the same rule to the worker kind: `command -v <kind>` must resolve on either surface,
+and on the TUI the kind must also appear on the `kinds:` line of `herdr agent` (the kinds Herdr
+supports, not the kinds installed). The app has no kinds list; a kind that never reports a status
+there is rejected when the agent is checked for readiness.
 
 ## Result contract
 
@@ -164,7 +168,11 @@ The mechanism reads these keys. Each one is documented in `reference/config.md`.
   `opencode`, and `-m` for `codex`, which is not yet verified), before the verbatim args. With
   no model, no flag is passed and the pre-spawn line says the CLI's default applies.
 - `harnesses.<kind>.args` and `harnesses.<kind>.env`: passed verbatim. Under Herdr, `env` is set on
-  the pane with `--env`, because `herdr agent start` has no `--env` option.
+  the pane, or in the worker's argv on the app. On the TUI that is the pane's `--env`, because
+  `herdr agent start` has no `--env` option; on the app no command takes an environment, so it is
+  an `env KEY=VALUE …` prefix before the kind (`docs/herdr-surfaces-architecture.md`).
+- `herdr.surface`: `auto` (the default), `app` or `tui`. It picks which Herdr H1 checks, never
+  whether Herdr is used, and usually belongs in `.jdi/config.local.yml`.
 - The herd keys, forthcoming in the `/jdi:herd` wave: `herd.kind`, `herd.max_parallel` and
   `herd.seed`. Herd agents take their arguments and environment from `harnesses.<herd.kind>`, so
   there is no `herd.args` or `herd.env`.
