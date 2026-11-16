@@ -127,6 +127,11 @@ harnesses:
 delegation:
   transport: auto
 
+# Optional. `herdr.surface` picks which Herdr JDI drives: `auto` (the default),
+# `app` or `tui`. A fact about your machine: set it in .jdi/config.local.yml.
+herdr:
+  surface: app
+
 # Optional. Read only by /jdi:herd. `kind` must be a kind Herdr supports whose
 # CLI is installed; `max_parallel` is a spend guard, since each agent is a full
 # session. Herd agents take their arguments and environment from

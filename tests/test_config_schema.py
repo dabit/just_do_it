@@ -215,6 +215,69 @@ class DelegationBlockTest(unittest.TestCase):
         )
 
 
+class HerdrBlockTest(unittest.TestCase):
+    """The `herdr:` block has one key, `surface`, defaulting to `auto`.
+
+    `surface` picks which Herdr JDI drives, the TUI or the app; whether Herdr is
+    used at all stays `delegation.transport`, so the key has no `off` value. Every
+    step that resolves a surface reads `herdr.surface`, so the key has to exist in
+    the schema, the example, and the defaults table. The example deliberately
+    shows a non-default value, per `docs/config-key-lifecycle.md`.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_surface_is_a_schema_key(self):
+        self.assertIn("herdr.surface", jdi_files.key_paths(self.schema))
+
+    def test_schema_default_is_auto(self):
+        self.assertTrue(
+            any(re.match(r"^  surface: auto$", line) for line in self.schema),
+            "reference/config.md's schema has no `  surface: auto` line",
+        )
+
+    def test_schema_comment_lists_the_values(self):
+        self.assertIn(
+            "  # auto | app | tui",
+            self.schema_comments,
+            "no schema comment line is exactly `  # auto | app | tui`",
+        )
+
+    def test_schema_comment_says_transport_decides_whether_herdr_is_used(self):
+        self.assertTrue(
+            any(
+                "Whether Herdr is used at all stays `delegation.transport`" in line
+                for line in self.schema_comments
+            ),
+            "no schema comment says whether Herdr is used at all stays "
+            "`delegation.transport`",
+        )
+
+    def test_example_value_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  surface: (app|tui)$", line) for line in self.example),
+            "jdi.config.example.yml has no `  surface: app` or `  surface: tui` "
+            "line; the example shows a configured repo, so it uses a non-default value",
+        )
+
+    def test_defaults_table_has_an_auto_row(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        self.assertTrue(
+            any(row.startswith("| `herdr.surface` | `auto`") for row in rows),
+            "the defaults table has no `herdr.surface` row defaulting to `auto`",
+        )
+
+    def test_notes_say_surface_only_picks_which_herdr(self):
+        notes = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        self.assertIn("**`herdr.surface` only picks which Herdr.**", notes)
+
+
 class HerdBlockTest(unittest.TestCase):
     """The `herd:` block carries `kind`, `max_parallel` and `seed`, and nothing else.
 

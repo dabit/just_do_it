@@ -209,6 +209,20 @@ delegation:
   # repository: set it in .jdi/config.local.yml.
   transport: native
 
+# Optional. Which Herdr JDI drives when it uses Herdr: the Herdr TUI or the
+# Herdr desktop app. See reference/herdr.md, H1.
+herdr:
+  # auto | app | tui
+  #   auto - the Herdr this session runs in. When one runs inside the other,
+  #          the innermost wins; when that cannot be told, the TUI.
+  #   app  - only the Herdr app is checked.
+  #   tui  - only the Herdr TUI is checked.
+  #
+  # Whether Herdr is used at all stays `delegation.transport` (`native` is
+  # off), and /jdi:herd runs only when you invoke it. Which Herdr you run is a
+  # fact about your machine: set it in .jdi/config.local.yml.
+  surface: auto
+
 # Optional. Read only by /jdi:herd, which preps several issues in parallel,
 # one Herdr worktree and agent per issue.
 #
@@ -317,6 +331,7 @@ models:                      models:                        models:
 | `models.*` | empty — every role runs in this session's harness, on the session's own model |
 | `harnesses.*` | empty — a CLI JDI spawns receives no arguments and no extra environment |
 | `delegation.transport` | `native` - roles are delegated exactly as before this key existed; nothing is probed at step 0 and nothing is announced |
+| `herdr.surface` | `auto` - the Herdr this session runs in; the innermost when one runs inside the other, the TUI when that cannot be told |
 | `herd.kind` | `claude` |
 | `herd.max_parallel` | `5` |
 | `herd.seed` | empty - worktrees are created bare, with nothing gitignored copied in and nothing run |
@@ -381,6 +396,13 @@ models:                      models:                        models:
   acquires a flag.
 - **`delegation.transport` is usually personal.** It belongs in `config.local.yml`, because working
   inside Herdr is a fact about the machine.
+- **`herdr.surface` only picks which Herdr.** It decides between the Herdr TUI and the Herdr app.
+  Whether Herdr is used at all is `delegation.transport`, so the key has no `off` value.
+- **A pinned surface never falls to the other one.** With `app` or `tui` pinned and that surface
+  unusable, delegation degrades to `native` and `/jdi:herd` stops. An invalid value is announced
+  once, only when H1 runs, and treated as `auto`.
+- **`herdr.surface` is usually personal.** It belongs in `.jdi/config.local.yml`, because which
+  Herdr you run is a fact about the machine.
 - **`herd` is read by `/jdi:herd` and nothing else.** No other command changes behavior because the
   block exists, and a repo without Herdr never reaches a line that reads it. The block is optional,
   and every key in it has a working default.
