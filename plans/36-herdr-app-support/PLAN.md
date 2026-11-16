@@ -10,6 +10,7 @@
 - Started: 2026-11-16
 - TDD: on — proven 2026-11-16 with `python3 -m unittest discover -s tests -v`
 - Merged: origin/main @ c7bc66b into this branch, 2026-11-16 (main had its own 1.0.10–1.0.12). Versions renumbered: PR #31's release is 1.0.13, this branch's is 1.0.14 (was 1.0.11; P12 and task 09's "1.0.11" are superseded).
+- One PR (2026-11-16, user): PR #31 will be closed; this branch carries all the Herdr work in one PR against `main`, released as a single 1.0.13 (the 1.0.13/1.0.14 split above is superseded). Herd cleanup (#37) is added to this plan.
 
 ## References
 

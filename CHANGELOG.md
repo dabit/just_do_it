@@ -1,38 +1,10 @@
 # Changelog
 
-## 1.0.14
-
-**JDI drives the Herdr app as well as the Herdr TUI.**
-
-- **`herdr.surface` picks which Herdr: `auto`, `app` or `tui`.** The default is `auto`, which
-  detects whether this session runs in the Herdr app or the Herdr TUI. With no `herdr` block,
-  nothing changes for TUI users. Whether Herdr is used at all stays `delegation.transport`; the new
-  key only picks which one. A pinned `app` or `tui` never falls to the other surface: delegation
-  degrades to `native` and `/jdi:herd` stops. Like `delegation.transport`, it is a fact about your
-  machine, so it usually belongs in `.jdi/config.local.yml`.
-- **If you already work inside the Herdr app, JDI now acts there instead of staying silent.**
-  Under `delegation.transport: auto` or `herdr`, a role on another CLI now runs in an app pane, and
-  `/jdi:herd` now works instead of stopping at its first check. To keep the old behaviour, set
-  `delegation.transport: native` or `herdr.surface: tui`.
-- **On the app, JDI types into an agent only once it reports `idle`, never into a dialog.** An
-  agent that never gets there is not ready: JDI types nothing and says why. A "trust this folder"
-  dialog is the usual cause, and answering it is yours. A new worktree takes Claude's trust from
-  its main checkout, so a herd from a trusted repository usually sees none; it shows when that
-  checkout is untrusted, or for a CLI that does not carry trust over. Role
-  delegation then closes the pane and falls back to `native`. `/jdi:herd` reports that issue as
-  blocked at startup and leaves its space open so you can answer the dialog there.
-- **App worktrees follow the app dialog's layout, `<worktrees.directory>/<repo>/<name>`.** The
-  folder is read from the app's own settings (default `~/.herdr/worktrees`), so herd spaces nest
-  under their repository like the ones the app's dialog makes.
-- **JDI never sets session or home variables.** It works with or without a named session, and
-  every worker inherits whatever the app gave it.
-- **Codex users on the app add `--no-daemon` to `harnesses.codex.args`.** JDI adds nothing itself,
-  but notes once when the flag is missing.
-
 ## 1.0.13
 
-**A Butler inside Herdr can run a delegated role as its own agent process, wait for it, and accept
-its work only through a validated result file.**
+**JDI works inside Herdr, the TUI or the desktop app: a Butler can run a delegated role as its own
+agent process, wait for it, and accept its work only through a validated result file, and
+`/jdi:herd` preps several issues at once, one worktree and agent each.**
 
 - **`delegation.transport` decides how a role on another CLI runs: `native`, `auto` or `herdr`.**
   `native` is the default and is the delegation JDI already did; it probes nothing at step 0 and
@@ -105,6 +77,29 @@ its work only through a validated result file.**
   same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
   `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
   removal without an explicit yes.
+
+**On the Herdr app** (`herdr.surface`):
+
+- **`herdr.surface` picks which Herdr: `auto`, `app` or `tui`.** The default is `auto`, which
+  detects whether this session runs in the Herdr app or the Herdr TUI. With no `herdr` block,
+  nothing changes for TUI users. Whether Herdr is used at all stays `delegation.transport`; the new
+  key only picks which one. A pinned `app` or `tui` never falls to the other surface: delegation
+  degrades to `native` and `/jdi:herd` stops. Like `delegation.transport`, it is a fact about your
+  machine, so it usually belongs in `.jdi/config.local.yml`.
+- **On the app, JDI types into an agent only once it reports `idle`, never into a dialog.** An
+  agent that never gets there is not ready: JDI types nothing and says why. A "trust this folder"
+  dialog is the usual cause, and answering it is yours. A new worktree takes Claude's trust from
+  its main checkout, so a herd from a trusted repository usually sees none; it shows when that
+  checkout is untrusted, or for a CLI that does not carry trust over. Role
+  delegation then closes the pane and falls back to `native`. `/jdi:herd` reports that issue as
+  blocked at startup and leaves its space open so you can answer the dialog there.
+- **App worktrees follow the app dialog's layout, `<worktrees.directory>/<repo>/<name>`.** The
+  folder is read from the app's own settings (default `~/.herdr/worktrees`), so herd spaces nest
+  under their repository like the ones the app's dialog makes.
+- **JDI never sets session or home variables.** It works with or without a named session, and
+  every worker inherits whatever the app gave it.
+- **Codex users on the app add `--no-daemon` to `harnesses.codex.args`.** JDI adds nothing itself,
+  but notes once when the flag is missing.
 
 ## 1.0.12
 

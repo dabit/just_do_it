@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented in the `herdr-role-delegation` branch for release 1.0.13. The role-delegation layer
+Implemented in release 1.0.13. The role-delegation layer
 (`reference/herdr.md` H1 to H8, the `delegation.transport` key, and rung 2's transport choice in
 `reference/delegation.md`) exists. The `/jdi:herd` layer (the `herd` config block, H9 and
 `commands/herd.md`) is planned in the same branch as a separable wave.
