@@ -569,7 +569,7 @@ Gate: passed (after amendment)
 
 **Wave 1** — run together
 - [x] [01](01-herdr-surface-config-key.md) — Add the `herdr.surface` config key (depends on: none) — Planner Task 1
-- [ ] [02](02-live-app-probes.md) — Run the live Herdr app probes in a throwaway session (the probe gate) (depends on: none) — Planner Task 2
+- [x] [02](02-live-app-probes.md) — Run the live Herdr app probes in a throwaway session (the probe gate) (depends on: none) — Planner Task 2
 
 **Wave 2** — run together
 - [ ] [03](03-herdr-surfaces-h1-confinement.md) — `reference/herdr.md`: the two surfaces, H1 on each, and app-name confinement (depends on: 02) — Planner Task 3
