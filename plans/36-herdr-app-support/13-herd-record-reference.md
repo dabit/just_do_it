@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 13 — `reference/herdr.md`: `### The herd record`
 
 Depends on: None

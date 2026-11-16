@@ -1347,7 +1347,7 @@ Finding carried to task 19: after an agent's turn ends its status is `done`, and
 
 **Wave 8** — run together
 - [x] [12](12-cleanup-probe-gate.md) — Probe the herd cleanup mechanics in a throwaway session (the #37 probe gate) (depends on: none) — Planner Task 12
-- [ ] [13](13-herd-record-reference.md) — `reference/herdr.md`: `### The herd record` (depends on: none) — Planner Task 13
+- [x] [13](13-herd-record-reference.md) — `reference/herdr.md`: `### The herd record` (depends on: none) — Planner Task 13
 
 **Wave 9** — run together
 - [ ] [14](14-cleanup-from-record-reference.md) — `reference/herdr.md`: `### Cleanup from the herd record` (depends on: 12, 13) — Planner Task 14

@@ -824,6 +824,8 @@ Read `.result.worktree.path`, `.result.root_pane.pane_id`, `.result.workspace.wo
 differs, report both and use the one Herdr returned. `--path` is in `herdr worktree create --help`
 (0.8.2) without stated semantics, so UAT probe P8 settles it before the herd scenario runs.
 
+After a successful create, H9 records the worktree as *The herd record* says.
+
 **Reattach after a restart.** `herdr worktree open` opens an existing worktree as a workspace
 again. The report's closing line names it.
 
@@ -895,6 +897,8 @@ git worktree add -b jdi-herd-scratch-<herd-id>-<N> <path> origin/<default>
 
 Run it from the main checkout's repository. A non-zero exit fails H9 for that issue, with git's
 message. The path is the one asked for, so there is nothing to compare.
+
+After a successful create, H9 records the worktree as *The herd record* says.
 
 **Open the space** at herd step 8, after `herd.seed` (step 7) has finished in the folder, so the
 agent starts in a seeded tree:
@@ -989,3 +993,70 @@ the plan is not in the worktree, and step 1 finds nothing.
 
 **List.** `git worktree list --porcelain` lists every worktree with its path and branch. The app has
 no worktree list of its own.
+
+### The herd record
+
+H9 writes one file per herd at `<git-common-dir>/jdi/herds/<herd-id>.json`, where
+`<git-common-dir>` is `git rev-parse --path-format=absolute --git-common-dir`, so every worktree of
+the repository sees the same record. It lives inside git's own directory, so it is never committed.
+`/jdi:herd --cleanup` finds a herd's worktrees from this record, never from folder names. The
+shape is identical on both surfaces; a key that does not apply to the surface is `null`.
+
+```json
+{
+  "schema": 1,
+  "herd_id": "<yyyymmddThhmmss>",
+  "created": "<UTC yyyy-mm-ddThh:mm:ssZ>",
+  "surface": "<tui | app>",
+  "state": "<creating | handed_off>",
+  "issues": [
+    {
+      "n": 1,
+      "issue": "<ISSUE-ID>",
+      "name": "<slug>-<suffix>",
+      "worktree": "<path as git worktree list --porcelain prints it>",
+      "scratch_branch": "jdi-herd-scratch-<herd-id>-<N>",
+      "base_commit": "<full SHA of the worktree's HEAD right after creation>",
+      "seeded": false,
+      "created": "<UTC yyyy-mm-ddThh:mm:ssZ>",
+      "herdr": {
+        "workspace_id": "<TUI workspace, else null>",
+        "space_id": "<app space, else null>",
+        "tab_id": "<tab the agent runs in>",
+        "pane_id": "<the agent's pane>",
+        "terminal_id": "<app terminal, else null>",
+        "agent_name": "<name>"
+      }
+    }
+  ]
+}
+```
+
+**Write rules.**
+
+- The record is created on the first successful worktree, never before.
+- It is written whole to `<dir>/.<herd-id>.json.tmp`, then moved over the record with `mv -f`. It
+  is never edited in place.
+- The record names no session and no app home, by the surfaces' rule *Inherit, never set*: which
+  surface is reachable is observed at cleanup, never recorded.
+- `worktree` is stored exactly as `git worktree list --porcelain` prints it, taken from the entry
+  whose `branch` is `refs/heads/<scratch branch>`.
+- `base_commit` is `git -C <path> rev-parse HEAD`, run right after the worktree is created.
+
+**Write points.**
+
+- **Herd step 6**, after each successful create: append the issue's entry. On the TUI it fills
+  `workspace_id`, `tab_id`, `pane_id` and `agent_name`, from the create result, or from the
+  `herdr tab create` result when the environment forced a new tab.
+- **Herd step 7**: `seeded` becomes `true` when a seed step wrote into the worktree.
+- **Herd step 8**, app only: `space_id`, `tab_id`, `pane_id`, `terminal_id` and `agent_name`, from
+  `space.new`'s output and `herdr-app ls`.
+- **Herd step 10**: `state` becomes `handed_off`.
+
+**State.** `state` is `creating` from the first write until step 10, and `handed_off` after. It
+tells a cleanup whether the herd may still be running: a cleanup without a herd ID skips a
+`creating` record, because its herd may still be running; given that herd's ID, it includes the
+record and flags it.
+
+**A failed write.** A record that cannot be written gets one sentence in the run, and the herd
+continues; step 11's manual commands still cover that herd.
