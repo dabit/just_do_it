@@ -20,7 +20,17 @@ HERDR_COMMAND = re.compile(
     r"\bherdr (agent|pane|workspace|worktree|tab|status|integration|server|session"
     r"|notification|terminal)\b"
 )
-CONFINED_PATTERNS = (HERDR_COMMAND, re.compile(r"HERDR_"), re.compile(r"AskUserQuestion"))
+CONFINED_PATTERNS = (
+    HERDR_COMMAND,
+    re.compile(r"HERDR_"),
+    re.compile(r"AskUserQuestion"),
+    # The Herdr app's CLIs, its terminal variables and its layout actions.
+    # `HERDR_APP_HOME` is already caught by `HERDR_`.
+    re.compile(r"\bherdr-app\b"),
+    re.compile(r"\bhc\b"),
+    re.compile(r"\bHC_[A-Z]"),
+    re.compile(r"\b(space|tab|pane|agent)\.(new|split|close|select|focus)\b"),
+)
 
 
 def normalized(path):
@@ -91,6 +101,30 @@ class HerdrConfinementTest(unittest.TestCase):
                             "%s:%d names %r; every Herdr step belongs in %s"
                             % (path, number, line.strip(), HERDR_REFERENCE),
                         )
+
+    def test_confined_patterns_catch_every_app_name(self):
+        for sample in (
+            "hc send t3 hi",
+            "herdr-app do pane.split",
+            "HC_TERMINAL_ID",
+            "HERDR_APP_HOME",
+            "pane.split --pane p1",
+            "herdr agent start",
+        ):
+            with self.subTest(forbidden=sample):
+                self.assertTrue(
+                    any(pattern.search(sample) for pattern in CONFINED_PATTERNS),
+                    "no confined pattern catches %r" % sample,
+                )
+        for sample in (
+            "the Herdr app",
+            "`herdr.surface: app`",
+            "Herdr TUI",
+            "`delegation.transport: herdr`",
+        ):
+            with self.subTest(allowed=sample):
+                matched = [p.pattern for p in CONFINED_PATTERNS if p.search(sample)]
+                self.assertEqual(matched, [], "%r is caught by %s" % (sample, matched))
 
 
 class ButlerSequentialTest(unittest.TestCase):

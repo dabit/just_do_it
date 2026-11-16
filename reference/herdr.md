@@ -6,8 +6,9 @@ says what each Herdr operation does, which `herdr` commands it runs, and what th
 what comes back. `reference/delegation.md` calls the operations **by name**: rung 2 (under
 `delegation.transport: auto` or `herdr`) and rung 4.
 
-`herdr` below means `$HERDR_BIN_PATH` when that is set, else `herdr` on `PATH`. Commands are
-argument lists, and placeholders are in angle brackets.
+`herdr` below means `$HERDR_BIN_PATH` when that is set, else `herdr` on `PATH`. `herdr-app` and
+`hc` are the Herdr app's CLIs, used only by the app variants. Commands are argument lists, and
+placeholders are in angle brackets.
 
 Everything in this file is inert under `delegation.transport: native`, except where rung 4 sends a
 kind with no exec mode.
@@ -22,13 +23,14 @@ kind with no exec mode.
 3. **A Butler runs one phase at a time.** Inside a phase, only a wave runs several workers at once,
    and the Butler waits for all of them and does nothing else in the command meanwhile.
 4. **The result arrives through a file.** A terminal transcript is never the result. `agent read`
-   is for inspection only.
-5. **`idle` or `done` is not proof of success, and `unknown` or `timeout` never counts as
-   success.** Only H7 decides that a run succeeded.
+   is for inspection only, and so is `hc read` on the app.
+5. **`idle` or `done` is not proof of success, and `unknown` or `timeout` (or `error` on the app)
+   never counts as success.** Only H7 decides that a run succeeded.
 6. **The Butler never resubmits blindly.** A prompt that may have been sent is never sent again
    without evidence that it was not.
 7. **The worker's dialogs belong to the user.** Approval, permission, trust and question dialogs go
-   to the user, who answers them in the worker's pane.
+   to the user, who answers them in the worker's pane. On the app, JDI never runs `hc keys`,
+   `hc send --force` or `hc interrupt`.
 8. **A pane JDI created is closed on every exit.** See H8.
 9. **A worker is a separately spawned CLI.** Its authority comes from its own configuration and
    from the arguments the user wrote in `harnesses.<kind>.args`. JDI adds no authority-affecting
@@ -44,31 +46,119 @@ kind with no exec mode.
 - A worker uses the Butler's own worktree, because the Butler waits for it.
 - Butlers started by `/jdi:herd` are isolated from each other by worktrees.
 
+## Surfaces
+
+Herdr comes as two surfaces, and JDI drives either one through the same operations.
+
+- **The Herdr TUI** is the `herdr` CLI. Its server runs workspaces, tabs, panes and agents.
+- **The Herdr app** is a desktop window over a core that runs terminals. `herdr-app` changes what
+  the window shows (spaces, tabs and panes), and `hc` starts, reads, messages and waits on the
+  core's terminals.
+
+`herdr.surface` (`auto | app | tui`, default `auto`, in `reference/config.md`) picks which surface
+H1 looks for (*Choosing the surface*). It never decides whether Herdr is used at all: that stays
+`delegation.transport`, and `/jdi:herd` runs only when the user invokes it.
+
+**Inherit, never set.** An app terminal inherits its core's environment, so every `hc` and
+`herdr-app` command the Butler runs reaches the core and the window the Butler is in, with nothing
+passed by JDI. JDI never sets, exports or writes `HC_SESSION`, `HC_SOCKET` or `HERDR_APP_HOME` in a
+command, a manifest, a config value or prose. A value JDI invented would start a new core or
+address a different window. A path that depends on the app home is resolved at run time, never
+written down as a fixed path.
+
+**Never run bare `herdr-app` or bare `hc`.** With no arguments `herdr-app` opens or raises the
+window. JDI never runs `hc server` in any form: it does not start, stop, restart, update or probe
+the user's core.
+
+- **Units.** hc timeouts are in **seconds**, not milliseconds. The TUI's `--timeout 300000` is
+  `--timeout 300` on the app.
+- **IDs.** Target IDs are strings, such as `t3` for a terminal. JDI passes each one back exactly as
+  the command that created it printed it, and never builds one.
+- **Shell.** The app variants assume a POSIX `sh`. Windows is not verified.
+- **Variants.** Each operation has a TUI subsection and an app subsection. Text outside those
+  subsections applies to both surfaces. An operation that does not have its app subsection yet has
+  only its TUI text.
+
 ## H1 - Detect Herdr
 
 The Butler performs H1 **once**, at step 0, and there only under `auto` or `herdr`. Under `native`,
 or with no `delegation` key, H1 does not run at step 0: no Herdr command runs at step 0, and nothing
 in the run mentions the transport, summaries included. The one exception is rung 4 of
 `reference/delegation.md`, which runs H1 when it delegates a kind with no exec mode and announces
-what fails. The checks run in order, and the first failure wins:
+what fails. H1 first chooses the surface (*Choosing the surface*), then runs that surface's checks
+(*H1 on the TUI* or *H1 on the app*) in order, and the first failure wins.
+
+The answer is `tui`, `app` or `none`. With `none`, H1 also gives the first failed check and its
+output. The Butler uses that answer for every delegation in the run. No role re-probes.
+
+The announcement depends on the configured `delegation.transport`:
+
+- `auto` stays silent when the chosen surface's first check fails (`HERDR_ENV` unset on the TUI,
+  `HC_TERMINAL_ID` unset on the app) or when the answer is `none` because neither surface is
+  present. That is the expected absence outside Herdr. It announces once when the chosen surface's
+  first check passes but a later check fails, because that is a malfunction.
+- `herdr` announces any failed check once.
+
+Capability comes from these checks, never from the harness name. Detect, never repair: a stopped
+server, an incompatible version, a missing window or a missing core socket is reported, and JDI
+does not start, upgrade or configure anything.
+
+### Choosing the surface
+
+`herdr.surface` decides which checks run. Under `auto`, the surface comes from two variables:
+
+| `HERDR_ENV` is `1` | `HC_TERMINAL_ID` is set | Surface under `auto` |
+|---|---|---|
+| no | no | `none`, silently under `delegation.transport: auto` |
+| yes | no | `tui`: the TUI checks decide |
+| no | yes | `app`: the app checks decide |
+| yes | yes | nested: the innermost surface wins (below) |
+
+**Nested: the innermost surface wins.** Environment flows inward, so both variable sets present
+says only that one surface runs inside the other. The innermost one is the surface whose pane the
+user is looking at and whose server accepts JDI's commands. To find it, run app checks (a) to (c).
+If (b) or (c) fails, the binary or the socket is missing, so the app is unreachable from here: use
+the TUI, with no note. Otherwise read `hc get "$HC_TERMINAL_ID" --json`, which only reads, and look
+at its `foreground`:
+
+- `foreground.argv` runs `herdr` (the first element's basename is `herdr`): the app terminal hosts
+  a TUI and this session is inside it. The surface is `tui`.
+- `foreground` names any other program: this session runs directly in the app terminal. The
+  surface is `app`.
+- Inconclusive, which means only that `hc get` failed or its JSON has no `foreground`: the Butler
+  says so once and uses the TUI.
+
+The chosen surface's checks then decide the answer.
+
+**A pinned surface.** `herdr.surface: tui` or `app` runs only that surface's checks, whatever the
+variables say, and reports its first failure. A pinned surface never falls to the other surface:
+when its checks fail, role delegation degrades to `native` and `/jdi:herd` stops. An invalid value
+is announced once, and only when H1 runs, then treated as `auto`.
+
+### H1 on the TUI
 
 - (a) `printenv HERDR_ENV` prints `1`.
 - (b) The binary resolves: `$HERDR_BIN_PATH` is executable, else `command -v herdr` resolves.
 - (c) `herdr status` reports the server as `status: running` and `compatible: yes`, and
   `HERDR_SOCKET_PATH`, when it is set, is an existing socket.
 
-The answer is either "available" or the first failed check with its output. The Butler uses that
-answer for every delegation in the run. No role re-probes.
+### H1 on the app
 
-The announcement depends on the configured value:
+- (a) `printenv HC_TERMINAL_ID` prints a value that is not empty.
+- (b) The binaries resolve: `command -v hc` and `command -v herdr-app` both print a path.
+- (c) `test -S "$HC_TERMINAL_SOCKET"` succeeds. This check runs **before any `hc` command**: `hc`
+  connects to the core its environment names and auto-starts one that is missing, so a stale or
+  missing core is reported here, never created.
+- (d) `hc get "$HC_TERMINAL_ID" --json` exits 0 and prints JSON whose `labels` include
+  `herdr.space`. A terminal started with `hc` from a plain shell has an ID but no window shows it,
+  and a foreign `hc` on `PATH` prints no such JSON. Either one fails here.
+- (e) `herdr-app status` exits 0 and its stdout parses as JSON with no top-level `error` key. Its
+  `errors` list is recorded, not treated as a failure. With no window it exits 2 with plain text on
+  stderr, so a non-zero exit or output that is not JSON fails this check. The layout commands need
+  a running window.
 
-- `auto` stays silent when `HERDR_ENV` is unset. That is the expected absence outside Herdr. It
-  announces once when `HERDR_ENV=1` but a later check fails, because that is a malfunction.
-- `herdr` announces any failed check once.
-
-Capability comes from these checks, never from the harness name. Detect, never repair: a stopped
-server or an incompatible version is reported, and JDI does not start, upgrade or configure
-anything.
+There is no app counterpart to `compatible: yes`. The Butler records the versions
+(`herdr-app --version` and `hc --version`) and does not compare them.
 
 ## H2 - Check the worker kind
 
@@ -364,10 +454,13 @@ closing it. A failed delegation must not leak one pane per attempt.
 
 The announcement is one line that states the observed cause. These are patterns, not literal text:
 
-- Step 0, `herdr`: `delegation.transport is herdr, but Herdr is not usable here: <failed check>
-  returned <what came back>. Delegating natively for this run.`
+- Step 0, `herdr`: `delegation.transport is herdr, but Herdr (<surface>) is not usable here:
+  <failed check> returned <what came back>. Delegating natively for this run.` `<surface>` is
+  `TUI` or `app`.
 - Step 0, `auto`, inside Herdr but a later check failed: the same pattern, with `auto` in place of
   `herdr`.
+- Invalid surface, announced once and only when H1 runs: `herdr.surface is "<value>", which is not
+  auto, app or tui. Treating it as auto.`
 - Per delegation: `The <Role> did not run as a Herdr agent: <operation and observed reason>.
   Running it <as a subagent on <model> | through <kind>'s non-interactive mode | inline> instead.`
 - Invalid value: `delegation.transport is "<value>", which is not native, auto or herdr.

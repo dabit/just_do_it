@@ -572,7 +572,7 @@ Gate: passed (after amendment)
 - [x] [02](02-live-app-probes.md) — Run the live Herdr app probes in a throwaway session (the probe gate) (depends on: none) — Planner Task 2
 
 **Wave 2** — run together
-- [ ] [03](03-herdr-surfaces-h1-confinement.md) — `reference/herdr.md`: the two surfaces, H1 on each, and app-name confinement (depends on: 02) — Planner Task 3
+- [x] [03](03-herdr-surfaces-h1-confinement.md) — `reference/herdr.md`: the two surfaces, H1 on each, and app-name confinement (depends on: 02) — Planner Task 3
 - [ ] [04](04-user-docs-herdr-surface.md) — User docs: `/jdi:init`, `/jdi:help` and the README name the Herdr surface (depends on: 01) — Planner Task 7
 - [ ] [05](05-architecture-docs.md) — Architecture docs: record the surfaces design as decided and probed (depends on: 02) — Planner Task 8
 

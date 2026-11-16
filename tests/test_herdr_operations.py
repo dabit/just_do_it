@@ -19,7 +19,11 @@ HEADINGS = (
     "# Herdr operations",
     "## The universal rules",
     "## Scope",
+    "## Surfaces",
     "## H1 - Detect Herdr",
+    "### Choosing the surface",
+    "### H1 on the TUI",
+    "### H1 on the app",
     "## H2 - Check the worker kind",
     "## H3 - Prepare the run",
     "## H4 - Start the worker",
@@ -96,6 +100,56 @@ class HerdrOperationsTest(unittest.TestCase):
             "never from the harness name",
             "Detect, never repair",
         )
+
+    def test_surfaces_section(self):
+        self.assertSectionContains(
+            "## Surfaces",
+            "`herdr.surface`",
+            "Inherit, never set",
+            "`HC_SESSION`",
+            "`HERDR_APP_HOME`",
+            "Never run bare `herdr-app` or bare `hc`",
+            "`hc server`",
+            "seconds",
+        )
+
+    def test_choosing_the_surface(self):
+        self.assertSectionContains(
+            "### Choosing the surface",
+            "innermost surface wins",
+            "`foreground`",
+            "says so once and uses the TUI",
+            "never falls to the other surface",
+        )
+
+    def test_h1_app_checks_in_order(self):
+        body = self.section_text("### H1 on the app")
+        previous = -1
+        for marker in (
+            "HC_TERMINAL_ID",
+            "command -v hc",
+            'test -S "$HC_TERMINAL_SOCKET"',
+            'hc get "$HC_TERMINAL_ID" --json',
+            "herdr.space",
+            "herdr-app status",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, body, "H1 on the app lacks %r" % marker)
+                position = body.index(marker)
+                self.assertGreater(
+                    position, previous, "H1 on the app names %r out of order" % marker
+                )
+                previous = position
+        self.assertIn("before any `hc` command", body)
+
+    def test_no_personal_values(self):
+        # A `${HERDR_APP_HOME:-...}` default does not contain `HERDR_APP_HOME=`.
+        for fragment in ("/home/", "/Users/", "jdiprobe", "HC_SESSION=", "HERDR_APP_HOME="):
+            with self.subTest(fragment=fragment):
+                self.assertNotIn(fragment, self.text)
+
+    def test_failure_patterns_name_the_surface(self):
+        self.assertSectionContains("## When a step fails", "Herdr (<surface>)")
 
     def test_h2_kind(self):
         self.assertSectionContains(
