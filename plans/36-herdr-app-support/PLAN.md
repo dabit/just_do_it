@@ -584,7 +584,7 @@ Gate: passed (after amendment)
 - [x] [08](08-h9-app-worktrees-and-herd.md) — H9 on the app (worktree create, open, list, remove) and `/jdi:herd` on either surface (depends on: 06) — Planner Task 5 + Task 6's `commands/herd.md` part
 
 **Wave 5**
-- [ ] [09](09-release-1-0-11.md) — Release 1.0.11: version bump and CHANGELOG (depends on: 01, 02, 03, 04, 05, 06, 07, 08) — Planner Task 9
+- [x] [09](09-release-1-0-11.md) — Release 1.0.11: version bump and CHANGELOG (depends on: 01, 02, 03, 04, 05, 06, 07, 08) — Planner Task 9
 
 **Wave 6**
 - [ ] [10](10-uat.md) — UAT: JDI under the Herdr app, the Herdr TUI, and neither (depends on: 01, 02, 03, 04, 05, 06, 07, 08, 09) — Planner Task 10, folded in
