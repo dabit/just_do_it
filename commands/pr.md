@@ -34,9 +34,11 @@ Follow these steps:
 
    **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
    `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
-   for every delegation in this run; no role re-probes. With `herdr`, announce a failed check once,
-   with what came back, and delegate as `native`. With `auto`, say nothing outside Herdr, and
-   announce once when inside Herdr a later check fails. Any other value: say so once, then `native`.
+   for every delegation in this run; no role re-probes.
+   H1 also settles which Herdr this is, the TUI or the app, from `herdr.surface`. With `herdr`,
+   announce a failed check once, with what came back, and delegate as `native`. With `auto`, say
+   nothing outside Herdr, and announce once when inside Herdr a later check fails. Any other value:
+   say so once, then `native`.
    **With `delegation.transport` `native` or absent, say nothing at all**: run no Herdr command at
    step 0, and outside a ladder announcement never mention the transport, summaries included.
 

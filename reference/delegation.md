@@ -72,6 +72,10 @@ For a role whose `models.<role>.harness` names another CLI (rung 2), `delegation
 Any other value: announce once, and treat it as `native`. H1 and every other Herdr operation are in
 `reference/herdr.md`.
 
+Herdr here is either surface, the Herdr TUI or the Herdr app. H1 settles which, from
+`herdr.surface`, and a pinned surface never falls to the other: when its checks fail, the role is
+delegated as `native`.
+
 A Butler runs one phase at a time. Inside a phase, only a wave runs several workers at once, and the
 Butler waits for all of them before doing anything else in the command.
 
@@ -147,9 +151,9 @@ every role but the Executor — are never fanned out this way.
 
 `models.<role>.harness` names a key in `harnesses:`, and that key is the agent CLI kind the role
 runs in. `harnesses.<kind>.args` are handed to that CLI verbatim, after its own flags;
-`harnesses.<kind>.env` is set on the process — or, under Herdr, on the pane — that runs it. JDI
-composes, merges and translates neither. Under `transport: native`, resolution is exec-first, Herdr
-second. Under `auto` or `herdr` with Herdr detected, a role on another CLI runs in a Herdr pane
+`harnesses.<kind>.env` is set on the process that runs it — under Herdr, on the pane, or in the
+worker's command on the app, as H4 says. JDI composes, merges and translates neither. Under
+`transport: native`, resolution is exec-first, Herdr second. Under `auto` or `herdr` with Herdr detected, a role on another CLI runs in a Herdr pane
 first, and exec is its fallback.
 
 **Prefer the CLI's own non-interactive mode.** It returns a lossless report, allocates no pane, and
@@ -261,10 +265,13 @@ The first rung that applies wins. Every rung is an observation, never an assumpt
    the role was delegated).
 7. **The kind is not one Herdr supports, or its CLI is not installed.** Herdr's `kinds:` line lists
    the kinds it supports; installed means `<kind>` resolves on `PATH`. Integration status affects
-   only detection quality.
-8. **The pane or the agent cannot be started.**
-9. **The run started but produced no valid result.** H7 failed, or the state stayed `unknown` or
-   timed out and the user chose to abandon. `unknown` does not prove completion.
+   only detection quality. On the app there is no kinds list; H2 checks only that the CLI resolves.
+8. **The pane or the agent cannot be started.** On the app this includes an agent that never
+   reaches `status: idle` at readiness, which is not ready: JDI types nothing into it and says why
+   (H4).
+9. **The run started but produced no valid result.** H7 failed, or the state stayed `unknown` (or
+   `error` on the app) or timed out and the user chose to abandon. Neither `unknown` nor `error`
+   proves completion.
 
    For rungs 6 to 9: close the pane JDI opened (H8), announce, and continue as `native` would
    resolve the role: rung 2's non-interactive mode, or the floor where rung 4 sent a kind with no

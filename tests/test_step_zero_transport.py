@@ -25,6 +25,7 @@ STEP_ZERO_FRAGMENTS = (
     "With `delegation.transport` `native` or absent, say nothing at all",
     "run no Herdr command at step 0",
     "summaries included",
+    "H1 also settles which Herdr this is, the TUI or the app, from `herdr.surface`",
 )
 
 
@@ -58,8 +59,8 @@ class StepZeroTransportTest(unittest.TestCase):
 
     def test_block_name_lists_include_delegation(self):
         expected = (
-            ("commands/prep.md", "`models`, `harnesses`, and `delegation` from it"),
-            ("commands/research.md", "`models`, `harnesses`, and `delegation` from that config"),
+            ("commands/prep.md", "`models`, `harnesses`, `delegation`, and `herdr` from it"),
+            ("commands/research.md", "`models`, `harnesses`, `delegation`, and `herdr` from that config"),
         )
         for path, fragment in expected:
             with self.subTest(path=path):

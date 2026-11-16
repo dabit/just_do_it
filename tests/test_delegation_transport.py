@@ -54,6 +54,8 @@ class TransportSelectionTest(unittest.TestCase):
             "one pane per task",
             "A Butler runs one phase at a time.",
             "Herdr's `kinds:` line lists the kinds it supports",
+            "Herdr here is either surface, the Herdr TUI or the Herdr app",
+            "or `error` on the app",
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(

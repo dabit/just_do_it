@@ -578,7 +578,7 @@ Gate: passed (after amendment)
 
 **Wave 3** — run together
 - [x] [06](06-herdr-h2-h8-waves-app.md) — `reference/herdr.md`: app variants of H2–H8 and waves (depends on: 03) — Planner Task 4
-- [ ] [07](07-callers-step-zero-and-delegation.md) — Callers: the step-0 line in nine commands, and `reference/delegation.md`, name either surface (depends on: 03) — Planner Task 6, minus `commands/herd.md`
+- [x] [07](07-callers-step-zero-and-delegation.md) — Callers: the step-0 line in nine commands, and `reference/delegation.md`, name either surface (depends on: 03) — Planner Task 6, minus `commands/herd.md`
 
 **Wave 4**
 - [ ] [08](08-h9-app-worktrees-and-herd.md) — H9 on the app (worktree create, open, list, remove) and `/jdi:herd` on either surface (depends on: 06) — Planner Task 5 + Task 6's `commands/herd.md` part
