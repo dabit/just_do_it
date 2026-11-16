@@ -467,6 +467,37 @@ class HerdrOperationsTest(unittest.TestCase):
             "herdr-app do agent.focus --terminal <terminal>",
         )
 
+    def test_h6_app_answer_reaches_a_done_worker(self):
+        """Task 19, R6: a worker that ended its turn reports `done`, which `--if idle` refuses.
+
+        Nothing JDI does (get, read, wait, focus) moves `done` to `idle`, and `--if` takes only
+        `idle` or `working`, so a `done` worker gets a plain send after `hc get` shows `done`.
+        """
+        heading = "### H6 on the app"
+        self.assertNotIn(
+            normalized(
+                'with step 3 on the app: `hc send <terminal> "<answer>" --if idle'
+            ),
+            self.section_text(heading),
+        )
+        self.assertSectionContains(
+            heading,
+            "Read `hc get <terminal> --json` first; its `status.state` decides",
+            '`idle`: `hc send <terminal> "<answer>" --if idle --wait --timeout 300`',
+            '`done`: `hc send <terminal> "<answer>" --wait --timeout 300`, with no `--if`',
+            "`--if` takes only `idle` or `working`",
+            "a `done` worker stays `done` until its next turn starts",
+            "`hc get`, `hc read`, `hc wait` and focusing its pane all leave it `done` (R6)",
+            "`hc send` without `--force` still refuses a `blocked` worker (exit 9)",
+            "Anything else, including no status, `blocked`, `working` or `error`: type nothing",
+            "Run the check and the send back to back",
+        )
+        self.assertSectionContains(
+            "### H5 on the app",
+            "`done` stays until the next turn starts",
+            "`hc send --if idle` refuses it (exit 10)",
+        )
+
     def test_h8_app(self):
         self.assertSectionContains(
             "### H8 on the app",

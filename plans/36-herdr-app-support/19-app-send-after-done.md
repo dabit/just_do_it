@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 19 — `reference/herdr.md`: app sends that meet a `done` agent
 
 Depends on: 12, 14

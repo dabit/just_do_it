@@ -536,6 +536,10 @@ Classification reads the JSON hc prints, on stdout and stderr. The exit code onl
 check-in whose `--timeout` expired prints `reason: timeout` on stdout with exit 0, and is not an
 error.
 
+`done` stays until the next turn starts. Reading the worker does not clear it: `hc get`, `hc read`,
+`hc wait` and focusing the pane leave it `done`, and `hc send --if idle` refuses it (exit 10). Any
+answer JDI sends to a worker whose turn ended follows H6 on the app's `needs_input` step.
+
 | Observed | Meaning | Butler action |
 |---|---|---|
 | `working` or `reason: timeout` (a per-call `--timeout` expired) | still running | Under the overall deadline: print one progress line and loop `hc wait`. At the deadline: go to the overall timeout row |
@@ -594,10 +598,23 @@ Butler can answer a question only once the worker is idle.
 The Butler never answers a dialog for the user: never `hc keys`, never `hc send --force`, never
 `hc interrupt`, even where the hc manual suggests `hc keys` for a trust dialog.
 
-**`needs_input` in `result.json`** follows the TUI's four steps, with step 3 on the app:
-`hc send <terminal> "<answer>" --if idle --wait --timeout 300`. `--if idle` keeps the answer out of
-any dialog that opened meanwhile, and a refusal is read as in H5 on the app. Then resume H5 on the
-app.
+**`needs_input` in `result.json`** follows the TUI's four steps. Step 3 on the app sends the answer
+by the worker's status. Read `hc get <terminal> --json` first; its `status.state` decides:
+
+- `idle`: `hc send <terminal> "<answer>" --if idle --wait --timeout 300`. `--if idle` keeps the
+  answer out of any dialog that opened meanwhile.
+- `done`: `hc send <terminal> "<answer>" --wait --timeout 300`, with no `--if`. A worker that
+  stopped to ask has ended its turn, and a `done` worker stays `done` until its next turn starts:
+  `hc get`, `hc read`, `hc wait` and focusing its pane all leave it `done` (R6). `--if idle`
+  refuses it (exit 10), and `--if` takes only `idle` or `working`, so the answer could never reach
+  it. The plain send is safe then: `done` means the turn ended with no dialog open (a dialog
+  reports `blocked`, or no status at start-up), and `hc send` without `--force` still refuses a
+  `blocked` worker (exit 9).
+- Anything else, including no status, `blocked`, `working` or `error`: type nothing. `blocked` goes
+  to the dialog path above; for the rest, show the user what `hc get` and `hc read` show and ask.
+
+Run the check and the send back to back, with nothing between them. A refusal typed nothing and is
+read as in H5 on the app. Then resume H5 on the app.
 
 ## H7 - Validate the result
 

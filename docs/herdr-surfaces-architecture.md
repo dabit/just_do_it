@@ -184,7 +184,7 @@ with the decision or probe behind it.
 | H4 Start the agent | `herdr agent start <name> --kind <kind> --pane <id> --timeout 120000` | the agent is the split's `argv`. Then `hc label <terminal> jdi.agent=<agent name>` (D5), the run files, and a readiness `hc wait <terminal> --timeout 120`. Only `status: idle` is ready; anything else, including a timeout with no status, is not ready: H8 and the native rung (D7) |
 | H5 Prompt and wait | `herdr agent prompt … --wait --timeout 300000`, then `herdr agent wait` | `hc send <terminal> "<short prompt>" --if idle --wait --timeout 300` (D6), then `hc wait <terminal> --timeout 300`. **hc timeouts are seconds, not milliseconds** |
 | H5 States | `working`, `blocked`, `idle`, `done`, `unknown` | `working`, `blocked`, `idle`, `done`, `error`; a program that reports nothing has no status. `reason: timeout` is a check-in on stdout with exit 0 (A5). `reason: message` ends a wait when the Butler itself receives a message. `not_started` from `send --wait` is the counterpart of `agent_prompt_stalled`. If a status disappears mid-run, each check-in also looks for `result.json` (P10). Exit codes: 3 not found, 9 blocked, 10 status mismatch, 11 finished |
-| H6 Inspect | `herdr agent get`, `agent explain`, `agent read --source …` | `hc get <terminal>` (a blocked status may carry `kind`: permission, question or auth) and `hc read <terminal> --lines 80`. While a terminal is blocked or working, history reads return only the screen. Focus on a yes: `herdr-app do agent.focus --terminal <t>`. A `needs_input` answer is sent with `--if idle` (D6) |
+| H6 Inspect | `herdr agent get`, `agent explain`, `agent read --source …` | `hc get <terminal>` (a blocked status may carry `kind`: permission, question or auth) and `hc read <terminal> --lines 80`. While a terminal is blocked or working, history reads return only the screen. Focus on a yes: `herdr-app do agent.focus --terminal <t>`. A `needs_input` answer is sent only after `hc get` shows `idle` (then `--if idle`) or `done` (then a plain send, since `--if` cannot target `done` and a dialog is never `done`); anything else types nothing (R6) |
 | H6 Never answer a dialog | never `send-keys` | never `hc keys`, never `hc send --force`, never `hc interrupt` (P9). `hc send` refuses a blocked terminal with exit 9 (A4), the counterpart of `agent_blocked`; `--if idle` extends that refusal to a terminal with no status, such as one showing a start-up dialog |
 | H7 Validate | unchanged | unchanged. The result still arrives through the run directory, which a worker on the app can write (A12) |
 | H8 Close | `herdr pane close <pane>`; `herdr tab close <tab>` | `herdr-app do pane.close --pane <pane>`, which ends its terminal; `herdr-app do tab.close --id <tab> --confirmed true`. A `pane.split --argv` terminal whose program exited is already finished and its pane removed, so exit 1 with `{"error": "no pane …"}` or `{"error": "no tab …"}` on stdout means "already gone" (A7) |
@@ -317,8 +317,9 @@ session and app home through the isolation guard, with a nested throwaway TUI on
   state as a `status` string (`idle`, `working`, `done`, …), absent when the terminal reports none;
   `state` there is the terminal's lifecycle (`live`). G2 pins `status` as the key to read, so no
   per-terminal `hc get` is needed. A known follow-up came out of the same probe: after a finished
-  turn the status is `done`, and `hc send --if idle` refuses a `done` agent; that is tracked
-  separately, and cleanup sends nothing.
+  turn the status is `done`, and `hc send --if idle` refuses a `done` agent. R6 showed nothing
+  JDI does clears `done`, so H6 answers a `done` worker with a plain send after checking its
+  status (see the H6 row); cleanup sends nothing.
 - **R5, git.** The porcelain prints a worktree's resolved path even when it was added through a
   symlink, while an app space keeps its `folder` in the form it was opened with. G3 amended the app
   match to resolve the folder with `pwd -P` first. A worktree whose folder was deleted is marked

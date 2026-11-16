@@ -1318,6 +1318,56 @@ Butler, 2026-11-16: G2 accepted. It corrects a field name (the listing's `status
 
 Finding carried to task 19: after an agent's turn ends its status is `done`, and `hc send --if idle` refuses it ("done, not idle"). The app H6 answer to `needs_input` (task 06) uses `--if idle`, so it would always be refused for a worker that stopped to ask. Task 19 probes how `done` becomes sendable and fixes H6 (and any other `--if idle` send that can meet `done`).
 
+### R6 (app): sends that meet a `done` agent (task 19)
+
+Run 2026-11-16, same versions as above (`hc send --help` lists `--if` values `idle` and `working` only,
+and neither `hc send --help`, `hc wait --help` nor `hc --skill` documents a "seen" step that moves
+`done` to `idle`). A new guard `<scratch>/g` as in the harness above (refusal check: `exit=64`, the
+same stderr line), a new `<probe-session>` and `~/.config/<probe-home>`, and a fresh app window
+(`frame-welcome` closed). A space `butler` on `<scratch>` (focused) and a space `worker` on
+`<scratch>/work` opened with `space.new --argv '["<absolute claude>","--model","haiku",
+"--permission-mode","default"]' --focus false` (terminal `t2`). Only `<scratch>/work` was
+pre-trusted in `~/.claude.json`. Every command went through the guard.
+
+- **Reaching `done`.** `hc wait t2 --timeout 60` → `reason: status, status: idle, turn: 0`. Then
+  `hc send t2 "Reply with the single word OK. No tools." --if idle --wait --timeout 90 --json` →
+  `{"started":true,"status":"idle","turn":0,"wait":{…"reason":"status","status":"done","turn":1}}`.
+  `hc get t2 --json` → `"status":{"app":"claude-code","state":"done"}`; `hc ls --json` →
+  `"status":"done","turn":1`.
+- **Nothing JDI does clears `done`.** Three `hc get t2 --json` in a row, `hc read t2 --lines 15`,
+  `hc wait t2 --timeout 5` (returned at once: `reason: status, status: done, turn: 1`), and
+  `herdr-app do agent.focus --terminal t2` (the window then reported `agent: t2`) each left
+  `hc get` at `state: done`. `herdr-app ls` showed the tab `settled: false` throughout.
+- **Sends to a `done` agent.** `--if idle` → exit 10, `{"error":{"hint":"nothing was typed",
+  "kind":"status_mismatch","message":"t2 is done, not idle"}}`. `--if working` → exit 10, the same
+  error with `done, not working`. Plain `hc send t2 "Reply with the single word TWO. No tools."
+  --wait --timeout 90 --json` (no `--if`) → exit 0,
+  `{"started":true,"status":"done","turn":1,"wait":{…"status":"done","turn":2}}`; the screen shows
+  `● TWO`. A plain send types into a `done` agent and starts its next turn; `--wait` follows it.
+- **A `blocked` agent.** Plain `hc send t2 "Use the Bash tool to run exactly: touch probe.txt"`
+  (from `done`) started turn 3; `hc wait` → `status: blocked`; `hc get` →
+  `{"kind":"permission","msg":"approve Bash: touch probe.txt","state":"blocked"}`. Plain
+  `hc send t2 "no" --json` → exit 9, `{"error":{"hint":"typing would answer its dialog; read its
+  screen first (hc read t2), or --force","kind":"blocked","message":"t2 is blocked (permission)"}}`;
+  `--if idle` → the same exit 9 and error. The dialog stayed open and `probe.txt` was never
+  created. The dialog was left unanswered (rule 7) and closed with its space.
+- **Verdict for H6.** Reading does not clear `done`, so the "read first, then `--if idle`" rule is
+  not available. Smallest rule R6 supports: read `hc get <terminal> --json`; `idle` → send with
+  `--if idle`; `done` → plain send (no `--if`); anything else → type nothing. The plain send is
+  dialog-safe on `done` because a dialog reports `blocked` (refused without `--force`, exit 9) or,
+  at start-up only, no status, and `done` is neither. The remaining gap is the moment between the
+  check and the send; H6 runs them back to back. H5's first prompt and H9's handoff follow a
+  readiness wait that saw `idle` at turn 0, so they cannot meet `done` and keep `--if idle`.
+- **Cleanup.** `space.close --confirmed true` on both spaces, `window.close`, `hc server stop`
+  (`{"stopped":true}`), all through the guard; `herdr-app status` then exited 2. Removed the
+  throwaway home, `~/.local/state/herdr-core/<probe-session>/`, the probe agent's transcript folder
+  under `~/.claude/projects/`, the `~/.claude.json` `projects` entry for `<scratch>/work` (deleted
+  with `jq`, not restored wholesale) and `<scratch>`. No TUI was started, so no
+  `~/.config/herdr/sessions/` or rename state was created. Checks afterwards: the user's
+  `hc ls --json` has 1 terminal (as before); `~/.local/state/herdr-core/`, `herdr session list`,
+  `~/.config/herdr/sessions/`, `~/.claude/projects/`, the `~/.claude.json` project keys and the
+  real repository's `git worktree list` (1 line) are unchanged.
+
 ## Tasks
 
 **Wave 1** — run together
@@ -1356,7 +1406,7 @@ Finding carried to task 19: after an agent's turn ends its status is `done`, and
 - [x] [17](17-architecture-docs-cleanup.md) — Architecture docs: the herd record and cleanup from it (depends on: 12, 13) — Planner Task 17
 
 **Wave 9b**
-- [ ] [19](19-app-send-after-done.md) — `reference/herdr.md`: app sends that meet a `done` agent (H6 `needs_input`) (depends on: 12, 14)
+- [x] [19](19-app-send-after-done.md) — `reference/herdr.md`: app sends that meet a `done` agent (H6 `needs_input`) (depends on: 12, 14)
 
 **Wave 10**
 - [ ] [18](18-uat-herd-cleanup.md) — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test) (depends on: 12, 13, 14, 15, 16, 17) — Planner Task 18
