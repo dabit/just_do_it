@@ -573,7 +573,7 @@ Gate: passed (after amendment)
 
 **Wave 2** — run together
 - [x] [03](03-herdr-surfaces-h1-confinement.md) — `reference/herdr.md`: the two surfaces, H1 on each, and app-name confinement (depends on: 02) — Planner Task 3
-- [ ] [04](04-user-docs-herdr-surface.md) — User docs: `/jdi:init`, `/jdi:help` and the README name the Herdr surface (depends on: 01) — Planner Task 7
+- [x] [04](04-user-docs-herdr-surface.md) — User docs: `/jdi:init`, `/jdi:help` and the README name the Herdr surface (depends on: 01) — Planner Task 7
 - [ ] [05](05-architecture-docs.md) — Architecture docs: record the surfaces design as decided and probed (depends on: 02) — Planner Task 8
 
 **Wave 3** — run together

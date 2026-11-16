@@ -1,5 +1,5 @@
 ---
-description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, whether roles may ask Jev for typed judgments, where plans and docs live, how delegated roles reach their own process, and which model each role runs on."
+description: "Set up JDI in this repository — write .jdi/config.yml after asking about the issue tracker, what the split pieces become, whether the Executor writes tests first, whether roles may ask Jev for typed judgments, where plans and docs live, how delegated roles reach their own process and which Herdr they use, and which model each role runs on."
 argument-hint: "[optional notes about how this repo works]"
 ---
 
@@ -169,10 +169,9 @@ Follow these steps:
    every value the user does not change" would otherwise preserve something dead.
 
 10. **Ask how delegated roles should run - only when this session is inside Herdr** - First,
-    perform **H1** from JDI's `reference/herdr.md` (beside `reference/config.md`). When its first
-    check fails, because this session is not inside Herdr at all, skip this question entirely and
-    write no `delegation` block: outside Herdr there is nothing to choose, and `native` is what
-    runs.
+    perform **H1** from JDI's `reference/herdr.md` (beside `reference/config.md`). When H1 answers
+    `none`, because this session is not inside Herdr at all, skip this question entirely and write
+    no `delegation` block: outside Herdr there is nothing to choose, and `native` is what runs.
 
     Otherwise, propose `native` (the default) for `delegation.transport`, and explain the other two
     values in one sentence each. `auto` runs a role on another CLI as that CLI's interactive agent
@@ -186,6 +185,14 @@ Follow these steps:
     Say that the value is usually personal: whether someone works inside Herdr is a fact about
     their machine, not about the repository. Offer to leave it out of `config.yml` for the user to
     put in `.jdi/config.local.yml`.
+
+    - Say which Herdr surface H1 found this session in: the Herdr TUI or the Herdr app. Then
+      offer `herdr.surface` only to pin it, and recommend `auto`, the default: it follows whichever
+      Herdr this session runs in, so a user who moves between the Herdr TUI and the Herdr app
+      needs nothing set. Pinning `app` or `tui` makes JDI check only that surface, and never fall
+      to the other one. Say that this value is personal too: which Herdr someone runs is a fact
+      about their machine, so offer to leave it out of `config.yml` for the user to put in
+      `.jdi/config.local.yml`. With no answer, or with `auto`, write no `herdr` block.
 
     - When the user plans to use `/jdi:herd`, offer the `herd` block too: `herd.kind` (the agent
       kind each herd Butler runs, default `claude`), `herd.max_parallel` (how many issues one run

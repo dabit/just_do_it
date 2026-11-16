@@ -17,6 +17,7 @@ class TransportDocumentationTest(unittest.TestCase):
         self.assertIsNotNone(split, "commands/init.md has no frontmatter")
         description = jdi_files.frontmatter_scalars(split[0])["description"]
         self.assertIn("how delegated roles reach their own process", description)
+        self.assertIn("which Herdr they use", description)
 
     def test_init_asks_through_h1(self):
         text = jdi_files.read("commands/init.md")
@@ -46,6 +47,59 @@ class TransportDocumentationTest(unittest.TestCase):
         self.assertIn("one pane per task", body)
         self.assertIn("stays a subagent", body)
         self.assertNotIn("waves unaffected", body)
+
+
+class HerdrSurfaceDocumentationTest(unittest.TestCase):
+    """`herdr.surface` is offered by init and explained by help and the README."""
+
+    def test_init_offers_the_surface_key(self):
+        text = jdi_files.read("commands/init.md")
+        self.assertIn("offer `herdr.surface`", text)
+
+    def test_help_opening_names_the_pinned_surface(self):
+        text = jdi_files.read("commands/help.md")
+        opening = " ".join(
+            jdi_files.paragraph_starting_with(text, "Explain the Just Do It")
+        )
+        self.assertIn("which Herdr surface", opening)
+
+    def test_help_separate_agent_processes_names_the_key(self):
+        text = jdi_files.read("commands/help.md")
+        body = " ".join(jdi_files.section(text, "### Separate agent processes"))
+        self.assertIn("`herdr.surface`", body)
+
+    def test_help_init_row_names_the_surface(self):
+        text = jdi_files.read("commands/help.md")
+        rows = [
+            line
+            for line in text.split("\n")
+            if line.startswith("|") and "/jdi:init" in line
+        ]
+        self.assertTrue(rows, "no /jdi:init row in the help command table")
+        self.assertIn("Herdr surface", rows[0])
+
+    def test_readme_herdr_section_names_the_surface_key(self):
+        text = jdi_files.read("README.md")
+        body = " ".join(
+            jdi_files.section(text, "### Separate agent processes under Herdr")
+        )
+        self.assertIn("`herdr.surface`", body)
+        self.assertIn("the Herdr app", body)
+
+    def test_readme_init_snippet_comment_names_which_herdr(self):
+        text = jdi_files.read("README.md")
+        comments = [
+            line for line in text.split("\n") if line.startswith("/jdi:init") and "# asks about" in line
+        ]
+        self.assertTrue(comments, "no commented /jdi:init snippet in the README")
+        self.assertIn("which Herdr", comments[0])
+
+    def test_readme_init_prose_names_which_herdr(self):
+        text = jdi_files.read("README.md")
+        prose = " ".join(
+            jdi_files.paragraph_starting_with(text, "`/jdi:init` asks about the tracker")
+        )
+        self.assertIn("which Herdr", prose)
 
 
 if __name__ == "__main__":

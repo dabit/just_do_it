@@ -183,7 +183,7 @@ This section uses Claude Code command spellings. For the first command, Codex us
 and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, how delegated roles reach their own process, and models
+/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, how delegated roles reach their own process and which Herdr they use, and models
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -201,8 +201,8 @@ personal override that gets committed is applied to everyone.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
 should write tests first (TDD), whether roles may ask Jev for typed judgments, where plans should
-live, where architecture docs live, how delegated roles reach their own process, and which model
-each role runs on. It
+live, where architecture docs live, how delegated roles reach their own process and which Herdr
+they use, and which model each role runs on. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
@@ -294,6 +294,13 @@ or one naming this session's own CLI, stays a subagent under every value, and yo
 progress in the harness itself. The operations are in `reference/herdr.md`, and the ladder is in
 `reference/delegation.md`.
 
+JDI drives either Herdr: the Herdr TUI in a terminal, or the Herdr app on the desktop.
+`herdr.surface` picks which one. `auto`, the default, uses the Herdr this session runs in; `app` or
+`tui` pins one, and a pinned surface never falls to the other: when it cannot be used, the role
+runs as `native` and `/jdi:herd` stops. Which Herdr you run is a fact about your machine, so the
+key usually belongs in `.jdi/config.local.yml`. Whether Herdr is used at all stays
+`delegation.transport`.
+
 Each run gets its own directory under the repository's git directory (`jdi/runs/<run-id>/`), so
 the run files never land in the working tree. The Butler writes the prompt and a manifest there,
 and the worker writes its report and a `result.json` there last. A terminal transcript is never
@@ -363,15 +370,15 @@ critiques the last thing an agent produced — on demand, never as an automatic 
 and `/jdi:reresearch` throw a phase away and redo it.
 
 `/jdi:herd ENG-1234 ENG-1235` preps several existing issues at once inside Herdr. Each issue gets
-its own git worktree, its own Herdr workspace labeled with the issue title, and its own agent
-running `/jdi:prep`. The agent, its tab and its worktree folder share one readable name built from
-the title and the issue's short ID, such as `add-presence-indicators-eng-1234`; with no title to
-read, the name falls back to `jdi-herd-<issue>`. The command needs Herdr, and it stops with the
-reason when Herdr is missing; it never falls back to a sequential prep. The `herd` block in
-`.jdi/config.yml` sets the agent kind, how many issues one run starts without asking, and what each
-worktree is seeded with.
-The command removes no worktree on its own, and never removes one that holds an uncommitted plan
-without your explicit yes.
+its own git worktree, its own Herdr workspace or space (the Herdr app calls it a space) labeled with
+the issue title, and its own agent running `/jdi:prep`. The agent, its tab and its worktree folder
+share one readable name built from the title and the issue's short ID, such as
+`add-presence-indicators-eng-1234`; with no title to read, the name falls back to
+`jdi-herd-<issue>`. The command needs Herdr, and it stops with the reason when Herdr is missing; it
+never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the agent kind,
+how many issues one run starts without asking, and what each worktree is seeded with. The command
+removes no worktree on its own, and never removes one that holds an uncommitted plan without your
+explicit yes.
 
 The three harnesses use the distinct interfaces shown above and in **Install**. Claude Code keeps
 `/jdi:<command>`, OpenCode keeps `/jdi-<command>`, and Codex passes the command after `$jdi:run`.
@@ -391,7 +398,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `reference/jev.md` | The five Jev operations (J1–J5) that `jev.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How each role becomes an actual model on your harness |
-| `reference/herdr.md` | The Herdr operations (H1-H8) a Butler uses to run a role on another CLI in its own pane, one per task in a wave, and wait for its result, plus H9, which gives each `/jdi:herd` Butler its own worktree |
+| `reference/herdr.md` | The Herdr operations (H1-H8) a Butler uses, on the Herdr TUI or the Herdr app, to run a role on another CLI in its own pane, one per task in a wave, and wait for its result, plus H9, which gives each `/jdi:herd` Butler its own worktree |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
 | `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |
