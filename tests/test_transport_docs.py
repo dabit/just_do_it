@@ -102,5 +102,36 @@ class HerdrSurfaceDocumentationTest(unittest.TestCase):
         self.assertIn("which Herdr", prose)
 
 
+def normalized(text):
+    return " ".join(text.split())
+
+
+class HerdCleanupDocumentationTest(unittest.TestCase):
+    """`/jdi:herd --cleanup [<herd-id>]` is named by help, the README and the 1.0.13 CHANGELOG.
+
+    The AGENTS.md row for `commands/herd.md` gains a matching clause too, but no test pins it.
+    """
+
+    def test_help_herd_row_names_cleanup(self):
+        text = jdi_files.read("commands/help.md")
+        rows = [line for line in text.split("\n") if line.startswith("| `/jdi:herd` |")]
+        self.assertTrue(rows, "no /jdi:herd row in the help command table")
+        self.assertIn("`--cleanup`", rows[0])
+
+    def test_readme_cleanup_paragraph(self):
+        text = jdi_files.read("README.md")
+        paragraph = normalized(
+            " ".join(jdi_files.paragraph_starting_with(text, "`/jdi:herd --cleanup "))
+        )
+        self.assertIn("herd record", paragraph)
+        self.assertIn("never committed", paragraph)
+        self.assertIn("asks once", paragraph)
+
+    def test_changelog_names_cleanup(self):
+        text = jdi_files.read("CHANGELOG.md")
+        body = normalized("\n".join(jdi_files.section(text, "## 1.0.13")))
+        self.assertIn("`/jdi:herd --cleanup [<herd-id>]`", body)
+
+
 if __name__ == "__main__":
     unittest.main()

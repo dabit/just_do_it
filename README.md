@@ -382,6 +382,18 @@ how many issues one run starts without asking, and what each worktree is seeded 
 removes no worktree on its own, and never removes one that holds an uncommitted plan without your
 explicit yes.
 
+`/jdi:herd --cleanup [<herd-id>]` cleans a herd up from its herd record. Every herd writes that
+record under the repository's git directory, one file per herd, so every worktree sees it and it
+is never committed. Cleanup reads the record and never guesses from folder names: with no record,
+it says so and removes nothing. It skips an agent that is still working or blocked, the worktree
+or space this session runs in, and a worktree with uncommitted changes it may not force (only a
+worktree the herd seeded is forced, after its files are listed). A worktree whose plan folder
+holds uncommitted files gets its own question, with the plan commit offered. Everything else goes
+in one list, and the command asks once. For each entry it closes the space or workspace, then
+removes the worktree. It deletes the herd's scratch branch only when that branch has no commits of
+its own, and never deletes a feature branch. It reports, per issue, what it removed and what it
+skipped and why. A normal herd's closing report names the exact cleanup command.
+
 The three harnesses use the distinct interfaces shown above and in **Install**. Claude Code keeps
 `/jdi:<command>`, OpenCode keeps `/jdi-<command>`, and Codex passes the command after `$jdi:run`.
 

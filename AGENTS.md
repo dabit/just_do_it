@@ -24,7 +24,7 @@ The commands are:
 |---|---|
 | `commands/init.md` | Set JDI up for a repo — writes `.jdi/config.yml` |
 | `commands/help.md` | Print the workflow's command table and flow |
-| `commands/herd.md` | Prep several issues in parallel inside Herdr, one worktree and agent each |
+| `commands/herd.md` | Prep several issues in parallel inside Herdr, one worktree and agent each; `--cleanup` cleans a herd up from its herd record |
 | `commands/prep.md` | Start, research, plan, and split in one pass |
 | `commands/do.md` | Read, plan in ten lines, build, verify, open the PR, work the review, and merge — no plan folder |
 | `commands/start.md` | Create the branch and the initial plan |

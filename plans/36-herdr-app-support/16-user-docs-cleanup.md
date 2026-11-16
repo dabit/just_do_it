@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 16 — User docs and CHANGELOG: `/jdi:herd --cleanup`
 
 Depends on: 12, 13

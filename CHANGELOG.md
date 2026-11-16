@@ -77,6 +77,19 @@ agent process, wait for it, and accept its work only through a validated result 
   same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
   `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
   removal without an explicit yes.
+- **`/jdi:herd --cleanup [<herd-id>]` cleans a herd up from its herd record.** Every herd writes a
+  record, one file per herd, under the repository's git directory, so every worktree sees the same
+  file and it is never committed. It is written whole to a temporary file and moved into place,
+  never edited in place, and has the same shape on the TUI and the app. Cleanup reads the record
+  and never guesses from folder names; with no record it removes nothing. It finds each space or
+  workspace by its worktree path, and skips an agent that is still working or blocked, the
+  worktree or space the cleanup itself runs in, and a worktree with uncommitted changes it may not
+  force. A worktree whose plan folder holds uncommitted files gets its own question, with the plan
+  commit offered; the rest go in one list and one question. `--force` is used only for a worktree
+  the herd seeded, after its files are listed. Each space or workspace is closed before its
+  worktree is removed. Only the herd's own scratch branch is deleted, and only when it has no
+  commits of its own; a feature branch is never touched. A normal herd's report now names the
+  exact cleanup command.
 
 **On the Herdr app** (`herdr.surface`):
 
