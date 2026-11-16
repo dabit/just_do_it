@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 17 — Architecture docs: the herd record and cleanup from it
 
 Depends on: 12, 13

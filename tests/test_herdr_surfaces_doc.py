@@ -21,6 +21,7 @@ PRESENT_HEADINGS = (
     "## The app's worktree layout",
     "## Decisions",
     "## App-side live probes",
+    "## The herd record",
 )
 
 
@@ -87,6 +88,27 @@ class HerdrSurfacesDocTest(unittest.TestCase):
         self.assertNotIn('--name "<label>"', operation_map)
         self.assertIn("--name '<label>'", operation_map)
 
+    # Task 17, the herd record and cleanup from it (#37).
+
+    def test_herd_record_section(self):
+        body = re.sub(r"\s+", " ", " ".join(jdi_files.section(self.text, "## The herd record")))
+        for fragment in (
+            "`jdi/herds/<herd-id>.json`",
+            "`--git-common-dir`",
+            "never by a recorded ID alone",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, body, "`## The herd record` lacks %s" % fragment)
+
+    def test_operation_map_has_record_rows(self):
+        rows = jdi_files.section(self.text, "## Operation map")
+        for prefix in ("| H9 Herd record |", "| H9 Cleanup from the record |"):
+            with self.subTest(row=prefix):
+                self.assertTrue(
+                    any(line.startswith(prefix) for line in rows),
+                    "`## Operation map` has no row starting %r" % prefix,
+                )
+
 
 class TransportDocPointsAtSurfacesTest(unittest.TestCase):
     longMessage = False
@@ -102,6 +124,28 @@ class TransportDocPointsAtSurfacesTest(unittest.TestCase):
                     body,
                     "`## Capability detection` in %s lacks %s" % (TRANSPORT_DOC, fragment),
                 )
+
+    # Task 17: the herd layer exists, and its outer layer names cleanup (#37).
+
+    def test_transport_status_is_not_stale(self):
+        flat = re.sub(r"\s+", " ", jdi_files.read(TRANSPORT_DOC))
+        self.assertNotIn(
+            "is planned in the same branch as a separable wave",
+            flat,
+            "%s still calls the `/jdi:herd` layer planned" % TRANSPORT_DOC,
+        )
+
+    def test_two_layers_names_cleanup(self):
+        body = re.sub(
+            r"\s+",
+            " ",
+            " ".join(jdi_files.section(jdi_files.read(TRANSPORT_DOC), "## Two layers")),
+        )
+        self.assertIn(
+            "`/jdi:herd --cleanup`",
+            body,
+            "`## Two layers` in %s does not name `/jdi:herd --cleanup`" % TRANSPORT_DOC,
+        )
 
 
 if __name__ == "__main__":

@@ -5,7 +5,8 @@
 Implemented in release 1.0.13. The role-delegation layer
 (`reference/herdr.md` H1 to H8, the `delegation.transport` key, and rung 2's transport choice in
 `reference/delegation.md`) exists. The `/jdi:herd` layer (the `herd` config block, H9 and
-`commands/herd.md`) is planned in the same branch as a separable wave.
+`commands/herd.md`) exists in the same release, including `/jdi:herd --cleanup`, which removes a
+herd's worktrees from the herd record.
 
 ## Purpose
 
@@ -26,7 +27,8 @@ Two separate mechanisms use Herdr, and they do not share a control loop.
 
 The outer layer is `/jdi:herd`. It fans a list of tickets out to independent Butlers: one
 worktree, one Herdr workspace, one branch and one ticket each. Each Butler is a full JDI session,
-and the herd does not coordinate them after it starts them.
+and the herd does not coordinate them after it starts them. The herd records what it made, and
+`/jdi:herd --cleanup` removes it from that record later.
 
 The inner layer is role delegation inside one Butler. A Butler runs one phase at a time. Inside a
 phase, only a wave runs several workers at once, and the Butler waits for all of them and does
