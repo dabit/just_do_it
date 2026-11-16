@@ -565,6 +565,410 @@ Gate resolved 2026-11-16: the user chose "wait for idle, then `hc send --if idle
 
 Gate: passed (after amendment)
 
+## UAT log
+
+Task 10, run 2026-11-16 on Linux (Wayland), `herdr` 0.9.3, `herdr-app` 0.1.16, `hc` 0.1.21,
+`claude` (mise wrapper), `opencode` 2.2.7. Codex was not used, so `~/.codex/config.toml` was not
+touched.
+
+**Harness.**
+- **Guard.** Every Herdr command ran through the guard `<scratch>/g`, recreated from Task 02. It
+  refuses with exit 64, 0 stdout bytes and a stderr line unless `JDI_PROBE_SESSION` and
+  `JDI_PROBE_HOME` are set and the session matches `jdiprobe-*`. It unsets the nine inherited
+  `HC_*`/`HERDR_*` variables, exports `HC_SESSION=<probe-session>` and
+  `HERDR_APP_HOME=~/.config/<probe-home>`, then `exec "$@"`.
+- **XDG.** As in the probe log, XDG was not overridden, because the core keys its socket and
+  state by session name.
+- **Claude variables.** The guard also unset the driver's own Claude session variables
+  (`CLAUDECODE`, `CLAUDE_CODE_*`, `CLAUDE_PID`, `CLAUDE_EFFORT`), so the throwaway core and its
+  Butlers did not inherit the driving session's identity.
+- **Setup.**
+  - The user's own `hc ls --json` had **1** terminal (read-only, outside the guard).
+  - The clone `<scratch>/repo` has a bare local `origin`, whose `main` is this branch's HEAD
+    `ec1c224`.
+  - The throwaway home's `settings.json` was `{"worktrees":{"directory":"<scratch>/worktrees"}}`.
+  - Through the guard, `herdr-app status` exited 2 ("no Herdr window"). `hc ls --json` printed
+    `{"hidden_finished":0,"terminals":[]}`.
+  - `herdr-app` was started in the background, and its welcome overlay was closed.
+- **Trust.** Only `<scratch>/repo` was pre-trusted in `~/.claude.json`, from a backup. The herd
+  worktree folders were not.
+- **Clone config.** `.jdi/config.local.yml` set:
+  - `tracker: {name: none}`, `jev.enabled: false` and `tdd.enabled: false`;
+  - `models.researcher` and `models.executor` on `harness: opencode` (CLI default model), and the
+    other roles on sonnet or haiku;
+  - `delegation.transport` and `herdr.surface` per scenario.
+- **The Butler.** It ran as `claude --plugin-dir <this repo> --settings
+  '{"enabledPlugins":{"jdi@just-do-it":false}}'`, the argv of a throwaway `space.new` on the
+  clone. The installed copy of the plugin was disabled for that session only. It was driven with
+  `hc send` and read with `hc read`. Evidence comes from the Butler's session transcript (every
+  Bash command it ran), `herdr-app ls`, `hc get`, and the run directories.
+
+**A first attempt with a sonnet Butler (not a scenario result).** Before (a) passed, two runs used
+`claude --model sonnet` as the Butler.
+- **First run.** The prompt said "keep research and the plan minimal". The Butler skipped step 0
+  entirely and did the research inline. The prompt invited that.
+- **Second run** (neutral prompt). H1 answered `app` correctly. The Butler then ran the
+  Researcher through `opencode run` instead of rung 2, behind a spawn line reading `run dir:
+  none`.
+- **Decision.** Both runs were discarded. Every scenario below uses the account's default model.
+  Whether a weaker Butler model must follow rung 2 is a question for the user (see *Findings*, F1).
+
+### (a) Role delegation on the app: **pass**
+
+`transport: auto`, no `herdr` key, `/jdi:prep Add one comment line "# Scratch UAT marker" as the
+first line of jdi.config.example.yml.`
+- **No step-0 note.** H1 ran app checks (a)–(e) in order, `test -S` before any `hc`. Its only
+  message about it was a progress line, "Running the Herdr app checks (step 0)".
+- **The spawn line appears in the output.** The output of the one command
+  `printf '%s\n' "JDI spawn 20261116T214925Z-researcher-a1c4: Researcher on opencode (CLI default)
+  - args: none - env keys: none - run dir: <scratch>/repo/.git/jdi/runs/20261116T214925Z-researcher-a1c4
+  - agent: jdi-researcher-a1c4" && herdr-app do pane.split --pane <butler pane> --direction right
+  --argv '["sh","-c","cd -- \"$1\" && shift && exec \"$@\"","jdi-worker","<scratch>/repo","<absolute
+  opencode>"]' && herdr-app do pane.focus --pane <butler pane>` starts with the spawn line,
+  followed by `{"pane": …, "terminal": "t3"}` and `{"ok": true}`.
+- **One pane to the right.** After the command, `focused_pane` was the Butler's pane again.
+- **The worker runs in the worktree root.** `hc get t3` showed `foreground.cwd` =
+  `<scratch>/repo`, the clone's root, and the label `jdi.agent=jdi-researcher-a1c4`. Its
+  `parent` was `null`.
+- **The H4/H5 order** was `hc label`, then the manifest and `prompt.md`, then `hc wait t3
+  --timeout 120` (`idle`), then `hc send t3 "Read …/prompt.md and follow it exactly. This is JDI
+  run …" --if idle --wait --timeout 300`. That returned `wait.status: idle, turn 1`.
+- **`manifest.json`** has `"transport": "herdr"` and `"herdr": {"surface": "app", "space_id",
+  "tab_id", "butler_pane_id", "pane_id", "terminal_id": "t3", "agent_name", "status_reported":
+  false, "versions": {"app": "herdr-app 0.1.16", "hc": "hc 0.1.21"}}`. `worker.env_keys` is `[]`,
+  so no values were recorded.
+- **H7 accepted `result.json`.** It had `status: complete` and an unchanged `head_commit`. The
+  Butler's spot-check dropped one invented citation.
+- **The pane was closed.** `herdr-app do pane.close` ran. `herdr-app ls` then listed only the
+  Butler's terminal, and `outcome.json` has `final: valid, pane_closed: true`.
+- **Notes.** `status_reported` was `false` even though `hc get` already showed `opencode: idle`
+  (F2). The Butler's visible message did not repeat the spawn line in this run (it did in (b) and
+  (f)). It wrote the task files itself instead of running the Splitter, which this scenario does
+  not test.
+
+### (b) A wave on the app: **pass**
+
+A hand-written plan `plans/uat-wave` with one wave of two tasks: create `uat-a.txt` and
+`uat-b.txt`. The Executors ran on opencode, then `/jdi:execute` and `/jdi:done`.
+- **The wave tab.** `herdr-app do tab.new --name jdi-wave-20261116T215303Z-executor-a1c3 --space
+  <butler space> --folder <scratch>/repo --argv '["<absolute opencode>"]' --focus false` opened
+  the tab `jdi-wave-20261116T215303Z-executor-a1c3`.
+- **First worker.** `t4` ran in the tab's root through the app's `bash -ic` wrapper, with no `sh`
+  wrapper.
+- **Second worker.** `t5` came from `pane.split --pane <t4's pane> --direction right` with the
+  `sh` wrapper and the focus restore.
+- **Folders and the cap.** Both workers had `foreground.cwd` = `<scratch>/repo`. Two worker panes
+  were open, within the cap of 4.
+- **The commands that followed** were labels, readiness `hc wait … --timeout 120` (both `idle`),
+  `hc send … --if idle --wait`, H7 per task, and the union file check.
+- **Spawn lines.** Both were printed by their own spawn commands and repeated in the Butler's
+  message.
+- **Commits.** `/jdi:done` made one commit per task, each with its own path: `e4e8ff0`
+  (`uat-a.txt` and task 01) and `0772408` (`uat-b.txt` and task 02).
+- **The wave tab is gone afterwards.** `pane.close` on both panes, then `tab.close --id <tab>
+  --confirmed true`, which returned `{"error": "no tab …"}`. The tab had **closed itself** when
+  its last pane was closed, so the error was harmless and the Butler treated it as such. It also
+  flagged that `### Waves on the app` and H8 say the wave tab "does not close itself" (F3).
+
+### (c) `/jdi:herd` on the app: **pass**
+
+`/jdi:herd 101 102`, with the default `herd.kind: claude` and no tracker.
+- **Fallback names.** `jdi-herd-101` and `jdi-herd-102`, announced once.
+- **Worktrees** are at `<scratch>/worktrees/repo/jdi-herd-101` and `…/jdi-herd-102`. `repo` is
+  the clone's name from `--git-common-dir`.
+- **Branches.** `git worktree add -b jdi-herd-scratch-20261116T215532-<N> <path> origin/main`, for
+  N = 1 and 2.
+- **Spaces open only after seeding.** `herdr-app do space.new --name "<id>" --folder <path> --tab
+  jdi-herd-<id> --argv '["<absolute claude>"]' --focus false` ran after the worktree step. Seeding
+  was empty, and there was no `--task`.
+- **Space names.** `herdr-app ls` named the spaces `101` and `102`, the issue ID because no title
+  was read. Their tabs were `jdi-herd-101` and `jdi-herd-102`.
+- **Nesting.** A screenshot of the sidebar shows both as branch-icon children of the clone's
+  space, like a dialog-made worktree.
+- **The handoff was typed.** `hc label`, then `hc wait t6/t7 --timeout 120` (both `idle`), then
+  `hc send t6 "/jdi:prep 101" --if idle` (and the same for `t7`). `hc read t6` shows the input
+  `<hc from="t2">/jdi:prep 101</hc>` arriving as a typed message, and the agent's prep started.
+- **The report** lists each issue's terminal (`t6`, `t7`), pane, space ID, state, worktree and
+  branch. It gives the reattach commands and the cleanup order: plan-file check, `space.close`,
+  then `worktree remove`.
+- **No trust dialog.** None appeared, so the amended D7 path was not exercised here. The two
+  agents reached `idle`. No `~/.claude.json` entry was created for the worktree paths, so Claude
+  evidently takes a linked worktree's trust from its trusted main checkout (F4). (c4) below
+  exercises D7.
+- **Prep was not run to completion.** The herd agents stopped on their own, asking for the issue
+  body, and their spaces were then closed.
+
+### (c2) Open and list: **pass**
+
+The driver closed space `102` (`space.close`), leaving its worktree, and asked the Butler to
+perform H9's reattach twice.
+- **First reattach.** `herdr-app ls` showed no space with a folder inside the worktree, so the
+  Butler ran `herdr-app do space.new --folder <scratch>/worktrees/repo/jdi-herd-102 --focus
+  false`. That printed `{space, tab, terminal: "t8"}`, exit 0.
+- **Second reattach.** The space was found by its folder, so the Butler ran `herdr-app do
+  space.select --id <that space>`, which printed `{"ok": true}`.
+- **List.** `git worktree list --porcelain` listed the main checkout and both herd worktrees, each
+  on its `jdi-herd-scratch-…` branch.
+
+### (c3) Remove: **pass**
+
+The driver left `plans/uat-left/NOTE.md` uncommitted in `jdi-herd-101`, then asked the Butler to
+follow the report's cleanup for both issues.
+- **101 was refused.** `git -C <worktree> status --porcelain -- plans` printed
+  `?? plans/uat-left/NOTE.md`. The Butler stopped on 101, named the file, and offered the plan
+  commit or a forced removal. It touched neither the space nor the worktree.
+- **102 was removed.** Its check was empty, then `herdr-app do space.close --id <space>
+  --confirmed true` (`{"ok": true}`), **then** `git -C <scratch>/repo worktree remove <path>`
+  (exit 0, no `--force`).
+- **101 after the file was deleted.** The check was empty, then `space.close` before `worktree
+  remove`, both exit 0. Afterwards `herdr-app ls` listed only the Butler's space,
+  `git worktree list` listed only the main checkout, and the scratch branches were kept as asked.
+
+### (c4) `worktrees.directory` is honoured: **pass**
+
+- **A second absolute path.** `settings.json` was changed to
+  `{"worktrees":{"directory":"<scratch>/wt2"}}`, then `/jdi:herd 103`. The worktree was created
+  at `<scratch>/wt2/repo/jdi-herd-103`.
+- **This run also exercised amended D7.** The clone's trust entry was removed for this run only,
+  then restored.
+  - The agent opened Claude's "Accessing workspace … Is this a project you created or one you
+    trust?" dialog. `hc wait t9 --timeout 120` ended with no status.
+  - The Butler reported issue 103 as **blocked at startup**, named the terminal, pane and space,
+    and said the dialog is the user's to answer. It left the space open.
+  - The transcript has no `hc send` (and no `hc keys`) to `t9`, so nothing was typed. The
+    driver did not answer the dialog either. It closed the space and removed the worktree
+    itself.
+  - The report wrongly blamed the dialog on the missing bypass flag, and said every new
+    worktree hits it, which (c) contradicts (F4).
+- **A relative value.** `{"worktrees":{"directory":"relative/dir"}}`, then `/jdi:herd 104`. The
+  herd stopped at step 6 with "worktrees.directory is "relative/dir" … only accepts an absolute
+  path or one starting with ~". It created no worktree, branch, space or agent, did not fall back
+  to `~/.herdr/worktrees`, and `<scratch>/repo/relative` does not exist.
+
+### (d) `transport: native`: **pass**
+
+`/jdi:prep Create a file uat-native.txt at the repository root containing the single word native.`
+ran to completion: branch, research, plan and tasks.
+- **No Herdr command.** The transcript's 22 tool calls contain no `hc`, `herdr-app` or `herdr`
+  command. The only "herdr" strings are reads of this branch's `plans/36-herdr-app-support/`
+  files used as format examples.
+- **No mention.** No progress line or final summary mentions Herdr, the transport or a pane. The
+  Researcher ran through `opencode run` (rung 4's exec mode), and the summary says only that it
+  "ran on opencode with the CLI's default model". `herdr-app ls` listed only the Butler
+  throughout.
+
+### (e) Pinned `tui` inside the app: **fail (announcement only; routing passes)**
+
+`/jdi:research` on the plan from (d).
+- **Under `auto`, routing passes.** No `hc` or `herdr-app` command ran, and the Researcher ran
+  natively through `opencode run`.
+- **Under `auto`, it was not silent.** The Butler printed the progress line "Surface pinned to
+  `tui`; running the TUI checks." Its summary said "Herdr wasn't running here, so the Researcher
+  ran directly in OpenCode, outside Herdr."
+- **It kept checking after (a) failed.** It ran the TUI checks (a)–(c) in one command, including
+  the read-only `herdr status`, although (a) (`HERDR_ENV` unset) had failed. Expected: a silent
+  `native` and no further checks after the first failure.
+- **Under `herdr`, routing passes.** `native` through `opencode run`, no app command, and no
+  fall to the app.
+- **The note is off-pattern.** The note said "Delegation is configured as `herdr`, but the Herdr
+  check failed: `HERDR_ENV` is empty … I delegated without it.", plus the progress line "Herdr
+  check failed". It does not name the surface. Expected exactly one note in the pattern
+  "Herdr (tui) is not usable here: …".
+- **Diagnosis.** The decision logic works, but the Butler paraphrases the announcement and
+  narrates H1 under `auto`. `## When a step fails` holds the pattern, and step 0 does not quote
+  it. The "nothing … mentions the transport, summaries included" rule is written only for
+  `native`, not for a silent `auto` (F5).
+- **Decision needed from the user.** Accept this as is, or open a follow-up task (F5).
+
+### (f) Invalid value: **pass**
+
+`herdr.surface: bogus`, `transport: auto`, `/jdi:research`.
+- **One note.** The summary says once: "`herdr.surface` in the local file is `bogus`, which isn't
+  a valid value. I treated it as `auto`, and that resolved to the Herdr app."
+- **Then (a)'s behaviour.**
+  - Spawn line plus `pane.split … --direction right` plus focus restore, then a label, the
+    readiness `hc wait` (`idle`), and `hc send … --if idle --wait`.
+  - H7 `valid` (`20261116T221140Z-researcher-e525`), then `pane.close`.
+  - The spawn line is repeated in the summary.
+  - The Butler flagged `status_reported: false` itself (F2).
+
+### (g) Outside any Herdr, with a named session set: **pass on routing; the pinned note is off-pattern**
+
+The Butler ran in the driver's plain shell through the guard: `claude -p --plugin-dir <this repo>
+… --output-format stream-json --verbose "/jdi:research"` in `<scratch>/repo`.
+`HC_SESSION=set HERDR_APP_HOME=set`, and `HC_TERMINAL_ID` and `HERDR_ENV` were unset.
+- **Under `auto`: pass.** It was silent: the result text never mentions Herdr. No `hc`,
+  `herdr-app` or `herdr` command ran. The H1 step was `printenv HERDR_ENV; echo "HC=[$(printenv
+  HC_TERMINAL_ID)]"`, then native through `opencode run`. The throwaway `hc ls --json` count was
+  1 before and 1 after, so no core was auto-started.
+- **`herdr.surface: app` and `transport: herdr`, routing passes.** App checks (a)–(c) were
+  `printenv`, `command -v` and `test -S`, with no `hc` and no `herdr` TUI command. The run then
+  went `native` through `opencode run`.
+- **The note is off-pattern.** One note: "Herdr couldn't be used. Its first check failed because
+  `printenv HC_TERMINAL_ID` printed nothing, and `HC_TERMINAL_SOCKET` is also unset." It does not
+  name the surface, where "Herdr (app) is not usable here: …" was expected (F5). The count was
+  still 1.
+- **Stray file.** The Butler wrote `opencode run`'s output to a file in its own temporary folder
+  (outside `<scratch>`). The driver removed it in cleanup.
+
+### (h) The TUI path, nested: **pass**
+
+A throwaway space ran `<absolute herdr> --session <probe-session>` (a TUI inside an app
+terminal). The Butler was started in its pane `w1:p1` with `herdr agent start uat-butler --kind
+claude --pane w1:p1 -- --plugin-dir <this repo> …` and given `/jdi:research` with
+`herdr agent prompt`, under `transport: auto`.
+- **The innermost surface wins.** Both variable sets were present. App checks (a)–(c) passed,
+  then `hc get "$HC_TERMINAL_ID" --json` showed `foreground` = `herdr`, so the Butler said
+  "Foreground is `herdr` → surface is TUI". It then ran TUI checks (b) and (c).
+- **The worker started as in 1.0.10.** The spawn line plus `herdr pane split --current
+  --direction down --cwd <scratch>/repo --no-focus` (the layout picked `down`), then `herdr agent
+  start jdi-researcher-f47d --kind opencode --pane w1:p2 --timeout 120000`, then `herdr agent
+  prompt … --wait --timeout 300000`.
+- **Manifest.** `"herdr": {"surface": "tui", "workspace_id": "w1", "tab_id": "w1:t1",
+  "butler_pane_id": "w1:p1", "pane_id": "w1:p2", "agent_name": "jdi-researcher-f47d",
+  "integration": "opencode: current (v13)"}`.
+- **It completed through H7**, with `result.json` `complete` and `outcome.json` `final: valid,
+  pane_closed: true`.
+- **Its pane was closed.** `herdr pane close w1:p2` ran, and `herdr pane list` then listed only
+  `w1:p1`.
+- **A `herdr status` wording mismatch.** 0.9.3 prints `endpoint_compatible: yes` and
+  `private_protocol_compatible: yes`, with no plain `compatible: yes` line. The Butler took
+  both as passing check (c) (F6).
+
+### (u1) The default app window, with no named session: **pending, user to walk**
+
+Not run by the agent. Steps for the user:
+1. **Check the window.** In a terminal of your normal Herdr app window, run `printenv HC_SESSION
+   HERDR_APP_HOME`. It should print nothing.
+2. **Make a disposable checkout of this repository.** For example, run `git worktree add
+   ../jdi-u1 36-herdr-app-support-u1` from a new branch, or clone the repo. Add a
+   `.jdi/config.local.yml` with `tracker: {name: none}`, `models.researcher: {harness: opencode,
+   model: ""}` and `delegation: {transport: auto}`, with no `herdr` key.
+3. **Start the Butler.** In an app terminal in that checkout, start `claude --plugin-dir <path of
+   this branch's checkout>`. Run `/jdi:prep Add a comment line to jdi.config.example.yml`.
+4. **Expected** (as in (a)):
+   - no step-0 note;
+   - a `JDI spawn` line in the split command's output;
+   - one opencode pane opening to the **right** of the Butler, with focus returning to the Butler;
+   - the run directory's `manifest.json` having `"herdr": {"surface": "app", …, "terminal_id": …}`
+     and env keys only;
+   - the Researcher's result accepted;
+   - the pane closed afterwards.
+
+   A herd from this window would use `~/.herdr/worktrees`, or your own `worktrees.directory`.
+5. **Clean up.** Close the Butler and remove the disposable checkout and its branch.
+
+### (u2) An existing TUI user: **pending, user to walk**
+
+Not run by the agent. Steps for the user:
+1. **Start the Butler.** In your own Herdr TUI (`HERDR_ENV=1`), in a disposable checkout of this
+   branch, set `.jdi/config.local.yml` to `tracker: {name: none}`, `models.researcher: {harness:
+   opencode, model: ""}` and `delegation: {transport: auto}`, with no `herdr` key. Start `claude
+   --plugin-dir <this branch's checkout>`.
+2. **Run one delegated role.** For example, `/jdi:prep Add a comment line to
+   jdi.config.example.yml`.
+3. **Expected:** exactly the 1.0.10 behaviour, as in (h):
+   - no note;
+   - the spawn line, then `herdr pane split --current --direction <right|down> --cwd <root>
+     --no-focus`, then `herdr agent start … --kind opencode`, then `herdr agent prompt … --wait`;
+   - `manifest.json` having `"surface": "tui"` in its `herdr` object, which is the only
+     additive change;
+   - H7 valid and the pane closed.
+
+### Repository scans
+
+1. **TUI assertions only grew.** `git diff --numstat b06fbdb… -- tests/test_herdr_operations.py
+   tests/test_herd.py` printed `81 0 tests/test_herd.py` and `198 0
+   tests/test_herdr_operations.py`. The deletions column is 0 for both files.
+2. **No hardcoded session, home or personal path.** Three lines matched, all of them the guard
+   tests' own needle lists, which assert those strings are *absent*:
+   - `tests/test_herdr_operations.py`: the comment about `${HERDR_APP_HOME:-...}` and the
+     `for fragment in (…)` needle list in `test_no_personal_values`;
+   - `tests/test_herdr_surfaces_doc.py`: the `assertNotIn` on a home-directory path.
+
+   No hardcoded value was added. The scan's literal "no output" cannot hold while those guard
+   tests exist.
+3. **App names are confined.** No output.
+4. **Full suite.** `python3 -m unittest discover -s tests -v`: `Ran 166 tests … OK`.
+
+### Clause map status
+
+| Clause | Status |
+|---|---|
+| Detect app vs TUI vs none | **pass**: tests green; (a) app, (h) TUI, (g) none |
+| … with a config override | **routing passes**: (e), (g) pinned, (f) invalid. **Announcement wording fails** in (e) and (g) (F5), which needs the user's decision |
+| Route role delegation | **pass**: (a), and (f) |
+| Route waves | **pass**: (b) |
+| Route `/jdi:herd` | **pass**: (c), and (c4) for amended D7 |
+| App worktrees: create in the dialog's layout | **pass**: (c), (c4) |
+| … open | **pass**: (c2) |
+| … list | **pass**: (c2) |
+| … remove | **pass**: (c3) |
+| … honour `worktrees.directory` | **pass**: (c), (c4) |
+| … spaces nest under their repo | **pass**: (c), sidebar screenshot |
+| Sessions: never hardcode or set | **pass**: scans 2 and 3, and tests |
+| … works with them set | **pass**: every agent scenario ran under a named session and app home, and (g) with no terminal |
+| … works without them | **pending**: (u1) |
+| TUI path unchanged | **pass**: scan 1 and (h). (u2) is **pending** |
+| `native` stays silent | **pass**: (d) |
+
+### Findings for follow-up (not fixed here; product docs are a new task)
+
+- **F1. Butler model.** A sonnet Butler skipped rung 2 after detecting the app. It used
+  `opencode run` behind a spawn line with "run dir: none". The default-model Butler followed rung
+  2 every time.
+- **F2. `status_reported`.** It was `false` in every app manifest, (a) and (f), although the
+  worker already reported `idle`. H4 on the app writes the manifest (step 4) before the readiness
+  wait (step 5), and the manifest is never edited. Either H4 checks `hc get` before writing it,
+  or A3 defines the field as "at write time".
+- **F3. The wave tab closes itself.** On herdr-app 0.1.16 it closes when its last pane is closed
+  with `pane.close`. `### Waves on the app` and `### H8 on the app` say it "does not close
+  itself". That is true only while the first worker's shell is live. The `no tab` handling
+  already covers it.
+- **F4. Trust dialogs and worktrees.** Claude takes a linked worktree's folder trust from its
+  trusted main checkout. H9 on the app's "a new worktree is a folder Claude … has not seen, so
+  they open a folder-trust dialog" is therefore not always true. A herd from a trusted repository
+  hands off directly, and only an untrusted main checkout produces D7's blocked-at-startup path.
+- **F5. Step-0 announcements.** Under a pinned surface, the `herdr` note did not name the surface
+  or follow `## When a step fails`' pattern, in (e) and in (g). Under `auto` with the pinned
+  surface's first check failing, the Butler narrated H1 and mentioned Herdr in its summary, and
+  kept checking after the first failure, in (e). Step 0 could quote the note's pattern and say
+  that silence under `auto` covers summaries too.
+- **F6. `herdr status` wording.** H1 on the TUI, check (c), says `compatible: yes`. `herdr`
+  0.9.3 prints `endpoint_compatible: yes` and `private_protocol_compatible: yes`.
+- **F7. Name quoting.** In (c) the Butler passed the space name double-quoted (`--name "$i"`),
+  where H9 says to single-quote it. That is harmless for numeric IDs, and in (c4) the Butler
+  single-quoted it.
+
+### Cleanup
+
+- **Throwaway TUI and window.**
+  - The throwaway TUI was stopped with `herdr --session <probe-session> server stop`, through the
+    guard.
+  - Every remaining space was closed with `space.close --confirmed true`.
+  - `herdr-app do window.close` through the guard printed `{"ok": true}`. Only the throwaway
+    window process ended, and the user's own `herdr-app` processes kept running.
+  - `hc server stop` through the guard printed `{"stopped":true}`.
+- **What was removed.**
+  - `git worktree prune` was run in the clone. The throwaway home, `<scratch>`, and the session
+    folders `~/.local/state/herdr-core/<probe-session>/`, `~/.config/herdr/sessions/<probe-session>/`
+    and `~/.local/state/herdr-automatic-rename/sessions/<probe-session>/` were removed.
+  - Every `~/.claude.json` `projects` entry under `<scratch>` was removed. The `projects` keys now
+    equal the pre-UAT backup.
+  - The Butlers' transcript folders under `~/.claude/projects/` and their temporary folders for
+    `<scratch>` paths were removed.
+- **Checks afterwards.**
+  - The user's `hc ls --json` still has **1** terminal, unchanged.
+  - `~/.local/state/herdr-core/` lists only the user's four sessions, as before.
+  - Through the guard, `herdr-app status` exits 2.
+  - The real repository's `git worktree list` has 1 entry.
+  - No `~/.config/<probe-home>` remains.
+
+### Decisions after the UAT (user, 2026-11-16)
+- (u1) and (u2) are **deferred to PR review**: task 10 closes as an agent smoke test, not user acceptance. `/jdi:pr` asks again.
+- (e) and (g) behaved correctly but their notes were off-pattern (F5). Fixed by task 11 with tests pinning the wording; re-walking (e)/(g) is deferred with (u1)/(u2).
+- F2, F3, F4, F5, F7 are fixed in task 11 before the PR. F1 (a Sonnet Butler skipping Herdr) and F6 (`endpoint_compatible: yes` still matches) stay recorded here only.
+
 ## Tasks
 
 **Wave 1** — run together
@@ -587,7 +991,10 @@ Gate: passed (after amendment)
 - [x] [09](09-release-1-0-11.md) — Release 1.0.11: version bump and CHANGELOG (depends on: 01, 02, 03, 04, 05, 06, 07, 08) — Planner Task 9
 
 **Wave 6**
-- [ ] [10](10-uat.md) — UAT: JDI under the Herdr app, the Herdr TUI, and neither (depends on: 01, 02, 03, 04, 05, 06, 07, 08, 09) — Planner Task 10, folded in
+- [x] [10](10-uat.md) — UAT: JDI under the Herdr app, the Herdr TUI, and neither (depends on: 01, 02, 03, 04, 05, 06, 07, 08, 09) — Planner Task 10, folded in
+
+**Wave 7**
+- [ ] [11](11-uat-follow-ups.md) — UAT follow-ups: note wording, wave tab, worktree trust, `status_reported`, quoting (depends on: 10) — fixes F2, F3, F4, F5, F7
 
 Critical path: 02 → 03 → 06 → 08 → 09 → 10 (six tasks).
 
