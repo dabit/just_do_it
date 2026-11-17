@@ -48,10 +48,14 @@ Follow these steps:
 1. **Identify the work** — `$ARGUMENTS` is an issue id, an issue or page URL, or a description.
    Run **T1** and **T2** from JDI's `reference/tracker.md` when it names an issue. Empty arguments:
    ask for the change in one line and stop until it comes. Never create an issue here (**T3** needs
-   the user's explicit confirmation, and this command does not ask for one).
+   the user's explicit confirmation, and this command does not ask for one). A request that ends
+   with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)` came from a herd: that
+   clause is not part of the work, so leave it out of the branch name, the commits and the pull
+   request, and with `untracked` run no tracker step at all.
 
-   **One slice, never the whole outcome.** The target is one deliverable slice: a single issue, a
-   sub-issue, a seam. If it is a container for other work (an epic, a parent with sub-issues, a
+   **One slice, never the whole outcome — for a container only.** The target is one deliverable
+   slice: a single issue, a sub-issue, a seam. A plain request (a description, a single issue, a
+   task) is the work as given: never cut it down to a slice of itself. If it is a container for other work (an epic, a parent with sub-issues, a
    commission whose children are seams), do not build the parent. List its unfinished children in
    one line each, recommend the one to start with, and stop. Building a container in one session is
    the plan that sprawls, and its children already say where the cuts are. A container with no
@@ -67,28 +71,59 @@ Follow these steps:
    a past plan over the same area, and read its decisions. Do this yourself: the session that reads
    the code is the session that builds it, so this step delegates nothing.
 
-4. **Plan — ten lines in chat, not a document** — Post it in the message body. No plan folder, no
-   task files, no tracker comment. Four fields, each at most 60 words:
+   **Ask now what must be asked.** When the request says to stop and ask on something, or the
+   reading turns up step 5's *product decision outside the request*, ask it here, before any edit,
+   and wait for the answer. Never build first and ask while checks run. The answers are part of
+   the request and count toward its size in step 4.
 
+4. **Plan — ten lines in chat, not a document; the size is decided before any edit** — Post it in the message
+   body. No plan folder, no task files, no tracker comment. Five fields, each at most 60 words, the
+   size verdict first:
+
+   - **Size:** exactly one of two lines, worded as written: `**Size:** fits one pull request` or
+     `**Size:** too big for one session — <why>`.
    - **Change:** what will be different, in one or two sentences, for the person who uses it.
    - **Files:** the files to edit or add.
    - **Proof:** the tests that will show it works, and the check you will run by hand if any.
    - **Stops:** anything in step 5 this change could run into, or `none`.
 
    With `tdd.enabled` true, run **TS1** from JDI's `reference/testing.md` now and add its `TDD:`
-   line as a fifth field. There is no plan file to hold it, so the chat plan is where it is written
+   line as a sixth field. There is no plan file to hold it, so the chat plan is where it is written
    once and read back for the rest of this run. With `tdd.enabled` false or absent, say nothing
    about TDD.
 
-   **Then continue.** The plan is shown, not submitted: do not wait for approval of it.
+   **This plan is a gate, and the gate is the size decision.** No file is edited, no branch is
+   pushed, and no tool that changes anything runs until the size is decided, in a standalone run
+   and under a herd alike; step 2's branch and issue move are the only changes made before it.
+   The verdict covers the whole request as given, with the answers step 3 collected: never narrow
+   the request to make it fit, and never ship part of it and leave the rest for later. If all of
+   it does not fit one pull request, the verdict is *too big*. Standalone, the verdict is the
+   plan's first field when the plan is shown. Under a herd, post the plan, Size line first, before
+   the first edit: a herd agent works unwatched, and that line is the only trace the decision was
+   made. A *too big* verdict is
+   step 5's *Too big for one session* stop: under a herd, continue with `/jdi:prep` as that stop
+   says; standalone, hand back as it says.
+
+   **Then continue** on a *fits* verdict. The plan is shown, not submitted: do not wait for
+   approval of it.
 
 5. **The only reasons to stop before merge** — Stop, say which one in a sentence, leave a visible
    trace (push the branch, and note it on the issue only if the repository's instructions allow),
    and hand back:
 
    - **Too big for one session.** The change will not fit one reviewable pull request, or step 3
-     turned up a design question with more than one defensible answer. Recommend `/jdi:prep` with
-     what you learned. This is the expected exit for large work, not a failure.
+     turned up a design question with more than one defensible answer; the step-4 size verdict is
+     where this is judged first. Recommend `/jdi:prep` with
+     what you learned. This is the expected exit for large work, not a failure. **Started by
+     `/jdi:herd`** (the request ends with `(started by /jdi:herd)` or
+     `(untracked, started by /jdi:herd)`) **and found before step 6 has changed anything:** do not
+     hand back. Say in one line that the work is too big for one session, why, and that you
+     continue with `/jdi:prep`; then read JDI's prep command
+     (`${CLAUDE_PLUGIN_ROOT}/commands/prep.md`, or, if that variable does not resolve, the prep
+     command file beside this one) and follow its steps on the same request in this session, with
+     what you learned. Push nothing and note nothing on the issue first: prep's step 6 keeps the
+     branch step 2 created, because it already names this work, and creates one when step 2 has not
+     run yet.
    - **A product decision outside the request.** The request does not say how something visible
      should behave, and the code does not settle it either. Ask that one question, offering only
      options whose premise you have read.
@@ -140,7 +175,11 @@ Follow these steps:
     merge with a method the repository allows. Read the allowed methods instead of assuming one;
     never use an admin override, and never bypass a required check. Skip this step only for a reason
     in step 5. **Merging is not deploying:** do not start a production rollout unless the
-    repository's instructions tell you to.
+    repository's instructions tell you to. When the pull request no longer merges cleanly because
+    the default branch moved (a parallel change merged first), bring the branch up to date with
+    `origin/<default>` the way the repository allows, run step 7's gates again, push, and wait for
+    the checks on the new head; a conflict whose resolution needs a product decision is a step-5
+    stop.
 
 11. **Close out** — Read the merge back (the PR shows merged, the commit is on the default branch).
     Close or advance the issue as the repository's tracker workflow does when a PR merges; with

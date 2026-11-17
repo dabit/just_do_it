@@ -183,7 +183,7 @@ This section uses Claude Code command spellings. For the first command, Codex us
 and OpenCode uses `/jdi-init`; their other command names follow the interfaces in **Use it**.
 
 ```sh
-/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, and models
+/jdi:init      # asks about the tracker, the split pieces, TDD, Jev, the plan store, the docs folder, how delegated roles reach their own process and which Herdr they use, and models
 ```
 
 This writes `.jdi/config.yml`. JDI works without it — it just asks as it goes — but a repo you use
@@ -201,7 +201,8 @@ personal override that gets committed is applied to everyone.
 
 `/jdi:init` asks about the tracker, what the split pieces should become, whether the Executor
 should write tests first (TDD), whether roles may ask Jev for typed judgments, where plans should
-live, where architecture docs live, and which model each role runs on. It
+live, where architecture docs live, how delegated roles reach their own process and which Herdr
+they use, and which model each role runs on. It
 proposes answers from the repo's own `AGENTS.md`, `CLAUDE.md`, and directory layout rather than
 starting from zero, and it checks that the plans folder is not gitignored — a trap that loses plans
 silently. On a yes to TDD it also tries the test runner once, there and then, so you find out
@@ -277,6 +278,50 @@ The key is read from `$TYPESAFE_API_KEY` or `~/.config/typesafe/api_key`. It nev
 `.jdi/config.yml`, which is committed, nor in `.jdi/config.local.yml` — uncommitted is not the same
 as secret.
 
+### Separate agent processes under Herdr
+
+`delegation.transport` in `.jdi/config.yml` decides how a role configured on another agent CLI
+runs:
+
+| `delegation.transport` | What you get |
+|---|---|
+| `native` (default) | Nothing changes, and nothing is said. The other CLI runs in its own non-interactive mode, and nothing is probed at the start of a command |
+| `auto` | The Butler checks once, at the start of the command, whether this session is inside a working Herdr. When it is, the other CLI runs as its interactive agent in a Herdr pane, where you can answer it. Outside Herdr it is exactly `native` and says nothing; it announces once when you are inside Herdr but a later check fails |
+| `herdr` | As `auto`, but it announces any failed check once, then delegates as `native` for the run |
+
+Only a role whose `models.<role>.harness` names another CLI is affected. A role with no `harness`,
+or one naming this session's own CLI, stays a subagent under every value, and you watch its
+progress in the harness itself. The operations are in `reference/herdr.md`, and the ladder is in
+`reference/delegation.md`.
+
+JDI drives either Herdr: the Herdr TUI in a terminal, or the Herdr app on the desktop.
+`herdr.surface` picks which one. `auto`, the default, uses the Herdr this session runs in; `app` or
+`tui` pins one, and a pinned surface never falls to the other: when it cannot be used, the role
+runs as `native` and `/jdi:herd` stops. Which Herdr you run is a fact about your machine, so the
+key usually belongs in `.jdi/config.local.yml`. Whether Herdr is used at all stays
+`delegation.transport`.
+
+Each run gets its own directory under the repository's git directory (`jdi/runs/<run-id>/`), so
+the run files never land in the working tree. The Butler writes the prompt and a manifest there,
+and the worker writes its report and a `result.json` there last. A terminal transcript is never
+the result. An `idle` or `done` pane is not proof of success either: the Butler validates the
+result file, the report, the commit the worker started from, and every path the worker changed
+before it uses anything.
+
+A worker's approval, permission, trust, and question dialogs belong to you. When one is blocked or
+asks a question, the Butler tells you which pane, by agent name and pane ID, and you answer it
+there; the Butler never types into it for you.
+
+A wave runs one pane per task, all in one tab of their own, with at most 4 panes open at once. The
+whole wave settles before the Butler acts on any one result, and each task is still committed on
+its own.
+
+When Herdr is not usable, or a worker produces no valid result, the role falls back to the other
+CLI's non-interactive mode, and the phase still runs. The table says when that is announced; a
+worker that fails is always announced. JDI never starts a Herdr server, installs an integration,
+or adds a flag you did not write. A Butler still runs one phase at a time: only a wave runs several
+workers at once, and the Butler waits for all of them before it does anything else in the command.
+
 ## Use it
 
 Claude Code:
@@ -326,6 +371,40 @@ once and runs each wave in order.
 critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`
 and `/jdi:reresearch` throw a phase away and redo it.
 
+`/jdi:herd ENG-1234 "fix the typo in the signup email"` runs several pieces of work at once inside
+Herdr: existing issues, and quoted untracked tasks that need no tracker, whose name, folder and
+herd record entry come from the task's own text. Each one gets its own git worktree, its own
+Herdr workspace or space (the Herdr app calls it a space) labeled with the issue title or the task
+text, and its own agent. What that agent runs is the `herd.mode` key. By default
+(`herd.mode: do`) each agent runs `/jdi:do`: it plans in chat, builds, verifies, opens its pull
+request and merges it, unattended and in parallel with the others, and the repository's own rules
+still win, so where they say an agent may not merge, it stops before the merge. An agent whose work
+is too big for one session continues with `/jdi:prep` in the same space. An agent that stops before
+merging waits in its space, and the sidebar shows it as done, so open the space to see why.
+`herd.mode: prep` is the way back: every agent runs `/jdi:prep` and stops at a plan. `do` mode
+relies on each agent judging size before it builds: in testing, Opus herd agents did, and Sonnet
+agents built an oversized task instead, so pick the herd agents' model accordingly, or use
+`herd.mode: prep`. The agent, its
+tab and its worktree folder share one readable name built from the title and the issue's short ID,
+such as `add-presence-indicators-eng-1234`; with no title to read, the name falls back to
+`jdi-herd-<issue>`. The command needs Herdr, and it stops with the reason when Herdr is missing; it
+never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the mode, the
+agent kind, how many issues one run starts without asking, and what each worktree is seeded with.
+The command removes no worktree on its own, and never removes one that holds an uncommitted plan
+without your explicit yes.
+
+`/jdi:herd --cleanup [<herd-id>]` cleans a herd up from its herd record. Every herd writes that
+record under the repository's git directory, one file per herd, so every worktree sees it and it
+is never committed. Cleanup reads the record and never guesses from folder names: with no record,
+it says so and removes nothing. It skips an agent that is still working or blocked, the worktree
+or space this session runs in, and a worktree with uncommitted changes it may not force (only a
+worktree the herd seeded is forced, after its files are listed). A worktree whose plan folder
+holds uncommitted files gets its own question, with the plan commit offered. Everything else goes
+in one list, and the command asks once. For each entry it closes the space or workspace, then
+removes the worktree. It deletes the herd's scratch branch only when that branch has no commits of
+its own, and never deletes a feature branch. It reports, per issue, what it removed and what it
+skipped and why. A normal herd's closing report names the exact cleanup command.
+
 The three harnesses use the distinct interfaces shown above and in **Install**. Claude Code keeps
 `/jdi:<command>`, OpenCode keeps `/jdi-<command>`, and Codex passes the command after `$jdi:run`.
 
@@ -333,7 +412,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 
 | Path | What it holds |
 |---|---|
-| `commands/` | The 17 workflow commands. These canonical files are written to the orchestrator |
+| `commands/` | The 18 workflow commands. These canonical files are written to the orchestrator |
 | `agents/` | The 7 delegatable roles: Researcher, Planner, Splitter, Executor, Synthesizer, PR Writer, Feedbacker |
 | `roles/butler.md` | The orchestrator role — never spawned; it is the session you are already in |
 | `.codex-plugin/plugin.json` | The native Codex manifest and its `skills/` package entry point |
@@ -344,6 +423,7 @@ The three harnesses use the distinct interfaces shown above and in **Install**. 
 | `reference/jev.md` | The five Jev operations (J1–J5) that `jev.enabled` turns on |
 | `reference/plan-store.md` | Repo mode vs external mode, and what changes in each |
 | `reference/delegation.md` | How each role becomes an actual model on your harness |
+| `reference/herdr.md` | The Herdr operations (H1-H8) a Butler uses, on the Herdr TUI or the Herdr app, to run a role on another CLI in its own pane, one per task in a wave, and wait for its result, plus H9, which gives each `/jdi:herd` Butler its own worktree |
 | `bin/sync-opencode.sh` | The OpenCode adapter — `--global` (default) or `--project` |
 | `examples/` | A committable `.claude/settings.json` for project-scope Claude Code |
 | `tests/` | The `unittest` suite that checks the frontmatter, the config schema, the hand-maintained enumerations, and the versions |
@@ -367,6 +447,9 @@ assumption about the harness:
 - **No subagents are available** → use a second non-interactive session where possible; otherwise
   adopt the role inline and announce the switch, follow it for the phase, then return to
   orchestrator voice.
+- **A role is set on another CLI** → run that CLI's non-interactive mode, or, when
+  `delegation.transport` allows it and Herdr is detected, its interactive agent in a Herdr pane you
+  can answer; either way the Butler waits for its validated result.
 
 Each of the seven delegatable roles has its own entry in `.jdi/config.yml`: `models.<role>.model`
 names the model it runs on, written exactly as the harness that will run it accepts — an alias

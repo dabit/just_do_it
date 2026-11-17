@@ -1,5 +1,141 @@
 # Changelog
 
+## 1.0.13
+
+**JDI works inside Herdr, the TUI or the desktop app: a Butler can run a delegated role as its own
+agent process, wait for it, and accept its work only through a validated result file, and
+`/jdi:herd` runs several issues or untracked tasks at once, one worktree and agent each, each
+agent running `/jdi:do` (or `/jdi:prep`).**
+
+- **`delegation.transport` decides how a role on another CLI runs: `native`, `auto` or `herdr`.**
+  `native` is the default and is the delegation JDI already did; it probes nothing at step 0 and
+  says nothing. `auto` checks for Herdr once, at step 0, and runs the role in a Herdr pane when
+  Herdr is there; outside Herdr it is exactly `native`, and nothing is said. `herdr` does the same,
+  but announces any failed check once. A repo with no `delegation` block behaves exactly as it did.
+  Whether you work inside Herdr is usually true of your machine, so `reference/config.md` suggests
+  setting the key in `.jdi/config.local.yml`.
+- **Only a role configured on a different CLI gets a Herdr pane.** Herdr is used for a role whose
+  `models.<role>.harness` names another CLI. A role on this session's own CLI stays a subagent, as
+  before, and you can watch it in the harness itself. Any role on another CLI qualifies, Executor
+  waves included: a wave gets one pane per task in its own tab, at most 4 open at once, and the
+  Butler lets the whole wave settle before it acts on any one result.
+- **`reference/herdr.md` is the one place every Herdr step is written.** Operations H1 to H9 cover
+  detection, the worker-kind check, run preparation, start, prompt and wait, a blocked worker,
+  result validation, pane close, and a Butler's own worktree for `/jdi:herd`.
+  `reference/delegation.md` calls them by name. Workers run on Herdr's agent surface, so the Butler
+  can tell `working`, `blocked`, `idle`, `done` and `unknown` apart. The older pane-run recipe is
+  gone.
+- **Work is accepted only through a validated result file.** Each run gets its own directory,
+  `<gitdir>/jdi/runs/<run-id>/`, with the Butler's `manifest.json` and `prompt.md`, the worker's
+  `report.md` and `result.json`, and the Butler's `outcome.json`. A terminal transcript is never
+  the result, and `idle` or `done` is not proof of success. H7 checks the run ID and role,
+  `status: complete`, every item the role returns, that HEAD did not move, and that
+  `git status --porcelain` shows no write outside the run's allowed paths. A worker that needs an
+  answer writes `needs_input`, and one that cannot do the work writes `failed`.
+- **A blocked worker, a silent worker and a timeout all go to the user.** Approval, permission,
+  trust and question dialogs belong to the user, who answers them in the worker's pane; the Butler
+  never sends keys into a dialog. A worker that goes idle without a result file is inspected: when
+  its pane ends in a question, the Butler tells the user which pane to answer in (agent name and
+  pane ID) and keeps waiting. Every wait has a timeout, and the overall deadline defaults to 45
+  minutes. At the deadline the Butler never counts the run as a success and never resubmits; it
+  asks whether to keep waiting, accept a file the user has checked, or abandon. Every pane JDI
+  opened is closed on every exit.
+- **Degrades to `native`, never beyond.** A Herdr failure closes the pane, announces once, and runs
+  the same role through its CLI's non-interactive mode. It is never retried on Herdr in the same
+  phase, and the phase always runs. A transport-level failure switches the rest of the run to
+  `native`. JDI detects and never repairs: it starts no Herdr server and installs no integration.
+- **Every separately spawned process is announced in one fixed line, and `native` stays silent.**
+  The spawn command itself prints one line that opens
+  `JDI spawn <run-id or "-">: <Role> on <kind> (<model | CLI default>)` and then lists the args, the
+  env keys and the run dir (a Herdr agent adds its agent name). The same shell command prints the
+  line and then runs the non-interactive CLI or the Herdr pane split, joined by `&&`, so the spawn
+  cannot run without the line. The Butler repeats the line to the user, a summary never claims it
+  unless the command's output shows it, and a Herdr run records it in `manifest.json` as
+  `spawn_line`. A spawn without that line is a defect. Under `native`, or with no `delegation` block, step 0 runs no Herdr command, and the run
+  mentions the transport nowhere, summaries included. Herdr's run files are now written after the
+  pane exists, so `manifest.json` records the real pane ID and is never edited afterward.
+- **The "watch the run" trigger is gone.** Herdr was also used when the user asked to watch a
+  delegated role. `delegation.transport` alone decides now, and a role on this session's own CLI
+  can already be watched in the harness.
+- **Herdr's `kinds:` line is read correctly.** It lists the kinds Herdr supports, not the kinds
+  installed. A worker kind must appear on that line and its CLI must resolve on `PATH`;
+  `herdr integration status` affects only detection quality.
+- **The Feedbacker should not run on the same model and harness as the agent it reviews.** The
+  rule named only the model before. Where no second model or harness is available, the review still
+  runs and says that producer and reviewer shared both.
+- **`/jdi:herd` arrives on the shared Herdr operations; `herd.args` and `herd.env` from PR #5 are
+  replaced by `harnesses.<kind>`.** It preps several issues in parallel, one Herdr worktree,
+  workspace and agent per issue, and it requires Herdr with no fallback. Herd agents take their
+  arguments and environment verbatim from `harnesses.<herd.kind>`, and the `herd` block keeps
+  `kind`, `max_parallel` and `seed`. Each agent, tab and worktree folder gets one readable name,
+  `<slug>-<suffix>`: a slug of the issue title (read with T2) and the issue's short ID, such as
+  `copy-lands-below-f4960613`, falling back to `jdi-herd-<issue>` when no title can be read. The
+  worktree is `<worktrees dir>/<repo>/<name>` and the workspace label is the short ID and the full
+  title, so after a crash `git worktree list` shows which folder belongs to which issue. An existing
+  folder is found by its `-<suffix>` ending, so a renamed title or a different slug still finds it;
+  it is reported, never duplicated or removed.
+  Scratch branches are unique per run, `jdi-herd-scratch-<herd-id>-<N>`, so a second herd in the
+  same repo does not collide with the first. Cleanup is guarded: before a worktree is removed,
+  `/jdi:herd` names any uncommitted plan files, offers the plan commit, and never forces the
+  removal without an explicit yes.
+- **`/jdi:herd --cleanup [<herd-id>]` cleans a herd up from its herd record.** Every herd writes a
+  record, one file per herd, under the repository's git directory, so every worktree sees the same
+  file and it is never committed. It is written whole to a temporary file and moved into place,
+  never edited in place, and has the same shape on the TUI and the app. Cleanup reads the record
+  and never guesses from folder names; with no record it removes nothing. It finds each space or
+  workspace by its worktree path, and skips an agent that is still working or blocked, the
+  worktree or space the cleanup itself runs in, and a worktree with uncommitted changes it may not
+  force. A worktree whose plan folder holds uncommitted files gets its own question, with the plan
+  commit offered; the rest go in one list and one question. `--force` is used only for a worktree
+  the herd seeded, after its files are listed. Each space or workspace is closed before its
+  worktree is removed. Only the herd's own scratch branch is deleted, and only when it has no
+  commits of its own; a feature branch is never touched. A normal herd's report now names the
+  exact cleanup command.
+- **`herd.mode: do | prep` picks what each herd agent runs; the default is `do`.** In `do` mode
+  each agent runs `/jdi:do` and opens and merges its own pull request, **unattended and in
+  parallel** with the others; the repository's own rules still win, so where they say an agent may
+  not merge, it stops before the merge. `herd.mode: prep` is the way back: each agent runs
+  `/jdi:prep` and stops at a plan. Whether a herd may ship unattended is the team's call, so
+  `herd.mode` belongs in `.jdi/config.yml`. The herd announces the mode before the first start, in
+  a quoted line that names `herd.mode: prep` as the way back. A `/jdi:do` started by a herd whose
+  work is too big for one session continues with `/jdi:prep` in the same session instead of
+  handing back; `/jdi:do`'s plan now opens with a size verdict, and the size is decided before any
+  edit, so the judgment is made in every run, herd or not. The verdict covers the whole request,
+  including the answers to any question the request says to ask, which `/jdi:do` now asks before
+  its first edit; it never narrows the request to fit or ships part of it, and under a herd it
+  posts the Size line before the first edit. `do` mode relies on each agent judging
+  size before it builds: in testing, Opus herd agents did, and Sonnet agents built an oversized task
+  instead, so pick the herd agents' model accordingly, or use `herd.mode: prep`. An invalid
+  `herd.mode` runs as `prep`. A herd also
+  takes quoted **untracked** tasks, such as `/jdi:herd ENG-1234 "fix the typo in the signup
+  email"`: they need no tracker, and each is named by a stable hash of its text (`t` followed by
+  six hex digits), so the same text always gets the same name. The invocation is single-quoted on
+  both surfaces, and the herd record gains a `task` field. `/jdi:do` now also updates a branch
+  whose pull request the default branch moved under, then re-runs its gates before merging.
+
+**On the Herdr app** (`herdr.surface`):
+
+- **`herdr.surface` picks which Herdr: `auto`, `app` or `tui`.** The default is `auto`, which
+  detects whether this session runs in the Herdr app or the Herdr TUI. With no `herdr` block,
+  nothing changes for TUI users. Whether Herdr is used at all stays `delegation.transport`; the new
+  key only picks which one. A pinned `app` or `tui` never falls to the other surface: delegation
+  degrades to `native` and `/jdi:herd` stops. Like `delegation.transport`, it is a fact about your
+  machine, so it usually belongs in `.jdi/config.local.yml`.
+- **On the app, JDI types into an agent only once it reports `idle`, never into a dialog.** An
+  agent that never gets there is not ready: JDI types nothing and says why. A "trust this folder"
+  dialog is the usual cause, and answering it is yours. A new worktree takes Claude's trust from
+  its main checkout, so a herd from a trusted repository usually sees none; it shows when that
+  checkout is untrusted, or for a CLI that does not carry trust over. Role
+  delegation then closes the pane and falls back to `native`. `/jdi:herd` reports that issue as
+  blocked at startup and leaves its space open so you can answer the dialog there.
+- **App worktrees follow the app dialog's layout, `<worktrees.directory>/<repo>/<name>`.** The
+  folder is read from the app's own settings (default `~/.herdr/worktrees`), so herd spaces nest
+  under their repository like the ones the app's dialog makes.
+- **JDI never sets session or home variables.** It works with or without a named session, and
+  every worker inherits whatever the app gave it.
+- **Codex users on the app add `--no-daemon` to `harnesses.codex.args`.** JDI adds nothing itself,
+  but notes once when the flag is missing.
+
 ## 1.0.12
 
 **`/jdi:do` — just do it.** A new command that takes one change from request to merged pull

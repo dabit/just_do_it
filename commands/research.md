@@ -20,8 +20,8 @@ Follow these steps:
    is the personal, per-checkout override and is never committed — say in one line which top-level
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
-   Everything below refers to `tracker`, `plans`, `docs`, `consumers`, `jev`, `models`, and
-   `harnesses` from that config.
+   Everything below refers to `tracker`, `plans`, `docs`, `consumers`, `jev`, `models`,
+   `harnesses`, `delegation`, and `herdr` from that config.
 
    **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
    `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
@@ -31,6 +31,16 @@ Follow these steps:
    with what you tried and what came back, and treat this run as `jev.enabled: false` from there on.
    Then hand the role "Jev is available" or nothing as a resolved fact; it never reads the key or
    re-probes. **With `jev.enabled` false or absent, say nothing at all** — nothing was skipped.
+
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes.
+   H1 also settles which Herdr this is, the TUI or the app, from `herdr.surface`. With `herdr`,
+   announce a failed check once, with what came back, and delegate as `native`. With `auto`, say
+   nothing outside Herdr, and announce once when inside Herdr a later check fails. Any other value:
+   say so once, then `native`.
+   **With `delegation.transport` `native` or absent, say nothing at all**: run no Herdr command at
+   step 0, and outside a ladder announcement never mention the transport, summaries included.
 
 1. **Find the plan** — Locate the plan matching `$ARGUMENTS`, or the most recent one, per JDI's
    `reference/plan-store.md`. Read `PLAN.md` to understand what we are working on. If several plans
@@ -67,7 +77,9 @@ Follow these steps:
    back to the Researcher; every `REFUTED` line is relayed to the user before anything built on that
    premise. Then spot-check a couple of the load-bearing `file:line` citations against the real
    files rather than relaying them unverified. A plan built on a hallucinated reference misleads
-   every later step.
+   every later step. When the Researcher ran as a separate process, its findings are the result file
+   the transport validated (`reference/delegation.md`), never a terminal transcript; a result that
+   failed validation was already announced and the role re-run another way.
    - Add relevant past plans to `PLAN.md` under `## References`.
    - Summarise the key points of any relevant architecture doc and reference it from `PLAN.md`.
    - If **no relevant doc exists**, tell the user and ask whether to write one — but first check
@@ -78,7 +90,8 @@ Follow these steps:
      belong to execution and leaves two drafts of one artefact.
 
 5. **Write the missing doc (if approved)** — If the user agrees, delegate to the **Researcher**
-   again to explore the codebase and understand the current architecture:
+   again, delegated exactly as in step 3, to explore the codebase and understand the current
+   architecture:
    - the key data models and their relationships
    - the important controllers, services, handlers, or use cases involved
    - how data flows through the system

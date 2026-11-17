@@ -12,6 +12,7 @@ the set of key paths, never a value.
 """
 
 import pathlib
+import re
 import unittest
 
 import jdi_files
@@ -151,6 +152,237 @@ class ModelsBlockTest(unittest.TestCase):
                     "block, not a flow mapping — a flow mapping loses its children "
                     "silently." % (stem, ", ".join(missing)),
                 )
+
+
+class DelegationBlockTest(unittest.TestCase):
+    """The `delegation:` block has one key, `transport`, defaulting to `native`.
+
+    Every later step that resolves a transport reads `delegation.transport`, so
+    the key has to exist in the schema, the example, and the defaults table, and
+    the schema has to say what each value does and that a role on this session's
+    own CLI is never affected. The example deliberately shows a non-default value,
+    per `docs/config-key-lifecycle.md`.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_transport_is_a_schema_key(self):
+        self.assertIn("delegation.transport", jdi_files.key_paths(self.schema))
+
+    def test_schema_default_is_native(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: native$", line) for line in self.schema),
+            "reference/config.md's schema has no `  transport: native` line",
+        )
+
+    def test_schema_comment_lists_the_values(self):
+        self.assertTrue(
+            any("native | auto | herdr" in line for line in self.schema_comments),
+            "no schema comment lists `native | auto | herdr`",
+        )
+
+    def test_schema_comment_says_own_cli_is_unaffected(self):
+        self.assertTrue(
+            any(
+                "A role on this session's own CLI is never affected" in line
+                for line in self.schema_comments
+            ),
+            "no schema comment says a role on this session's own CLI is never affected",
+        )
+
+    def test_notes_say_transport_only_changes_another_cli(self):
+        notes = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        self.assertIn("The transport only changes how a role on another CLI runs", notes)
+
+    def test_example_value_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  transport: (auto|herdr)$", line) for line in self.example),
+            "jdi.config.example.yml has no `  transport: auto` or `  transport: herdr` "
+            "line; the example shows a configured repo, so it uses a non-default value",
+        )
+
+    def test_defaults_table_has_a_native_row(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        self.assertTrue(
+            any(row.startswith("| `delegation.transport` | `native`") for row in rows),
+            "the defaults table has no `delegation.transport` row defaulting to `native`",
+        )
+
+
+class HerdrBlockTest(unittest.TestCase):
+    """The `herdr:` block has one key, `surface`, defaulting to `auto`.
+
+    `surface` picks which Herdr JDI drives, the TUI or the app; whether Herdr is
+    used at all stays `delegation.transport`, so the key has no `off` value. Every
+    step that resolves a surface reads `herdr.surface`, so the key has to exist in
+    the schema, the example, and the defaults table. The example deliberately
+    shows a non-default value, per `docs/config-key-lifecycle.md`.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def test_surface_is_a_schema_key(self):
+        self.assertIn("herdr.surface", jdi_files.key_paths(self.schema))
+
+    def test_schema_default_is_auto(self):
+        self.assertTrue(
+            any(re.match(r"^  surface: auto$", line) for line in self.schema),
+            "reference/config.md's schema has no `  surface: auto` line",
+        )
+
+    def test_schema_comment_lists_the_values(self):
+        self.assertIn(
+            "  # auto | app | tui",
+            self.schema_comments,
+            "no schema comment line is exactly `  # auto | app | tui`",
+        )
+
+    def test_schema_comment_says_transport_decides_whether_herdr_is_used(self):
+        self.assertTrue(
+            any(
+                "Whether Herdr is used at all stays `delegation.transport`" in line
+                for line in self.schema_comments
+            ),
+            "no schema comment says whether Herdr is used at all stays "
+            "`delegation.transport`",
+        )
+
+    def test_example_value_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  surface: (app|tui)$", line) for line in self.example),
+            "jdi.config.example.yml has no `  surface: app` or `  surface: tui` "
+            "line; the example shows a configured repo, so it uses a non-default value",
+        )
+
+    def test_defaults_table_has_an_auto_row(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        self.assertTrue(
+            any(row.startswith("| `herdr.surface` | `auto`") for row in rows),
+            "the defaults table has no `herdr.surface` row defaulting to `auto`",
+        )
+
+    def test_notes_say_surface_only_picks_which_herdr(self):
+        notes = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        self.assertIn("**`herdr.surface` only picks which Herdr.**", notes)
+
+
+class HerdBlockTest(unittest.TestCase):
+    """The `herd:` block carries `kind`, `mode`, `max_parallel` and `seed`, and nothing else.
+
+    `/jdi:herd` reads those four keys. `mode` is `do | prep`, defaulting to `do`;
+    the example shows `prep`, a non-default value, per
+    `docs/config-key-lifecycle.md`. PR #5 also added `herd.args` and
+    `herd.env`, which duplicated `harnesses.<kind>.{args,env}`; herd agents take
+    their arguments and environment from `harnesses.<herd.kind>` instead, so the
+    two keys must not come back.
+    """
+
+    def setUp(self):
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.schema_keys = jdi_files.key_paths(self.schema)
+        self.config_text = jdi_files.read("reference/config.md")
+
+    def notes(self):
+        text = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        return " ".join(text.split())
+
+    def test_herd_keys_are_schema_keys(self):
+        for key in ("herd.kind", "herd.max_parallel", "herd.seed"):
+            with self.subTest(key=key):
+                self.assertIn(key, self.schema_keys)
+
+    def test_herd_args_and_env_are_not_schema_keys(self):
+        for key in ("herd.args", "herd.env"):
+            with self.subTest(key=key):
+                self.assertNotIn(
+                    key,
+                    self.schema_keys,
+                    "`%s` duplicates `harnesses.<kind>`; herd agents take their "
+                    "arguments and environment from `harnesses.<herd.kind>`" % key,
+                )
+
+    def test_defaults_table_covers_herd(self):
+        rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
+        for key, default in (
+            ("herd.kind", "`claude`"),
+            ("herd.mode", "`do`"),
+            ("herd.max_parallel", "`5`"),
+            ("herd.seed", "empty"),
+        ):
+            with self.subTest(key=key):
+                self.assertTrue(
+                    any(row.startswith("| `%s` | %s" % (key, default)) for row in rows),
+                    "the defaults table has no `%s` row defaulting to %s" % (key, default),
+                )
+
+    def test_mode_is_a_schema_key(self):
+        self.assertIn("herd.mode", self.schema_keys)
+
+    def test_schema_default_is_do(self):
+        self.assertTrue(
+            any(re.match(r"^  mode: do$", line) for line in self.schema),
+            "reference/config.md's schema has no `  mode: do` line",
+        )
+
+    def test_schema_comment_lists_mode_values(self):
+        self.assertIn("  # do | prep", self.schema_comments)
+
+    def test_schema_comment_says_do_merges(self):
+        self.assertTrue(
+            any(
+                "opens its pull request and merges it," in line
+                for line in self.schema_comments
+            ),
+            "the schema comment does not say a `do` agent merges its pull request",
+        )
+
+    def test_example_mode_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  mode: prep$", line) for line in self.example),
+            "jdi.config.example.yml has no `  mode: prep` line",
+        )
+
+    def test_notes_say_do_mode_merges_unattended(self):
+        self.assertIn(
+            "**`herd.mode: do` opens and merges pull requests unattended.**",
+            self.notes(),
+        )
+
+    def test_notes_recommend_a_model_for_do_mode(self):
+        notes = self.notes()
+        for fragment in (
+            "`do` mode relies on each agent judging size before it builds",
+            "Opus herd agents did",
+            "Sonnet agents built an oversized task instead",
+            "or use `herd.mode: prep`",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, notes)
+
+    def test_notes_say_invalid_mode_runs_prep(self):
+        self.assertIn(
+            "An invalid `herd.mode` is announced once and runs as `prep`",
+            self.notes(),
+        )
+
+    def test_notes_say_do_and_prep_learn_from_the_invocation(self):
+        self.assertIn("learn they run in a herd from the invocation", self.notes())
 
 
 if __name__ == "__main__":

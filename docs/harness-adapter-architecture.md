@@ -24,7 +24,7 @@ JDI behavior is defined by four source groups:
 | `commands/*.md` | Ordered workflow instructions for each public command |
 | `roles/butler.md` | Main-session orchestration responsibilities |
 | `agents/*.md` | Delegatable role definitions |
-| `reference/*.md` | Shared configuration, testing, tracker, plan-store, and delegation contracts |
+| `reference/*.md` | Shared configuration, testing, tracker, plan-store, delegation, and Herdr contracts |
 
 The public command inventory is the set of Markdown files directly under `commands/`. `AGENTS.md`
 enumerates that set, and `tests/test_enumerations.py` checks the enumeration in both directions.
@@ -36,6 +36,7 @@ done
 execute
 feedback
 help
+herd
 init
 next
 plan
@@ -241,7 +242,10 @@ Delegation follows observed runtime capability, not a permanent claim about a ha
 uses the order in `reference/delegation.md`:
 
 1. Use a first-class subagent, preferring an already registered JDI role.
-2. Run a second non-interactive session — selected by `models.<role>.harness`, not only a fallback.
+2. Run a second session on another CLI — selected by `models.<role>.harness`, not only a fallback.
+   Under `native` it is that CLI's non-interactive mode. When `delegation.transport` allows it and
+   Herdr is detected, it is that CLI's interactive agent in a Herdr pane, one pane per task in a
+   wave (`reference/herdr.md`).
 3. Adopt the role inline, announce the switch, and return to Butler voice afterward.
 
 The delegated phase is never skipped merely because the preferred mechanism is unavailable.

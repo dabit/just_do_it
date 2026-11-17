@@ -26,7 +26,7 @@ Follow these steps:
    blocks it overrides (never the values), and say so if git tracks it, because it is meant to be
    ignored.
    Everything below refers to `tracker`, `split`, `plans`, `docs`, `consumers`, `jev`, `models`,
-   and `harnesses` from it.
+   `harnesses`, `delegation`, and `herdr` from it.
 
    **Then resolve Jev, once** — If `jev.enabled` is `true`, run the ladder in JDI's
    `reference/jev.md` here and nowhere else: find a key (`$TYPESAFE_API_KEY`, else
@@ -38,9 +38,23 @@ Follow these steps:
    here and the Researcher and Splitter are each handed the resolved answer; neither re-probes.
    **With `jev.enabled` false or absent, say nothing at all** — nothing was skipped.
 
+   **Then resolve the delegation transport, once** - If `delegation.transport` is `auto` or
+   `herdr`, perform **H1** from JDI's `reference/herdr.md` here and nowhere else, and use its answer
+   for every delegation in this run; no role re-probes.
+   H1 also settles which Herdr this is, the TUI or the app, from `herdr.surface`. With `herdr`,
+   announce a failed check once, with what came back, and delegate as `native`. With `auto`, say
+   nothing outside Herdr, and announce once when inside Herdr a later check fails. Any other value:
+   say so once, then `native`.
+   **With `delegation.transport` `native` or absent, say nothing at all**: run no Herdr command at
+   step 0, and outside a ladder announcement never mention the transport, summaries included.
+
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
-   GitHub Issues, another tracker, or not at all. "Not tracked" is a fine answer.
+   GitHub Issues, another tracker, or not at all. "Not tracked" is a fine answer. When the request
+   ends with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)`, the herd has answered
+   this step and step 3's question: an issue in it uses the configured tracker, and `untracked`
+   means not tracked. Ask neither. The clause is not part of the work: leave it out of the slug and
+   the title.
 
 3. **Determine the issue reference** — Perform **T1** from JDI's `reference/tracker.md`. If the user
    already gave an issue ID or URL, use it. Otherwise, if the work is tracked, ask whether they
@@ -140,9 +154,12 @@ Follow these steps:
 
 9. **Update the references** — First check the return opens with `§0 Premises`, one line per premise
    you passed, and send it back if not; a `REFUTED` line reaches the user at step 12, not only the
-   plan. Merge the findings into `## References`, preserving anything useful that is already there.
-   **Spot-check a couple of the load-bearing `file:line` citations against the real files before
-   writing them in** — a plan built on a hallucinated reference misleads every later step.
+   plan. When the Researcher ran as a separate process, its findings are the result file the
+   transport validated (`reference/delegation.md`), never a terminal transcript; a result that
+   failed validation was already announced and the role re-run another way. Merge the findings into
+   `## References`, preserving anything useful that is already there. **Spot-check a couple of the
+   load-bearing `file:line` citations against the real files before writing them in** — a plan
+   built on a hallucinated reference misleads every later step.
 
 10. **Draft a missing architecture doc when one is needed** — First ask whether the missing
     document is **the deliverable**: named in the issue's scope, or scheduled by a record to land
@@ -152,10 +169,11 @@ Follow these steps:
     that belong to execution and leave two drafts of one artefact.
 
     Otherwise, if no useful architecture doc exists, do not stop just to ask permission. Delegate
-    to the **Researcher** again, have it draft a suitable architecture document, write that draft
-    to `<docs.path>/` with a descriptive filename, and add it to `## References`. Stop only if a
-    real ambiguity prevents a reasonable draft. An architecture doc goes in the repository and is committed with the code, in
-    both plan-store modes.
+    to the **Researcher** again, delegated exactly as in step 8, have it draft a suitable
+    architecture document, write that draft to `<docs.path>/` with a descriptive filename, and add
+    it to `## References`. Stop only if a real ambiguity prevents a reasonable draft. An
+    architecture doc goes in the repository and is committed with the code, in both plan-store
+    modes.
 
 11. **Record the findings on the issue (durable memory)** — Once `## References` is populated,
     perform **T5** from `reference/tracker.md`: upsert the research-findings comment on the issue.

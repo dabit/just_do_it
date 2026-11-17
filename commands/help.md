@@ -9,8 +9,9 @@ description: "Explain the Just Do It (JDI) workflow — the commands, the roles,
 Explain the Just Do It (JDI) workflow to the user. Print the following, then add one closing line
 naming what this repository is currently configured for — the tracker, the plan store, what the
 split pieces become, whether TDD is on, whether Jev is on, which roles have a model configured
-and whether any of them runs in another agent CLI, whether `.jdi/config.yml` exists at all, and
-whether a `.jdi/config.local.yml` overrides any of it — name the blocks, not the values. If the
+and whether any of them runs in another agent CLI, which delegation transport is set, when it is
+not `native`, which Herdr surface is pinned, when not `auto`, which herd mode is set, when not `do`, whether `.jdi/config.yml` exists at all, and whether a `.jdi/config.local.yml`
+overrides any of it — name the blocks, not the values. If the
 config does not exist, say `/jdi:init` writes it, and that JDI works without it by asking as it
 goes.
 
@@ -25,9 +26,9 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 
 | Command | Roles | What it does |
 |---|---|---|
-| `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, Jev, plan store, docs folder, models. Writes `.jdi/config.yml`. |
-| `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. |
-| `/jdi:do` | Butler | Just do it: read the code, post a ten-line plan in chat, build with tests, verify, open the PR, work the review to green, and merge. No plan folder, no task files, no stop between phases. Stops only for work too big for one session, a product decision outside the request, a change the repo reserves for a person, or a review that will not converge. |
+| `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, Jev, plan store, docs folder, models, delegation transport, Herdr surface. Writes `.jdi/config.yml`. |
+| `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. Runs a role configured on another CLI in its own pane when `delegation.transport` allows it. |
+| `/jdi:do` | Butler | Just do it: read the code, post a ten-line plan in chat, build with tests, verify, open the PR, work the review to green, and merge. No plan folder, no task files, no stop between phases. Stops only for work too big for one session (under `/jdi:herd` it continues with `/jdi:prep` instead), a product decision outside the request, a change the repo reserves for a person, or a review that will not converge. |
 | `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. Ranks the candidate docs and screens `consumers` with Jev when `jev.enabled` is on. |
 | `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
@@ -41,6 +42,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. Orders the findings with Jev when `jev.enabled` is on. |
 | `/jdi:replan` | Butler + Planner | Throw the plan away and write a fresh one. |
 | `/jdi:reresearch` | Butler + Researcher | Throw the research away and look again. |
+| `/jdi:herd` | Butler | Run several issues or quoted untracked tasks at once inside Herdr, the TUI or the app: one worktree, pane and agent each, each running `/jdi:do`, which opens and merges its own pull request unattended and in parallel with the others; `herd.mode: prep` stops each at a plan with `/jdi:prep` instead. Needs Herdr and stops when it is missing; it never falls back to a sequential prep. With `--cleanup`, as `/jdi:herd --cleanup [<herd-id>]`, it cleans a herd up from its record instead, asking once. |
 
 **On the Feedbacker:** it reviews on demand only. It is not a gate on the producing commands —
 invoke it deliberately with `/jdi:feedback` when you want an output or a prompt audited. It never
@@ -163,6 +165,25 @@ of its own choosing.
 
 Where the harness has no subagents, roles are adopted inline instead of spawned. The phases still
 run; they just share one context window.
+
+### Separate agent processes
+
+`delegation.transport` decides how a role configured on another CLI runs. With `auto` or `herdr`,
+and Herdr detected once at the start of the command, that role runs as the other CLI's interactive
+agent in its own Herdr pane, and every Executor of a wave gets its own pane, at most 4 at once. The
+result arrives as a file the Butler validates before it uses anything, never as terminal output. A
+role on this session's own CLI stays a subagent under every value.
+
+A worker that is blocked on an approval or asks a question is answered by you, in its pane. Outside
+Herdr, when a check fails, or when a worker produces no valid result, the role falls back to the
+CLI's non-interactive mode: `auto` says nothing when Herdr is simply absent, and `herdr` announces
+the failed check once. `native`, the default, is silent and runs exactly as before the key
+existed.
+
+`herdr.surface` picks which Herdr JDI drives: `auto` (the default) uses the one this session runs
+in, the Herdr TUI or the Herdr app, and `app` or `tui` pins one, which then never falls to the
+other. It is usually personal, so it belongs in `.jdi/config.local.yml`. Whether Herdr is used at
+all, on or off, stays `delegation.transport`.
 
 ### Personal overrides
 

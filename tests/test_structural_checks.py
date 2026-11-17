@@ -260,13 +260,16 @@ class DoPlanShapeTest(unittest.TestCase):
 
     Mark's `/build` caps the same plan with a hook; here the cap is prose, and
     1.0.11's lesson is that prose drifts unless something reads it. This pins
-    the four fields and the word cap, and that the plan is shown, not submitted.
+    the five fields (the size verdict first, added after #38's UAT) and the word
+    cap, and that the plan is shown, not submitted.
     """
 
     def setUp(self):
         self.step = flat(step(jdi_files.read("commands/do.md"), 4))
 
-    def test_the_plan_names_exactly_its_four_fields_and_the_cap(self):
+    def test_the_plan_names_exactly_its_five_fields_and_the_cap(self):
+        self.assertIn("Five fields", self.step)
+        self.assertIn("- **Size:**", self.step)
         for field in ("**Change:**", "**Files:**", "**Proof:**", "**Stops:**"):
             with self.subTest(field=field):
                 self.assertEqual(self.step.count(field), 1, "%s must appear once in step 4" % field)

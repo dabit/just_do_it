@@ -213,8 +213,7 @@ class DelegationGuidanceTest(unittest.TestCase):
     def test_harness_is_a_first_class_value_in_both_directions(self):
         self.assertGuidanceContains(
             "`harness: claude` is a first-class value",
-            "herdr pane split",
-            "Not `herdr agent start`",
+            "`reference/herdr.md`",
         )
 
     def test_degradation_ladder_runs_from_the_first_rung_to_the_floor(self):
@@ -227,7 +226,6 @@ class DelegationGuidanceTest(unittest.TestCase):
             "**The phase always runs.**",
             "Never skip the phase.",
             "Never acquire a flag the user did not write.",
-            "herdr pane close",
         )
 
 

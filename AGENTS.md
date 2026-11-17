@@ -24,6 +24,7 @@ The commands are:
 |---|---|
 | `commands/init.md` | Set JDI up for a repo — writes `.jdi/config.yml` |
 | `commands/help.md` | Print the workflow's command table and flow |
+| `commands/herd.md` | Run several issues or untracked tasks in parallel inside Herdr, one worktree and agent each, running `/jdi:do` (or `/jdi:prep`, by `herd.mode`); `--cleanup` cleans a herd up from its herd record |
 | `commands/prep.md` | Start, research, plan, and split in one pass |
 | `commands/do.md` | Read, plan in ten lines, build, verify, open the PR, work the review, and merge — no plan folder |
 | `commands/start.md` | Create the branch and the initial plan |
@@ -49,8 +50,8 @@ to orchestrator voice. The phases still run; they share one context window. The 
 execution: tasks that could run in parallel run one after another instead, and the Butler says so.
 
 **Reference files.** Commands refer to `reference/config.md`, `reference/tracker.md`,
-`reference/testing.md`, `reference/jev.md`, `reference/plan-store.md`, and
-`reference/delegation.md` by name, and to
+`reference/testing.md`, `reference/jev.md`, `reference/plan-store.md`, `reference/herdr.md`,
+and `reference/delegation.md` by name, and to
 `${CLAUDE_PLUGIN_ROOT}/...` for the path. That variable only resolves inside Claude Code. Anywhere
 else, the files are wherever you cloned this repository — tell your agent that once, at the start,
 and the paths resolve for the rest of the session.
