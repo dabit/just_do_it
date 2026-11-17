@@ -100,7 +100,10 @@ agent running `/jdi:do` (or `/jdi:prep`).**
   a quoted line that names `herd.mode: prep` as the way back. A `/jdi:do` started by a herd whose
   work is too big for one session continues with `/jdi:prep` in the same session instead of
   handing back; `/jdi:do`'s plan now opens with a size verdict, and the size is decided before any
-  edit, so the judgment is made in every run, herd or not. `do` mode relies on each agent judging
+  edit, so the judgment is made in every run, herd or not. The verdict covers the whole request,
+  including the answers to any question the request says to ask, which `/jdi:do` now asks before
+  its first edit; it never narrows the request to fit or ships part of it, and under a herd it
+  posts the Size line before the first edit. `do` mode relies on each agent judging
   size before it builds: in testing, Opus herd agents did, and Sonnet agents built an oversized task
   instead, so pick the herd agents' model accordingly, or use `herd.mode: prep`. An invalid
   `herd.mode` runs as `prep`. A herd also

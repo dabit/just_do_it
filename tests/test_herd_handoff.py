@@ -18,9 +18,14 @@ in `reference/herdr.md` H9. This module pins four rules that hang off them:
   size is decided before any edit, standalone and under a herd alike, and step
   5's *too big* stop points back at that verdict. Two UAT runs of #38 showed
   herd agents skipping the plan, and with it the only place the size judgment
-  was made. After task 28 the gate is the decision, not the post: the re-runs
-  showed Opus agents deciding before any edit without posting the verdict, and
-  the user accepted that behaviour as passing.
+  was made. After task 28 the gate was the decision, not the post; a real herd
+  run (2026-11-17, Opus) then skipped the plan, built part of the request,
+  asked the questions the request said to stop on while CI ran, merged that
+  part and only then recommended `/jdi:prep` for the rest. So the verdict
+  covers the whole request, answers included, and is never narrowed to fit;
+  questions the request says to ask are asked in step 3, before any edit;
+  under a herd the Size line is posted before the first edit; and step 1's
+  "one slice" rule is for containers only.
 
 Deviation from `DoPlanShapeTest`: that class's `step()` helper lives in
 `tests/test_structural_checks.py`, and importing it would make unittest collect
@@ -162,17 +167,48 @@ class DoSizeVerdictTest(unittest.TestCase):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, self.text)
 
-    def test_the_gate_is_the_decision_not_the_post(self):
-        self.assertIn("nothing requires posting it before acting", self.text)
-        for fragment in ("posted before any edit", "before it is posted", "verdict first,"):
+    def test_under_a_herd_the_verdict_is_posted_before_the_first_edit(self):
+        self.assertIn(
+            "Under a herd, post the plan, Size line first, before the first edit", self.text
+        )
+        self.assertNotIn("nothing requires posting it before acting", self.text)
+
+    def test_the_verdict_covers_the_whole_request(self):
+        for fragment in (
+            "The verdict covers the whole request as given",
+            "never narrow the request to make it fit",
+            "never ship part of it and leave the rest for later",
+        ):
             with self.subTest(fragment=fragment):
-                self.assertNotIn(fragment, self.text)
+                self.assertIn(fragment, self.text)
 
     def test_a_too_big_verdict_is_the_step_5_stop(self):
         self.assertIn("is step 5's *Too big for one session* stop", self.text)
 
     def test_step_5_points_back_at_the_verdict(self):
         self.assertIn("the step-4 size verdict", too_big_bullet())
+
+
+class DoAsksBeforeBuildingTest(unittest.TestCase):
+    """Questions the request says to ask are asked in step 3, before any edit."""
+
+    def test_step_3_asks_before_any_edit(self):
+        text = normalized("\n".join(do_step(3)))
+        for fragment in (
+            "ask it here, before any edit, and wait for the answer",
+            "count toward its size",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, text)
+
+
+class DoSliceIsForContainersTest(unittest.TestCase):
+    """Step 1's "one slice" rule cuts containers, never a plain request."""
+
+    def test_a_plain_request_is_never_cut_to_a_slice(self):
+        text = normalized("\n".join(do_step(1)))
+        self.assertIn("for a container only", text)
+        self.assertIn("never cut it down to a slice of itself", text)
 
 
 if __name__ == "__main__":

@@ -53,8 +53,9 @@ Follow these steps:
    clause is not part of the work, so leave it out of the branch name, the commits and the pull
    request, and with `untracked` run no tracker step at all.
 
-   **One slice, never the whole outcome.** The target is one deliverable slice: a single issue, a
-   sub-issue, a seam. If it is a container for other work (an epic, a parent with sub-issues, a
+   **One slice, never the whole outcome — for a container only.** The target is one deliverable
+   slice: a single issue, a sub-issue, a seam. A plain request (a description, a single issue, a
+   task) is the work as given: never cut it down to a slice of itself. If it is a container for other work (an epic, a parent with sub-issues, a
    commission whose children are seams), do not build the parent. List its unfinished children in
    one line each, recommend the one to start with, and stop. Building a container in one session is
    the plan that sprawls, and its children already say where the cuts are. A container with no
@@ -69,6 +70,11 @@ Follow these steps:
    beside them. Read `git log` / `git blame` on code you do not understand. Look in `plans.path` for
    a past plan over the same area, and read its decisions. Do this yourself: the session that reads
    the code is the session that builds it, so this step delegates nothing.
+
+   **Ask now what must be asked.** When the request says to stop and ask on something, or the
+   reading turns up step 5's *product decision outside the request*, ask it here, before any edit,
+   and wait for the answer. Never build first and ask while checks run. The answers are part of
+   the request and count toward its size in step 4.
 
 4. **Plan — ten lines in chat, not a document; the size is decided before any edit** — Post it in the message
    body. No plan folder, no task files, no tracker comment. Five fields, each at most 60 words, the
@@ -88,9 +94,13 @@ Follow these steps:
 
    **This plan is a gate, and the gate is the size decision.** No file is edited, no branch is
    pushed, and no tool that changes anything runs until the size is decided, in a standalone run
-   and under a herd alike; step 2's branch and issue move are the only changes made before it. The
-   verdict is the plan's first field when the plan is shown, but nothing requires posting it before
-   acting: what is required is the decision, made before any edit. A *too big* verdict is
+   and under a herd alike; step 2's branch and issue move are the only changes made before it.
+   The verdict covers the whole request as given, with the answers step 3 collected: never narrow
+   the request to make it fit, and never ship part of it and leave the rest for later. If all of
+   it does not fit one pull request, the verdict is *too big*. Standalone, the verdict is the
+   plan's first field when the plan is shown. Under a herd, post the plan, Size line first, before
+   the first edit: a herd agent works unwatched, and that line is the only trace the decision was
+   made. A *too big* verdict is
    step 5's *Too big for one session* stop: under a herd, continue with `/jdi:prep` as that stop
    says; standalone, hand back as it says.
 
