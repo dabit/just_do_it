@@ -2784,6 +2784,12 @@ Herd ID `20261117T033939`.
   at cleanup; `<scratch>/gh-empty` empty both times; every agent `gh` call printed "please run: gh auth
   login" or not logged in, none reached a host; the Butlers ran none.
 
+### Decisions after the #38 UAT (user, 2026-11-16)
+- **Size gate judged by behaviour** (task 29): a too-big task falls back to `/jdi:prep` before any edit and a small one ships. The Opus re-run passes on behaviour; posting the `**Size:**` verdict in chat is not required (F-n closed by rewording).
+- **Models:** documented, not enforced (task 29): Opus herd agents followed the gate; Sonnet agents built the oversized task in 3 of 3 runs and once worked on the scratch branch (F-e, F-f on Sonnet). `herd.mode: prep` for cheaper models.
+- **Announcement (F-i): report-only accepted.** Step 8 stays; the herd's final report names the mode and `herd.mode: prep`.
+- Task 26 closes as an agent smoke test. User scenarios (u4)–(u7) stay pending for PR review, with (u1)–(u3).
+
 ## Tasks
 
 **Wave 1** — run together
@@ -2847,7 +2853,7 @@ Herd ID `20261117T033939`.
 - [x] [29](29-gate-wording-and-model-note.md) — Size gate judged by behaviour; model note for `do`-mode herds (depends on: 28)
 
 **Wave 13**
-- [ ] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26
+- [x] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26
 
 Critical path: 02 → 03 → 06 → 08 → 09 → 10 (six tasks).
 Critical path for #37: 12 → 14 → 18 and 13 → 14 → 18 (three tasks each; Wave 9 is four tasks wide, 14 ‖ 15 ‖ 16 ‖ 17).

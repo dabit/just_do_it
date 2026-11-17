@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 26 — UAT: herd modes and untracked tasks (agent smoke test)
 
 Depends on: 20, 21, 22, 23, 24, 25
