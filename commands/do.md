@@ -70,27 +70,38 @@ Follow these steps:
    a past plan over the same area, and read its decisions. Do this yourself: the session that reads
    the code is the session that builds it, so this step delegates nothing.
 
-4. **Plan — ten lines in chat, not a document** — Post it in the message body. No plan folder, no
-   task files, no tracker comment. Four fields, each at most 60 words:
+4. **Plan — ten lines in chat, not a document, posted before any edit** — Post it in the message
+   body. No plan folder, no task files, no tracker comment. Five fields, each at most 60 words, the
+   size verdict first:
 
+   - **Size:** exactly one of two lines, worded as written: `**Size:** fits one pull request` or
+     `**Size:** too big for one session — <why>`.
    - **Change:** what will be different, in one or two sentences, for the person who uses it.
    - **Files:** the files to edit or add.
    - **Proof:** the tests that will show it works, and the check you will run by hand if any.
    - **Stops:** anything in step 5 this change could run into, or `none`.
 
    With `tdd.enabled` true, run **TS1** from JDI's `reference/testing.md` now and add its `TDD:`
-   line as a fifth field. There is no plan file to hold it, so the chat plan is where it is written
+   line as a sixth field. There is no plan file to hold it, so the chat plan is where it is written
    once and read back for the rest of this run. With `tdd.enabled` false or absent, say nothing
    about TDD.
 
-   **Then continue.** The plan is shown, not submitted: do not wait for approval of it.
+   **This plan is a gate.** No file is edited, no branch is pushed, and no tool that changes
+   anything runs before it is posted, verdict first, in a standalone run and under a herd alike;
+   step 2's branch and issue move are the only changes made before it. A *too big* verdict is
+   step 5's *Too big for one session* stop: under a herd, continue with `/jdi:prep` as that stop
+   says; standalone, hand back as it says.
+
+   **Then continue** on a *fits* verdict. The plan is shown, not submitted: do not wait for
+   approval of it.
 
 5. **The only reasons to stop before merge** — Stop, say which one in a sentence, leave a visible
    trace (push the branch, and note it on the issue only if the repository's instructions allow),
    and hand back:
 
    - **Too big for one session.** The change will not fit one reviewable pull request, or step 3
-     turned up a design question with more than one defensible answer. Recommend `/jdi:prep` with
+     turned up a design question with more than one defensible answer; the step-4 size verdict is
+     where this is judged first. Recommend `/jdi:prep` with
      what you learned. This is the expected exit for large work, not a failure. **Started by
      `/jdi:herd`** (the request ends with `(started by /jdi:herd)` or
      `(untracked, started by /jdi:herd)`) **and found before step 6 has changed anything:** do not

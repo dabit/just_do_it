@@ -13,7 +13,11 @@ in `reference/herdr.md` H9. This module pins four rules that hang off them:
 - both commands leave the clause out of the work, and both quote the clauses
   exactly as H9 defines them;
 - `/jdi:do` step 10 updates a branch the default branch moved under, on every
-  run, herd-started or not.
+  run, herd-started or not;
+- `/jdi:do` step 4's plan is a gate whose first field is a size verdict, posted
+  before any edit, standalone and under a herd alike, and step 5's *too big*
+  stop points back at that verdict. Two UAT runs of #38 showed herd agents
+  skipping the plan, and with it the only place the size judgment was made.
 
 Deviation from `DoPlanShapeTest`: that class's `step()` helper lives in
 `tests/test_structural_checks.py`, and importing it would make unittest collect
@@ -42,6 +46,22 @@ def paragraph(path, prefix):
     return normalized(
         " ".join(jdi_files.paragraph_starting_with(jdi_files.read(path), prefix))
     )
+
+
+def do_step(number):
+    """Step `number` of commands/do.md, blank lines included, up to the next step."""
+    lines = jdi_files.read(DO).split("\n")
+    start = next(i for i, line in enumerate(lines) if line.startswith("%d. **" % number))
+    collected = [lines[start]]
+    for line in lines[start + 1 :]:
+        if line.startswith("%d. **" % (number + 1)):
+            break
+        collected.append(line)
+    return collected
+
+
+SIZE_FITS = "`**Size:** fits one pull request`"
+SIZE_TOO_BIG = "`**Size:** too big for one session — <why>`"
 
 
 def too_big_bullet():
@@ -108,6 +128,43 @@ class HerdHandoffTest(unittest.TestCase):
             for source, text in sources.items():
                 with self.subTest(clause=clause, source=source):
                     self.assertIn(clause, text)
+
+
+class DoSizeVerdictTest(unittest.TestCase):
+    """The size verdict is step 4's first field, and the plan is a gate before any edit."""
+
+    def setUp(self):
+        self.lines = do_step(4)
+        self.text = normalized("\n".join(self.lines))
+
+    def test_the_verdict_is_the_first_field(self):
+        fields = [line.strip() for line in self.lines if line.startswith("   - **")]
+        self.assertTrue(fields, "step 4 lists no fields")
+        self.assertTrue(
+            fields[0].startswith("- **Size:**"),
+            "step 4's first field is %r, not the size verdict" % fields[0],
+        )
+
+    def test_the_verdict_has_exactly_two_forms(self):
+        for form in (SIZE_FITS, SIZE_TOO_BIG):
+            with self.subTest(form=form):
+                self.assertIn(form, self.text)
+
+    def test_the_plan_is_a_gate_before_any_edit(self):
+        for fragment in (
+            "before any edit",
+            "No file is edited, no branch is pushed",
+            "verdict first",
+            "in a standalone run and under a herd alike",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.text)
+
+    def test_a_too_big_verdict_is_the_step_5_stop(self):
+        self.assertIn("is step 5's *Too big for one session* stop", self.text)
+
+    def test_step_5_points_back_at_the_verdict(self):
+        self.assertIn("the step-4 size verdict", too_big_bullet())
 
 
 if __name__ == "__main__":

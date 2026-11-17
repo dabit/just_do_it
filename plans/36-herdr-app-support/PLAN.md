@@ -2513,6 +2513,9 @@ own plan question remains **unobserved**.
 **Wave 13a**
 - [x] [27](27-app-handoff-real-slash-command.md) — App handoff delivers a real slash command (F-h) (depends on: 26's failed run) — then re-run task 26 scenario (a)
 
+**Wave 13b**
+- [x] [28](28-do-size-verdict-gate.md) — `/jdi:do`'s plan opens with a size verdict; the herd names the way back (depends on: 27) — then re-run task 26 (a) and (f) on Sonnet and Opus
+
 **Wave 13**
 - [ ] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26
 

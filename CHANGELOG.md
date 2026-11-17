@@ -96,9 +96,11 @@ agent running `/jdi:do` (or `/jdi:prep`).**
   parallel** with the others; the repository's own rules still win, so where they say an agent may
   not merge, it stops before the merge. `herd.mode: prep` is the way back: each agent runs
   `/jdi:prep` and stops at a plan. Whether a herd may ship unattended is the team's call, so
-  `herd.mode` belongs in `.jdi/config.yml`. The herd announces the mode before the first start. A
-  `/jdi:do` started by a herd whose work is too big for one session continues with `/jdi:prep` in
-  the same session instead of handing back. An invalid `herd.mode` runs as `prep`. A herd also
+  `herd.mode` belongs in `.jdi/config.yml`. The herd announces the mode before the first start, in
+  a quoted line that names `herd.mode: prep` as the way back. A `/jdi:do` started by a herd whose
+  work is too big for one session continues with `/jdi:prep` in the same session instead of
+  handing back; `/jdi:do`'s plan now opens with a size verdict, posted before any edit, so the
+  judgment is made in every run, herd or not. An invalid `herd.mode` runs as `prep`. A herd also
   takes quoted **untracked** tasks, such as `/jdi:herd ENG-1234 "fix the typo in the signup
   email"`: they need no tracker, and each is named by a stable hash of its text (`t` followed by
   six hex digits), so the same text always gets the same name. The invocation is single-quoted on

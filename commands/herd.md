@@ -269,10 +269,11 @@ Follow these steps:
 
    H9 records a worktree that a seed step wrote into as seeded, as *The herd record* says.
 
-8. **Start one agent per worktree** - Before the first start, say which mode this herd runs in.
-   In `do`, say that each agent opens and merges its own pull request, unattended and in parallel
-   with the others, and that `herd.mode: prep` stops every agent at a plan instead. The herd
-   invocation is the authorization, as `/jdi:do`'s request is.
+8. **Start one agent per worktree** - Before the first start, say which mode this herd runs in,
+   as a line of its own in chat, not only inside a tool's summary. In `do`, say exactly:
+   "Mode `do`: each agent opens and merges its own pull request, unattended and in parallel with
+   the others; `herd.mode: prep` stops each at a plan instead." The herd invocation is the
+   authorization, as `/jdi:do`'s request is.
 
    Perform **H4b** from `reference/herdr.md` with the step-5
    name, the kind from step 2, and the pane from step 6. On the app, H9 first opens the worktree's

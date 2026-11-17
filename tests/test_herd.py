@@ -213,6 +213,15 @@ class HerdCommandTest(unittest.TestCase):
             8, "opens and merges its own pull request", "`herd.mode: prep`"
         )
 
+    def test_mode_announcement_is_quoted(self):
+        """F-i (#38 UAT): step 8 quotes the line to say, naming `herd.mode: prep` as the way back."""
+        self.assertStepContains(
+            8,
+            '"Mode `do`: each agent opens and merges its own pull request, unattended and in '
+            'parallel with the others; `herd.mode: prep` stops each at a plan instead."',
+            "a line of its own",
+        )
+
     def test_report_names_do_mode_stops(self):
         """E2: a stopped `do` agent waits in its space, and the sidebar shows `done`."""
         self.assertStepContains(
