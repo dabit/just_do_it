@@ -1,5 +1,5 @@
 ---
-description: "Condense the plan, push the branch, open the pull request, and work its review until it is mergeable."
+description: "Condense the plan, push the branch, open the pull request, work its review to green, and merge it."
 argument-hint: "[plan slug]"
 ---
 
@@ -8,8 +8,8 @@ argument-hint: "[plan slug]"
 **Role: Butler** — JDI's orchestrator (`roles/butler.md`).
 **Delegates to: Synthesizer**, **PR Writer**.
 
-Create a pull request for the current plan, and work it until it is mergeable. The merge stays
-the user's.
+Create a pull request for the current plan, work it to green, and merge it, unless the repository
+requires a person's approval that has not been given.
 
 Follow these steps:
 
@@ -143,7 +143,7 @@ Follow these steps:
     work. **Skip gracefully — never fail the command** — when there is no issue, no matching state
     exists, or the tracker is unreachable. Say which of those happened.
 
-11. **Work the review until mergeable** — Wait for the required checks and the review the
+11. **Work the review to green, then merge** — Wait for the required checks and the review the
     repository relies on. Then, for each round:
 
     - **A failing check:** read its log. Fix a real failure. A failure that does not reproduce and
@@ -161,16 +161,23 @@ Follow these steps:
     in a row raise threads about your own previous fixes, or the threads are about wording rather
     than behaviour, the loop is not converging: stop and hand back with the open threads listed.
 
-    **Never merge.** The loop ends when every required check passes on the head commit, no thread
-    is unresolved, and the branch merges cleanly; what is left, such as a person's approval the
-    repository requires, is the user's. Never use an admin override, never bypass or skip a
-    required check, and never claim a check passed that you did not watch pass. A user who said to
-    stop at the pull request skips this step.
+    **Merge when green.** When every required check passes on the head commit, no thread is
+    unresolved, and the branch merges cleanly, merge with a method the repository allows: read the
+    allowed methods instead of assuming one. Never use an admin override, never bypass or skip a
+    required check, and never claim a check passed that you did not watch pass. **Merging is not
+    deploying:** do not start a production rollout unless the repository's instructions tell you
+    to. Then read the merge back, and close or advance the issue as the repository's tracker
+    workflow does when a PR merges.
+
+    **Hold the merge only** while a person's approval the repository requires is missing (branch
+    protection, a required review, or its instructions naming one), when the repository's
+    instructions say an agent may not merge, or when the user said to stop at the pull request.
+    Stop there with the pull request otherwise mergeable, and say what it is waiting for.
 
 12. **Report** — Show the user the pull request URL, and name anything that was skipped: an unrun
     UAT, a tracker transition that did not happen, a task left pending. Say where step 11 ended:
-    mergeable and waiting on the user's merge (and on an approval, if one is still required), or
-    handed back with the open threads or the failing check. Where `split.pieces`
+    merged (with the merge commit), held for a required approval or by the repository's or your
+    instruction, or handed back with the open threads or the failing check. Where `split.pieces`
     mirrored the tasks into the tracker, say which pieces are still open there — condensing the
     plan deletes the task files, but it does not touch the tracker.
 

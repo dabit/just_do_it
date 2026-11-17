@@ -2,14 +2,16 @@
 
 ## 1.0.14
 
-**`/jdi:pr` works the pull request until it is mergeable.** After opening the pull request it no
+**`/jdi:pr` works the pull request to green and merges it.** After opening the pull request it no
 longer hands back at once: it waits for the required checks and the review, fixes real failures,
 fixes or answers each review thread, brings the branch up to date when the default branch moves,
 and pushes each round, updating the body as the live record. The loop is bounded the way
 `/jdi:do`'s is: a round with nothing new ends it, and two rounds about its own fixes, or threads
-about wording rather than behaviour, hand it back with the open threads listed. **It never
-merges:** it stops at mergeable and reports what is left for you, such as a required approval. A
-user who said to stop at the pull request skips the loop.
+about wording rather than behaviour, hand it back with the open threads listed. **Then it merges,
+as `/jdi:do` does**, with a method the repository allows and never past a failing or skipped
+required check. It holds the merge only while an approval the repository requires from a person
+is missing, when the repository's instructions say an agent may not merge, or when you said to
+stop at the pull request, and it says what it is waiting for.
 
 ## 1.0.12
 
