@@ -35,7 +35,7 @@ The commands are:
 | `commands/next.md` | `done` then `execute`, in one step |
 | `commands/yolo.md` | Auto-pilot every remaining task, a parallel wave at a time |
 | `commands/status.md` | Show progress on the current plan |
-| `commands/pr.md` | Condense the plan, push, open the pull request |
+| `commands/pr.md` | Condense the plan, push, open the pull request, work it until mergeable |
 | `commands/feedback.md` | Critique the last output on demand |
 | `commands/replan.md` | Throw the plan away and write a fresh one |
 | `commands/reresearch.md` | Throw the research away and look again |

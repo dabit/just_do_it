@@ -280,5 +280,41 @@ class DoPlanShapeTest(unittest.TestCase):
         self.assertIn("do not build the parent", flat(step(jdi_files.read("commands/do.md"), 1)))
 
 
+class PrWorksTheReviewTest(unittest.TestCase):
+    """`/jdi:pr` works the pull request until it is mergeable, the way `/jdi:do` does.
+
+    `/jdi:do` step 9 owns the review loop and step 10 the up-to-date rule; `/jdi:pr`
+    borrows both and stops short of the merge, which stays the user's. This pins
+    the step, its bound, the up-to-date rule, the live body, and the never-merge
+    line, so the loop cannot drift into a merge or into an unbounded wait.
+    """
+
+    def setUp(self):
+        self.step = flat(step(jdi_files.read("commands/pr.md"), 11))
+
+    def test_the_step_works_the_review_until_mergeable(self):
+        self.assertIn("**Work the review until mergeable**", self.step)
+        for fragment in ("A failing check:", "Each review thread:", "the new head commit"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.step)
+
+    def test_the_loop_is_bounded(self):
+        self.assertIn("**Bound the loop.**", self.step)
+        self.assertIn("not converging", self.step)
+
+    def test_the_branch_is_kept_up_to_date(self):
+        self.assertIn("because the default branch moved", self.step)
+
+    def test_it_never_merges(self):
+        self.assertIn("**Never merge.**", self.step)
+        self.assertIn("approval", self.step)
+
+    def test_each_push_updates_the_body(self):
+        self.assertIn("live record", self.step)
+
+    def test_the_report_follows_the_loop(self):
+        self.assertIn("**Report**", flat(step(jdi_files.read("commands/pr.md"), 12)))
+
+
 if __name__ == "__main__":
     unittest.main()
