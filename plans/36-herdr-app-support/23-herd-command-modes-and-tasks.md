@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 23 — `commands/herd.md`: modes, untracked tasks, the report
 
 Depends on: 21

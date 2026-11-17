@@ -12,6 +12,8 @@ worktree is named for its issue and never removed while its plan folder holds
 uncommitted files, because the plan on the branch is the only durable state.
 """
 
+import re
+import subprocess
 import unittest
 
 import jdi_files
@@ -31,6 +33,18 @@ INVOCATION_ROWS = (
 
 def normalized(text):
     return " ".join(text.split())
+
+
+def step_text(text, n):
+    """Step n of commands/herd.md: from its first line to the next numbered step or `## ` heading."""
+    lines = text.split("\n")
+    start = next(i for i, line in enumerate(lines) if line.startswith("%d. **" % n))
+    collected = [lines[start]]
+    for line in lines[start + 1 :]:
+        if re.match(r"^\d+\. \*\*", line) or line.startswith("## "):
+            break
+        collected.append(line)
+    return normalized("\n".join(collected))
 
 
 class HerdCommandTest(unittest.TestCase):
@@ -126,6 +140,104 @@ class HerdCommandTest(unittest.TestCase):
             hint,
             "%s's argument-hint does not name the cleanup mode: %r" % (HERD_COMMAND, hint),
         )
+
+    def assertStepContains(self, n, *fragments):
+        step = step_text(self.herd_text(), n)
+        for fragment in fragments:
+            with self.subTest(step=n, fragment=fragment):
+                self.assertIn(
+                    fragment, step, "%s step %d lacks %r" % (HERD_COMMAND, n, fragment)
+                )
+
+    def test_herd_reads_the_mode(self):
+        """M3: `herd.mode`, and an invalid value runs as the mode with less authority."""
+        self.assertStepContains(
+            1, "`herd.mode`", "announced once and runs as `prep`"
+        )
+
+    def test_herd_parses_issues_and_tasks(self):
+        """E3: a quoted argument is a task; nothing is guessed."""
+        self.assertStepContains(
+            3,
+            "A quoted argument is always a task",
+            "an issue ID only when a tracker is configured",
+            "`tracker.id_prefix`",
+            "With no tracker configured, no argument is an issue ID",
+            "ask once",
+            "Never guess",
+            "start nothing before the answer",
+        )
+
+    def test_tasks_skip_the_tracker(self):
+        """E5: no tracker work for an untracked task."""
+        self.assertStepContains(
+            3,
+            "Tasks skip **T2** and every other tracker step",
+            "nothing is read from or posted to a tracker for a task",
+        )
+
+    def test_task_suffix_is_a_stable_hash(self):
+        """E4: the task suffix is a hash of its text, never an index."""
+        self.assertStepContains(
+            5,
+            "printf '%s' '<normalised task>' | git hash-object --stdin",
+            "`t96ae2d`",
+            "`fix-typo-signup-email-t96ae2d`",
+            "an index in the herd would give every herd's first task the same suffix",
+        )
+
+    def test_task_suffix_example_is_reproducible(self):
+        """The documented command, run on the worked example, gives the documented suffix."""
+        lines = [
+            line.strip()
+            for line in self.herd_text().split("\n")
+            if line.strip().startswith("printf '%s' '<normalised task>'")
+        ]
+        self.assertTrue(
+            lines, "%s has no `printf '%%s' '<normalised task>'` line" % HERD_COMMAND
+        )
+        cmd = lines[0].replace("<normalised task>", "fix the typo in the signup email")
+        result = subprocess.run(
+            ["sh", "-c", cmd], cwd=jdi_files.ROOT, capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.strip()[:6],
+            "96ae2d",
+            "%r gives %r, not the documented `96ae2d...`" % (cmd, result.stdout.strip()),
+        )
+
+    def test_mode_announced_before_start(self):
+        """M5: step 8 says which mode runs before the first start."""
+        self.assertStepContains(
+            8, "opens and merges its own pull request", "`herd.mode: prep`"
+        )
+
+    def test_report_names_do_mode_stops(self):
+        """E2: a stopped `do` agent waits in its space, and the sidebar shows `done`."""
+        self.assertStepContains(
+            10, "a `do` agent that stopped", "the sidebar shows `done` for it"
+        )
+
+    def test_cleanup_refuses_tasks_alongside(self):
+        herd = normalized(self.herd_text())
+        self.assertIn(
+            "Issue IDs, tasks or `--kind`",
+            herd,
+            "%s's cleanup does not refuse tasks alongside `--cleanup`" % HERD_COMMAND,
+        )
+
+    def test_argument_hint_names_tasks(self):
+        frontmatter = jdi_files.split_frontmatter(self.herd_text())
+        self.assertIsNotNone(frontmatter, "%s has no frontmatter" % HERD_COMMAND)
+        hint = jdi_files.frontmatter_scalars(frontmatter[0]).get("argument-hint", "")
+        for fragment in ("'task text'", "--cleanup [<herd-id>]"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment,
+                    hint,
+                    "%s's argument-hint lacks %r: %r" % (HERD_COMMAND, fragment, hint),
+                )
 
     def test_step_eleven_points_at_cleanup(self):
         """C8: a normal herd's step 11 names the cleanup mode, in its first paragraph."""
