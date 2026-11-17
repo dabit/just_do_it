@@ -285,7 +285,7 @@ Claude Code:
 /jdi:do "Fix the typo in the signup email"      # one session: plan in chat, build, PR, review, merge
 /jdi:prep "Add presence indicators to pages"   # research + plan + split, in one pass
 /jdi:yolo                                      # execute every task, in parallel waves, stopping on a real failure
-/jdi:pr                                        # condense the plan, push, open the PR
+/jdi:pr                                        # condense the plan, push, open the PR, work it to green, merge
 ```
 
 Codex uses one dispatcher skill. The first form defaults to help; the second requests help

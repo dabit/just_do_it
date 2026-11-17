@@ -280,5 +280,57 @@ class DoPlanShapeTest(unittest.TestCase):
         self.assertIn("do not build the parent", flat(step(jdi_files.read("commands/do.md"), 1)))
 
 
+class PrWorksTheReviewTest(unittest.TestCase):
+    """`/jdi:pr` works the pull request to green and merges it, the way `/jdi:do` does.
+
+    `/jdi:do` step 9 owns the review loop and step 10 the merge and the up-to-date
+    rule; `/jdi:pr` borrows both. It holds the merge only while a person's approval
+    the repository requires is missing, or the repository says an agent may not
+    merge. This pins the step, its bound, the up-to-date rule, the live body, and
+    the merge and its hold, so the loop cannot drift into an unbounded wait or a
+    merge past a required approval.
+    """
+
+    def setUp(self):
+        self.step = flat(step(jdi_files.read("commands/pr.md"), 11))
+
+    def test_the_step_works_the_review_until_mergeable(self):
+        self.assertIn("**Work the review to green, then merge**", self.step)
+        for fragment in ("A failing check:", "Each review thread:", "the new head commit"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.step)
+
+    def test_the_loop_is_bounded(self):
+        self.assertIn("**Bound the loop.**", self.step)
+        self.assertIn("not converging", self.step)
+
+    def test_the_branch_is_kept_up_to_date(self):
+        self.assertIn("because the default branch moved", self.step)
+
+    def test_it_merges_when_green(self):
+        self.assertIn("**Merge when green.**", self.step)
+        self.assertIn("Never use an admin override", self.step)
+        self.assertNotIn("**Never merge.**", self.step)
+
+    def test_unanswered_review_questions_hold_the_merge(self):
+        for fragment in (
+            "in a review body or a pull request comment, not only in an inline thread",
+            "no question a reviewer asked is left unanswered",
+            "a reviewer's question that only the user can answer",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.step)
+
+    def test_it_holds_only_for_a_required_human_approval(self):
+        self.assertIn("**Hold the merge only**", self.step)
+        self.assertIn("a person's approval the repository requires", self.step)
+
+    def test_each_push_updates_the_body(self):
+        self.assertIn("live record", self.step)
+
+    def test_the_report_follows_the_loop(self):
+        self.assertIn("**Report**", flat(step(jdi_files.read("commands/pr.md"), 12)))
+
+
 if __name__ == "__main__":
     unittest.main()

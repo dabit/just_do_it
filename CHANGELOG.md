@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.14
+
+**`/jdi:pr` works the pull request to green and merges it.** After opening the pull request it no
+longer hands back at once: it waits for the required checks and the review, fixes real failures,
+fixes or answers each review thread, brings the branch up to date when the default branch moves,
+and pushes each round, updating the body as the live record. The loop is bounded the way
+`/jdi:do`'s is: a round with nothing new ends it, and two rounds about its own fixes, or threads
+about wording rather than behaviour, hand it back with the open threads listed. **Then it merges,
+as `/jdi:do` does**, with a method the repository allows and never past a failing or skipped
+required check. It answers every question a reviewer asks, in a review body or a comment as well
+as in an inline thread, and never merges with one unanswered. It holds the merge only while an
+approval the repository requires from a person is missing, while a reviewer's question only you can
+answer is open, when the repository's instructions say an agent may not merge, or when you said to
+stop at the pull request, and it says what it is waiting for.
+
 ## 1.0.12
 
 **`/jdi:do` — just do it.** A new command that takes one change from request to merged pull
