@@ -12,6 +12,11 @@ Issue #37 adds the herd record and `/jdi:herd --cleanup`, which removes a herd's
 record, in the same 1.0.13. They had their own probe gate (Task 12 of the plan), which passed after
 three amendments, G1 to G3 (see *The herd record*).
 
+Issue #38 adds herd modes and untracked tasks in the same 1.0.13: `herd.mode` picks the command each
+herd agent runs, `/jdi:do` (`do`, the default) or `/jdi:prep` (`prep`, the way back to the earlier
+behaviour); `/jdi:herd` takes untracked tasks beside issue IDs; the H9 handoff is single-quoted on
+both surfaces; and the herd record gains a `task` key (see *The herd record*).
+
 ## Purpose
 
 JDI's Herdr operations (`reference/herdr.md`, H1 to H9) were first written against the Herdr TUI,
@@ -191,7 +196,7 @@ with the decision or probe behind it.
 | Waves, the tab | `herdr tab create --workspace … --cwd … [--env …] --no-focus`, then `herdr tab rename` | `herdr-app do tab.new --name jdi-wave-<first run id> --space <space> --folder <root> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A1). The name is given at creation, so there is no rename; `--folder` replaces the `sh` wrapper. The app runs the argv in an interactive shell that stays live after the agent exits, so the tab stays open until H8 closes it; closing its last pane closes the tab with it (UAT, herdr-app 0.1.16), so H8's `tab.close` then returns the harmless `no tab` error (A7). Later workers split a live pane of the wave tab (D4) |
 | Waves, the wait | `herdr agent wait <name> --timeout 30000` per worker | `hc wait <terminal> --timeout 30` per worker |
 | H9 Create a worktree | `herdr worktree create --cwd … --path … --branch … --base … --label … --no-focus` | `git worktree add -b <scratch branch> <path> origin/<default>` only, at herd step 6 (P5). The space comes at step 8, after `herd.seed`: `herdr-app do space.new --name '<label>' --folder <path> --tab <name> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A8). The name is always single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick arrives literally (A17), then H4b's label and readiness wait |
-| H9 Hand it the work | `herdr agent prompt <name> "<invocation>"` | after the readiness wait reports `status: idle`, `hc send <terminal> "<invocation>" --if idle` (D6). Never `space.new --task` |
+| H9 Hand it the work | `herdr agent prompt <name> '<invocation>'` | after the readiness wait reports `status: idle`, `hc send <terminal> '<invocation>' --if idle` (D6). Never `space.new --task`. On both surfaces the invocation is one shell argument, single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick in a task arrives literally (M2) |
 | H9 Reattach | `herdr worktree open` | find the space in `herdr-app ls` whose folder is inside the worktree and `herdr-app do space.select --id <space>`; otherwise `herdr-app do space.new --folder <path> --focus false` |
 | H9 Watch | `herdr agent get <name>` | `hc get <terminal>`, `hc read <terminal> --lines 80`. In the window, a space's and a tab's status is its most urgent agent's (blocked, then done, then working, then idle) |
 | H9 Cleanup | `herdr worktree remove --workspace <id> [--force]` | after JDI's plan-file check, `herdr-app do space.close --id <space> --confirmed true`, then `git -C <main checkout> worktree remove [--force] <path>`. Terminals first, then the folder, as the app's own dialog does it |
@@ -256,6 +261,9 @@ never restates them (C11). This section records the design and the probes behind
   on the first worktree that succeeds, never before.
 - **The same shape on both surfaces.** A key that does not apply to the surface is `null`. The
   `worktree` is stored as `git worktree list --porcelain` prints it.
+- **An untracked task has a `task`.** `issue` is `null` for an untracked task, and `task` holds
+  the task's text as handed to the agent, without the herd clause; for an issue, `task` is `null`.
+  `task` is additive, so `schema` stays `1`, and a reader treats a missing `task` as `null`.
 - **No session and no app home.** The record follows *Inherit, never set*: it names neither, and
   which surface is reachable is observed at cleanup, never recorded.
 - **`creating`, then `handed_off`.** `state` is `creating` until herd step 10 and `handed_off`
@@ -291,11 +299,15 @@ never restates them (C11). This section records the design and the probes behind
 - **The scratch branch.** Cleanup deletes only the recorded scratch branch, and only when its name
   is `jdi-herd-scratch-<herd-id>-<N>` for this herd, it still exists, it has no commits past its
   `base_commit`, and its worktree is gone (C4). Never any other branch. The scratch branch is left
-  behind because `/jdi:prep` starts the real work with `git switch -c <branch> origin/<default>`;
-  it does not rename the scratch branch, so the scratch branch still points at its base.
+  behind because `/jdi:do` and `/jdi:prep` start the real work on a branch of their own (`/jdi:do`
+  with **T6** from `origin/<default>` at its step 2, `/jdi:prep` with
+  `git switch -c <branch> origin/<default>`); neither renames the scratch branch, so it still
+  points at its base. A merged `do` therefore leaves a worktree whose scratch branch has no commits
+  of its own.
 - **Record upkeep.** An entry is removed once its worktree is no longer in
   `git worktree list --porcelain`, and the file is deleted when the last entry goes (C5).
-- **The report.** Removed, or skipped with the reason, per issue, plus the record's state (C7). A
+- **The report.** Removed, or skipped with the reason, per issue, plus the record's state (C7). An
+  entry with a `null` issue, an untracked task, is reported by its `name` and its task text. A
   normal herd's own report names `/jdi:herd --cleanup <herd-id>` (C8).
 
 ### What the probes showed

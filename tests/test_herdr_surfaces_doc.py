@@ -109,6 +109,28 @@ class HerdrSurfacesDocTest(unittest.TestCase):
                     "`## Operation map` has no row starting %r" % prefix,
                 )
 
+    # Task 25, herd modes and untracked tasks (#38).
+
+    def test_operation_map_single_quotes_the_invocation(self):
+        rows = jdi_files.section(self.text, "## Operation map")
+        row = next((line for line in rows if line.startswith("| H9 Hand it the work |")), None)
+        self.assertIsNotNone(row, "`## Operation map` has no row starting `| H9 Hand it the work |`")
+        for fragment in (
+            "`herdr agent prompt <name> '<invocation>'`",
+            "`hc send <terminal> '<invocation>' --if idle`",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, row, "`| H9 Hand it the work |` lacks %s" % fragment)
+        self.assertNotIn(
+            '"<invocation>"', row, "`| H9 Hand it the work |` still double-quotes the invocation"
+        )
+
+    def test_herd_record_section_names_task(self):
+        body = re.sub(r"\s+", " ", " ".join(jdi_files.section(self.text, "## The herd record")))
+        for fragment in ("`task`", "`/jdi:do`"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, body, "`## The herd record` lacks %s" % fragment)
+
 
 class TransportDocPointsAtSurfacesTest(unittest.TestCase):
     longMessage = False
@@ -146,6 +168,22 @@ class TransportDocPointsAtSurfacesTest(unittest.TestCase):
             body,
             "`## Two layers` in %s does not name `/jdi:herd --cleanup`" % TRANSPORT_DOC,
         )
+
+    # Task 25, herd modes and untracked tasks (#38).
+
+    def test_two_layers_names_herd_mode(self):
+        body = re.sub(
+            r"\s+",
+            " ",
+            " ".join(jdi_files.section(jdi_files.read(TRANSPORT_DOC), "## Two layers")),
+        )
+        for fragment in ("`herd.mode`", "`/jdi:do`"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(
+                    fragment,
+                    body,
+                    "`## Two layers` in %s lacks %s" % (TRANSPORT_DOC, fragment),
+                )
 
 
 if __name__ == "__main__":

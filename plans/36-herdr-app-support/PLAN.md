@@ -1860,7 +1860,7 @@ Not run by the agent. Steps for the user, in their own app window (or TUI):
 - [x] [22](22-do-and-prep-honour-the-herd-clause.md) — `/jdi:do` and `/jdi:prep` honour the herd clause; `/jdi:do` updates a branch the default moved under (depends on: 21) — Planner Task 22
 - [x] [23](23-herd-command-modes-and-tasks.md) — `commands/herd.md`: modes, untracked tasks, the report (depends on: 21) — Planner Task 23
 - [x] [24](24-user-docs-herd-modes.md) — User docs and CHANGELOG: herd modes and untracked tasks (depends on: 20, 21) — Planner Task 24
-- [ ] [25](25-architecture-docs-herd-modes.md) — Architecture docs: herd modes, untracked tasks, single-quoted handoff (depends on: 21) — Planner Task 25
+- [x] [25](25-architecture-docs-herd-modes.md) — Architecture docs: herd modes, untracked tasks, single-quoted handoff (depends on: 21) — Planner Task 25
 
 **Wave 13**
 - [ ] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26

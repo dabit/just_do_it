@@ -25,9 +25,10 @@ is documented in `reference/config.md`.
 
 Two separate mechanisms use Herdr, and they do not share a control loop.
 
-The outer layer is `/jdi:herd`. It fans a list of tickets out to independent Butlers: one
-worktree, one Herdr workspace, one branch and one ticket each. Each Butler is a full JDI session,
-and the herd does not coordinate them after it starts them. The herd records what it made, and
+The outer layer is `/jdi:herd`. It fans a list of issues and untracked tasks out to independent
+Butlers: one worktree, one Herdr workspace, one branch and one issue or task each. Each Butler is a
+full JDI session running `/jdi:do` or `/jdi:prep`, as `herd.mode` picks, and the herd does not
+coordinate them after it starts them. The herd records what it made, and
 `/jdi:herd --cleanup` removes it from that record later.
 
 The inner layer is role delegation inside one Butler. A Butler runs one phase at a time. Inside a
@@ -150,6 +151,10 @@ H7's file check confirms afterward that the worker wrote nothing outside `allowe
 Butlers started by `/jdi:herd` are isolated from each other by worktrees. Each has its own
 worktree, branch, workspace and run directories.
 
+The worktrees isolate the work, not the merge. In `do` mode each herd Butler opens and merges its
+own pull request, so a later one can find the default branch moved by a sibling that merged first:
+it updates its branch from `origin/<default>`, re-runs its gates and merges (`/jdi:do` step 10).
+
 Workers inside one Butler are not isolated by worktree. A worker uses the Butler's own worktree,
 because the Butler waits for it and commits its result there. `allowed_writes` and H7's
 `git status --porcelain` check replace a separate checkout: a single worker may write only its run
@@ -175,9 +180,9 @@ The mechanism reads these keys. Each one is documented in `reference/config.md`.
   an `env KEY=VALUE …` prefix before the kind (`docs/herdr-surfaces-architecture.md`).
 - `herdr.surface`: `auto` (the default), `app` or `tui`. It picks which Herdr H1 checks, never
   whether Herdr is used, and usually belongs in `.jdi/config.local.yml`.
-- The herd keys, forthcoming in the `/jdi:herd` wave: `herd.kind`, `herd.max_parallel` and
-  `herd.seed`. Herd agents take their arguments and environment from `harnesses.<herd.kind>`, so
-  there is no `herd.args` or `herd.env`.
+- The herd keys: `herd.kind`, `herd.mode`, `herd.max_parallel` and `herd.seed`. Herd agents take
+  their arguments and environment from `harnesses.<herd.kind>`, so there is no `herd.args` or
+  `herd.env`.
 
 There is no run-path key and no deadline key. The overall deadline is a default that a value stated
 in the conversation replaces for that run.

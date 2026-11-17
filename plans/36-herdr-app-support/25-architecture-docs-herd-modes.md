@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 25 — Architecture docs: herd modes, untracked tasks, single-quoted handoff
 
 Depends on: 21
