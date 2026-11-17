@@ -50,7 +50,11 @@ Follow these steps:
 
 2. **Determine the tracking context** — If the config records a tracker, confirm that this work
    uses it or something else. If it records none, ask whether the work is tracked in Jira, Linear,
-   GitHub Issues, another tracker, or not at all. "Not tracked" is a fine answer.
+   GitHub Issues, another tracker, or not at all. "Not tracked" is a fine answer. When the request
+   ends with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)`, the herd has answered
+   this step and step 3's question: an issue in it uses the configured tracker, and `untracked`
+   means not tracked. Ask neither. The clause is not part of the work: leave it out of the slug and
+   the title.
 
 3. **Determine the issue reference** — Perform **T1** from JDI's `reference/tracker.md`. If the user
    already gave an issue ID or URL, use it. Otherwise, if the work is tracked, ask whether they

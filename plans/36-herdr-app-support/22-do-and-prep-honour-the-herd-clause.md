@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 22 — `/jdi:do` and `/jdi:prep` honour the herd clause; `/jdi:do` updates a branch the default moved under
 
 Depends on: 21
