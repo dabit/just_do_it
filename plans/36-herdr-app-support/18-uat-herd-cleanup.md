@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 18 — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test)
 
 Depends on: 12, 13, 14, 15, 16, 17, 19

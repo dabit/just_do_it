@@ -1368,6 +1368,268 @@ pre-trusted in `~/.claude.json`. Every command went through the guard.
   `~/.config/herdr/sessions/`, `~/.claude/projects/`, the `~/.claude.json` project keys and the
   real repository's `git worktree list` (1 line) are unchanged.
 
+## UAT log (#37)
+
+Task 18, run 2026-11-16 on Linux (Wayland), `herdr` 0.9.3, `herdr-app` 0.1.16, `hc` 0.1.21,
+`git` 2.56.0, `claude` 2.1.325 (mise wrapper). Codex was not used, so `~/.codex/config.toml` was not
+touched. This is an agent smoke test; real acceptance is (u3), the user's.
+
+**Harness.**
+- **Guard.** `<scratch>/g` (POSIX `sh`), recreated as in Task 12: refuses with exit 64, 0 stdout
+  bytes and the stderr line `probe guard: JDI_PROBE_SESSION and JDI_PROBE_HOME must both be set;
+  refusing` unless both are set and the session matches `jdiprobe-*` (refusal check: `exit=64`);
+  unsets the nine `HC_*`/`HERDR_*` variables and `CLAUDECODE`, `CLAUDE_CODE_*`, `CLAUDE_PID`,
+  `CLAUDE_EFFORT`; exports `HC_SESSION=<probe-session>` and `HERDR_APP_HOME=~/.config/<probe-home>`;
+  `exec "$@"`. For TUI commands it also sets `HERDR_SOCKET_PATH=~/.config/herdr/sessions/<probe-session>/herdr.sock`
+  and refuses if that socket is missing. XDG was not overridden.
+- **Setup.** The user's own `hc ls --json` had **1** terminal and the real repository's
+  `git worktree list` **1** line (read-only, outside the guard). `<scratch>/repo` is a clone of a
+  bare local `origin` whose `main` is this branch's HEAD `76db238` (`origin/HEAD` → `origin/main`).
+  Throwaway home `settings.json`: `{"worktrees":{"directory":"<scratch>/worktrees"}}`. Through the
+  guard, `herdr-app status` exited 2 and `hc ls --json` printed `{"hidden_finished":0,"terminals":[]}`;
+  then `herdr-app` was started in the background and its `frame-welcome` overlay closed.
+- **Trust.** Only `<scratch>/repo` was pre-trusted in `~/.claude.json` (`jq` to a temporary file,
+  then `mv`). No herd worktree was trusted; none opened a trust dialog (Task 10's F4 holds).
+- **Clone config.** `.jdi/config.local.yml`: `tracker: {name: none}`, `jev.enabled: false`,
+  `tdd.enabled: false`, `herd.kind: claude`, and `harnesses.claude.args: ["--model", "haiku"]` so
+  every herd agent ran on a small model (the Butler passes the args verbatim and adds no model flag).
+- **The Butler.** `claude --plugin-dir <this repo> --settings '{"enabledPlugins":{"jdi@just-do-it":false}}'`
+  on the account's default model (Task 10's F1), as the argv of a throwaway `space.new` on
+  `<scratch>/repo`. Driven with `hc send`, read with `hc read`; evidence from its transcript (every
+  Bash command), `herdr-app ls`, `hc ls`, the record files, `git worktree list --porcelain` and
+  `git branch --list`. Its first message told it to ask questions in plain text and not with the
+  question tool, so every answer could be typed with `hc send`; no dialog was answered with keys.
+- **Herd agents.** Each stopped on its own after `/jdi:prep` asked for the issue text (`done`), so
+  the driver had none to stop. They ran on the committed `.jdi/config.yml`, because the gitignored
+  local file does not reach an unseeded worktree (the Butler warned about exactly this), so prep
+  tried `gh issue view <n>` against the real tracker: read-only lookups that found no such issue;
+  nothing was written there.
+
+### (a) Herd and record: **pass**
+
+`/jdi:herd 201 202 203` on the app.
+- **The record.** `<scratch>/repo/.git/jdi/herds/20261116T235708.json`, valid JSON. Top keys
+  `created, herd_id, issues, schema, state, surface`; entry keys `base_commit, created, herdr, issue,
+  n, name, scratch_branch, seeded, worktree`; `herdr` keys `agent_name, pane_id, space_id, tab_id,
+  terminal_id, workspace_id` (Appendix C exactly). `surface: app`, `state: handed_off`, three entries.
+- **Per entry.** `worktree` = `<scratch>/worktrees/repo/jdi-herd-20N`, byte-for-byte the
+  `git worktree list --porcelain` line of the entry whose `branch` is
+  `refs/heads/jdi-herd-scratch-20261116T235708-N`; `base_commit` = `76db238…` = each worktree's
+  `rev-parse HEAD`; `space_id`, `tab_id`, `pane_id`, `terminal_id` (`t2`, `t3`, `t4`) and
+  `agent_name` match `herdr-app ls`; `workspace_id: null`; `seeded: false`.
+- **Never committed.** `git -C <scratch>/repo ls-files | grep -c jdi/herds` → `0`.
+- **Report.** Step 11 says "Run /jdi:herd --cleanup 20261116T235708" and still lists the manual
+  commands (plan-file check, `space.close`, `worktree remove`, `git branch -D`); the Worktree
+  section prints the record path and "/jdi:prep … leaves the scratch branch at its base".
+- **Write mechanics (observed, minor).** The Butler collected the three entries in a scratch file
+  and wrote the record once all three worktrees existed, then updated it after step 8 and at
+  step 10. Every write went whole to `.<herd-id>.json.tmp` and was renamed over the record (a
+  Python `os.replace`, the same atomic rename as `mv -f`). H9 says the record is created at the
+  first successful worktree; here it was created after the third (no failure in between, so the
+  result is identical). See F-a.
+- **Decoy.** `git worktree add <scratch>/worktrees/repo/decoy-201 -b decoy-201 origin/main` by the
+  driver.
+
+### (b) Busy: **pass**
+
+The driver plain-sent 202's `done` agent "Count from 1 to 6000, one number per line …" (R4/R6:
+`--if idle` refuses `done`), saw `status: working`, and started `/jdi:herd --cleanup 20261116T235708`.
+(A first attempt with a long `sleep` was refused by the agent's harness, so the task's long count
+was used.)
+- The Butler's sort step ran `hc ls --json --label herdr.space=<space>` per entry while `t3` reported
+  `working` (sampled every 6 s throughout).
+- The list held 201 and 203 only; 202 was reported as "Skipped: 202: its agent (t3) is still
+  working. Run cleanup again once it settles." The skip was decided before the question, and
+  printed in a *Skipped* block under the list.
+- Answer `no`: nothing removed; the record still had three entries; the decoy was named as "not
+  in this record, so not touched".
+
+### (c) Plan guard: **pass**
+
+Uncommitted `plans/x/NOTE.md` in 201's worktree; cleanup run again.
+- 202 and 203 formed the batch (question 1); 201 left it with "it now holds an uncommitted plan
+  file, plans/x/NOTE.md" and got its own question, offering "Commit, then keep" (`docs: Add x plan`
+  in that worktree), "Remove anyway" (`--force`, deletes the file) or "Keep it as it is".
+- Answered no to both. 201's space, worktree, scratch branch, `?? plans/x/` and record entry all
+  remained.
+
+### (h) Own location: **pass**
+
+A second Butler was opened in 201's worktree (H9's reattach: `tab.new` in 201's existing space with
+the worktree as folder) and ran `/jdi:herd --cleanup 20261116T235708`.
+- 201 was skipped: "this cleanup session is running inside that worktree (…/jdi-herd-201), in its
+  space sp75c7…, so I won't remove the tree I'm working in", plus its plan file; 202 and 203 were
+  listed. Answer `no`; nothing removed. That Butler's tab was closed before (d).
+
+### (d) Branches: **pass**
+
+In 203's worktree `git switch -c feat-203` and one commit; in 202's worktree one commit on
+`jdi-herd-scratch-20261116T235708-2`; 201's `NOTE.md` removed. Cleanup, answer `yes`.
+- The list named every change since the last run, marked 202's scratch branch "kept, because it
+  holds commit b563311", and listed `feat-203`, `decoy-201` and `main` as not touched.
+- **Order, per entry, from the transcript:** `git -C <wt> status --porcelain -- plans` (re-check) →
+  busy check → `herdr-app do space.close --id <space> --confirmed true` → `git -C <main checkout>
+  worktree remove <path>` (plain) → branch rule (`show-ref --verify --quiet`, `rev-list --count
+  <base_commit>..refs/heads/<scratch>` = 0, worktree gone) → `git branch -D`.
+- **After.** `git worktree list`: main and `decoy-201`. Branches: `feat-203` (with `088432c`),
+  `jdi-herd-scratch-20261116T235708-2` (kept), `decoy-201`, `main`; scratch `-1` and `-3` deleted.
+  `herdr-app ls`: the Butler's space only.
+- **Observed, minor.** The removal loop printed the by-path space match but closed the space by
+  its recorded ID without gating on that match (the sort step had matched each space by
+  `os.path.realpath` of its folder, so the IDs agreed). See F-b.
+
+### (e) Upkeep: **pass**
+
+- After (b), (c) and (h) (all answered `no`) the record still had all three entries, `handed_off`.
+- In (d) all three worktrees went in one run; the Butler then counted no herd worktree in
+  `git worktree list --porcelain` and deleted the record file; `.git/jdi/herds/` was empty.
+- Rerun `/jdi:herd --cleanup 20261116T235708`: "There is no record for herd 20261116T235708, so I
+  cleaned nothing", pointing at `git worktree list` (main and `decoy-201`) and naming the kept
+  scratch branch with its manual `git branch -D`. `decoy-201` and its branch survived every run.
+- **Not observed:** an entry dropping on its own while others remain (every run removed nothing or
+  all remaining entries). That rule rests on `test_record_upkeep` only.
+
+### (f) No record: **pass**
+
+A fresh clone `<scratch>/repo2` (no `.git/jdi/` at all), run headless through the guard as Task 10's
+(g): `claude -p --plugin-dir <this repo> … "/jdi:herd --cleanup"`.
+- "There's nothing to clean up: this repository has no herd records, so I removed nothing", the
+  records folder does not exist, cleanup "finds a herd only through its record, never by guessing
+  from folder names", `git worktree list` shows only the main checkout, and the manual steps
+  (close the space or workspace, `git worktree remove [--force]`, `git branch -D …`, plan-file
+  check) were printed. Nothing removed; no `.git/jdi/` created.
+- H1 found no Herdr (no `HERDR_ENV`, no `HC_TERMINAL_ID`) and cleanup continued.
+- **Isolation incident (read-only).** In this run the Butler also ran `herdr status`. The guard
+  unsets `HERDR_SOCKET_PATH` and this run had no throwaway TUI, so that status query reached the
+  user's own default TUI server. It is a read-only query (client and server version); nothing was
+  changed, and `herdr session list` was identical before and after. From then on the app Butler ran
+  with `HERDR_SOCKET_PATH` pointing at a socket path under `<scratch>` that does not exist. See F-c.
+
+### (g) Bad ID: **pass**
+
+- `/jdi:herd --cleanup ../x`: "I refused the cleanup: ../x is not a valid herd ID … in the form
+  yyyymmddThhmmss … JDI never builds a file path from an argument that hasn't passed that check".
+  The transcript has **no tool call** for this turn: no path read or written.
+- `/jdi:herd --cleanup 201`: refused, no tool call; "As an issue ID, it can't be combined with
+  --cleanup. The two modes work separately: Start a herd: /jdi:herd <issue-id> ... Clean one up:
+  /jdi:herd --cleanup [<herd-id>]".
+
+### (i) Seeded: **pass**
+
+A new app Butler (same argv) in a new space; local config plus
+`herd.seed.setup: ["touch untracked-seed.txt"]`; `/jdi:herd 204`.
+- Record `20261117T000531.json`: `surface: app`, `state: handed_off`, `seeded: true`, app IDs filled.
+  `git status --porcelain` in the worktree: `?? untracked-seed.txt`. Step 11 said the manual
+  removal "needs --force because the seed step" wrote into it.
+- After (k): the list said "Remove worktree with --force … It was seeded, and the force discards one
+  untracked file, untracked-seed.txt. Any ignored files in it go with it", then one question.
+  `yes` → plan re-check, `space.close`, `git worktree remove --force <path>`, the branch rule
+  (`-1` deleted, 0 commits), record deleted (last entry). The worktree and space are gone.
+
+### (k) A herd still `creating`: **pass**
+
+Before (i)'s cleanup the driver rewrote the record whole with `state: creating`
+(`jq … > .20261117T000531.json.tmp && mv -f`).
+- `/jdi:herd --cleanup` (no ID): "I removed nothing. The only herd record, 20261117T000531, is in
+  state creating … Its herd may still be running; pass its herd ID to clean it anyway." The record
+  was unchanged. (The Butler also noticed that the file had been rewritten after its own herd run.)
+- `/jdi:herd --cleanup 20261117T000531`: "Record: 20261117T000531 reads creating. It is included
+  because you named it", busy check done, entry listed. Answer `no`. Then `handed_off` restored
+  (same whole-file `mv -f`) and (i) finished.
+
+### (j) TUI: **pass**
+
+A throwaway space ran `env HERDR_CONFIG_PATH=<scratch>/herdr-config.toml <absolute herdr> --session
+<probe-session>` (A10), where that config holds only `[worktrees] directory = "<scratch>/worktrees"`,
+so the TUI herd's `--path` lands under `<scratch>`. A Butler was started in its pane `w1:p1` with
+`herdr agent start uat-butler --kind claude --pane w1:p1 -- --plugin-dir <this repo> --settings …`
+and told once that `HERDR_CONFIG_PATH` names Herdr's config in that session (H9 names
+`~/.config/herdr/config.toml`). All TUI commands from the driver went through the guard.
+- **Herd.** `/jdi:herd 205` via `herdr agent prompt`. Record `20261117T000939.json`:
+  `surface: tui`, `state: handed_off`, `worktree` `<scratch>/worktrees/repo/jdi-herd-205`,
+  `workspace_id: "w2"`, `tab_id: "w2:t1"`, `pane_id: "w2:p1"`, `agent_name: "jdi-herd-205"`,
+  `space_id: null`, `terminal_id: null`. Nothing was created under `~/.herdr/worktrees/`.
+- **From the outer app Butler.** "This herd ran on the Herdr TUI, and only the Herdr app is
+  reachable from here, so cleanup can't see or close its workspace"; the entry was offered marked
+  "agent state unknown" with "Workspace w2: skipped", a plain `git worktree remove`, the scratch
+  branch and the record. Its transcript has no `herdr` (TUI) command. Answer `no`: nothing removed.
+- **From inside the TUI.** The Butler ran `herdr worktree list --cwd <main checkout>` (entry with
+  `path` = the record's `worktree`, `open_workspace_id: "w2"`), `herdr workspace get w2`
+  (`agent_status` done), the own-location check (`pwd -P`, `$HERDR_WORKSPACE_ID`), both status
+  checks, and listed "w2, which I found by its path … herdr worktree remove --workspace w2, without
+  --force". `yes` → plan re-check, `herdr worktree remove --workspace w2`, worktree confirmed gone
+  from the porcelain list, branch rule → `git branch -D jdi-herd-scratch-20261117T000939-1`, record
+  deleted. `herdr workspace list` then held `w1` only; no other branch was deleted (`feat-203`,
+  `jdi-herd-scratch-20261116T235708-2`, `decoy-201`, `main` remain).
+
+### (u3) A real herd cleaned up: **pending, user to walk**
+
+Not run by the agent. Steps for the user, in their own app window (or TUI):
+1. In a checkout of this branch (or with the 1.0.13 plugin from this branch via `--plugin-dir`),
+   run a real `/jdi:herd <issue> [<issue> …]`. Note the herd ID the step-11 report names.
+2. Let the agents finish (`done` or `idle` in the sidebar); commit each plan on its feature branch,
+   or answer the agents as usual.
+3. From the main checkout (not from a herd worktree), run `/jdi:herd --cleanup <herd-id>`.
+4. **Expected:** one list and one question; on `yes`, each herd space (or TUI workspace) is closed
+   and then its worktree removed; feature branches are kept; a scratch branch is deleted only when
+   it has no commits of its own; `.git/jdi/herds/<herd-id>.json` is gone once the last entry goes.
+   A worktree with uncommitted plan files gets its own question instead.
+
+### Repository checks
+
+1. **Log complete.** 12 scenario ids, (a)–(k) and (u3).
+2. **Sanitised.** No home path or probe session name in this section.
+3. **Scan 1.** `git diff cdd1404 HEAD -- reference/herdr.md | grep -E '^-[^-]'` prints 4 lines, all
+   the old app `needs_input` paragraph in H6 (`hc send … --if idle --wait …`), removed by Task 19's
+   commit `76db238` (approved after the Task 12 gate). No H9 line was removed. Control: 18.
+4. **Scan 2.** The only removed line in `tests/test_herd.py` is the ban tuple in
+   `test_herd_drops_the_superseded_keys_and_tools` that held `"herd record"`.
+5. **Scan 3.** No output (control: 3).
+6. **Scan 4.** No output (control: 93).
+7. **Scan 5.** Three lines, each `"version": "1.0.13"`.
+8. **Scan 6.** `git ls-files | grep -c 'jdi/herds'` → `0` (control: 1).
+9. **Isolation.** See *Cleanup*.
+10. **Clause map.** Every row's scenario passed; (e)'s partial-upkeep case rests on its test only.
+11. **Full suite.** `python3 -m unittest discover -s tests -v`: `Ran 219 tests … OK` (218 expected
+    by the task, plus one added by Task 19).
+
+### Findings (not fixed here; product docs are a new task)
+
+- **F-a. Record creation point.** H9 says the record is created at the first successful worktree
+  and each issue's entry appended at step 6. The Butler created it once after all worktrees were
+  made. Same end state; it only matters if a later create fails or the run dies mid-step 6.
+- **F-b. Close by the matched space.** In (d) the removal closed each space by its recorded ID
+  and only printed the by-path match. The sort step had matched by path, so nothing went wrong; the
+  text could say the close uses the space found by path, re-found just before the close.
+- **F-c. Harness gap (test tooling, not product).** The guard unsets `HERDR_SOCKET_PATH`, so a run
+  with no throwaway TUI reaches the user's default TUI server with any `herdr` command. Future
+  guards should export `HERDR_SOCKET_PATH` to a non-existent path under `<scratch>` outside TUI
+  mode.
+- **F-d. Unseeded herds ignore `config.local.yml`.** As the Butler warned in (a), a gitignored
+  local config does not reach a herd worktree, so herd agents run the committed config (here a
+  real tracker). Known by design (`herd.seed.copy` is the documented remedy); noted because a UAT
+  harness must seed it.
+
+### Cleanup
+
+- **Closed, through the guard.** The nested TUI with `herdr --session <probe-session> server stop`
+  (exit 0); every space with `space.close --confirmed true`; `window.close` (`{"ok":true}`);
+  `hc server stop` (`{"stopped":true}`). No agent process with a `<scratch>` working directory was
+  left.
+- **Removed.** The throwaway home, `~/.local/state/herdr-core/<probe-session>/`,
+  `~/.config/herdr/sessions/<probe-session>/`,
+  `~/.local/state/herdr-automatic-rename/sessions/<probe-session>/`, the Butlers' and agents'
+  transcript folders under `~/.claude/projects/` and their temporary folders for `<scratch>` paths,
+  and every `~/.claude.json` `projects` entry under `<scratch>` (with `jq`; the file was not restored
+  wholesale). Then `git worktree prune` in the clone and removal of `<scratch>`.
+- **Checks afterwards.**
+  - The user's `hc ls --json` has **1** terminal, as before.
+  - `~/.local/state/herdr-core/` lists the user's four sessions only; `~/.config/herdr/sessions/`,
+    the rename state and `herdr session list` are identical to the setup snapshot.
+  - Through the guard, `herdr-app status` exits 2; no `~/.config/<probe-home>` remains.
+  - The `~/.claude.json` project keys and `~/.claude/projects/` equal the setup snapshot.
+  - The real repository's `git worktree list` has 1 line, and its git directory has no `jdi/herds`.
+
 ## Tasks
 
 **Wave 1** — run together
@@ -1409,7 +1671,7 @@ pre-trusted in `~/.claude.json`. Every command went through the guard.
 - [x] [19](19-app-send-after-done.md) — `reference/herdr.md`: app sends that meet a `done` agent (H6 `needs_input`) (depends on: 12, 14)
 
 **Wave 10**
-- [ ] [18](18-uat-herd-cleanup.md) — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test) (depends on: 12, 13, 14, 15, 16, 17) — Planner Task 18
+- [x] [18](18-uat-herd-cleanup.md) — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test) (depends on: 12, 13, 14, 15, 16, 17) — Planner Task 18
 
 Critical path: 02 → 03 → 06 → 08 → 09 → 10 (six tasks).
 Critical path for #37: 12 → 14 → 18 and 13 → 14 → 18 (three tasks each; Wave 9 is four tasks wide, 14 ‖ 15 ‖ 16 ‖ 17).
