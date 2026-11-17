@@ -312,6 +312,15 @@ class PrWorksTheReviewTest(unittest.TestCase):
         self.assertIn("Never use an admin override", self.step)
         self.assertNotIn("**Never merge.**", self.step)
 
+    def test_unanswered_review_questions_hold_the_merge(self):
+        for fragment in (
+            "in a review body or a pull request comment, not only in an inline thread",
+            "no question a reviewer asked is left unanswered",
+            "a reviewer's question that only the user can answer",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, self.step)
+
     def test_it_holds_only_for_a_required_human_approval(self):
         self.assertIn("**Hold the merge only**", self.step)
         self.assertIn("a person's approval the repository requires", self.step)

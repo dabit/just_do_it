@@ -150,6 +150,9 @@ Follow these steps:
       touches nothing in the diff may be re-run once; a second failure is real.
     - **Each review thread:** fix it, or answer it with the reason it should stand. Read the code
       the thread is about before judging it. Resolve a thread only when it is fixed or answered.
+    - **Each review question:** a question a reviewer asks counts wherever it is asked, in a review
+      body or a pull request comment, not only in an inline thread. Answer it there, reading the
+      code first, or fix what it points at.
     - **A branch that no longer merges cleanly because the default branch moved:** bring it up to
       date with `origin/<default>` the way the repository allows, and run the repository's local
       gates again. A conflict whose resolution needs a product decision ends the loop: hand it back.
@@ -162,7 +165,7 @@ Follow these steps:
     than behaviour, the loop is not converging: stop and hand back with the open threads listed.
 
     **Merge when green.** When every required check passes on the head commit, no thread is
-    unresolved, and the branch merges cleanly, merge with a method the repository allows: read the
+    unresolved, no question a reviewer asked is left unanswered, and the branch merges cleanly, merge with a method the repository allows: read the
     allowed methods instead of assuming one. Never use an admin override, never bypass or skip a
     required check, and never claim a check passed that you did not watch pass. **Merging is not
     deploying:** do not start a production rollout unless the repository's instructions tell you
@@ -171,7 +174,9 @@ Follow these steps:
 
     **Hold the merge only** while a person's approval the repository requires is missing (branch
     protection, a required review, or its instructions naming one), when the repository's
-    instructions say an agent may not merge, or when the user said to stop at the pull request.
+    instructions say an agent may not merge, when a reviewer's question that only the user can
+    answer (a product decision, or anything outside the request) is open, or when the user said to
+    stop at the pull request.
     Stop there with the pull request otherwise mergeable, and say what it is waiting for.
 
 12. **Report** — Show the user the pull request URL, and name anything that was skipped: an unrun
