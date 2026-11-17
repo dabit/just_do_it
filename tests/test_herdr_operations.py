@@ -457,6 +457,16 @@ class HerdrOperationsTest(unittest.TestCase):
                     "H5 on the app's state table has no row starting with %r" % row,
                 )
 
+    def test_h5_app_tagged_prompt_is_plain_text(self):
+        """Task 27, R7: hc tags a send from an agent's terminal; H5's prompt and H6's answer are
+        plain text, so they stay tagged, and only H9's slash-command handoff drops the tag."""
+        self.assertSectionContains(
+            "### H5 on the app",
+            "`<hc from=",
+            "plain text",
+            "H9 on the app's handoff",
+        )
+
     def test_h6_app(self):
         self.assertSectionContains(
             "### H6 on the app",

@@ -125,6 +125,22 @@ class HerdrSurfacesDocTest(unittest.TestCase):
             '"<invocation>"', row, "`| H9 Hand it the work |` still double-quotes the invocation"
         )
 
+    # Task 27, the untagged app handoff (R7).
+
+    def test_operation_map_hands_off_untagged(self):
+        rows = jdi_files.section(self.text, "## Operation map")
+        row = next((line for line in rows if line.startswith("| H9 Hand it the work |")), None)
+        self.assertIsNotNone(row, "`## Operation map` has no row starting `| H9 Hand it the work |`")
+        for fragment in ("`env -u HC_TERMINAL_ID hc send <terminal> '<invocation>' --if idle`", "R7"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, row, "`| H9 Hand it the work |` lacks %s" % fragment)
+
+    def test_r7_note(self):
+        body = re.sub(r"\s+", " ", " ".join(jdi_files.section(self.text, "### What the probes showed")))
+        for fragment in ("**R7, the app handoff.**", "`<hc from=", "HC_TERMINAL_ID"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, body, "the R7 note lacks %s" % fragment)
+
     def test_herd_record_section_names_task(self):
         body = re.sub(r"\s+", " ", " ".join(jdi_files.section(self.text, "## The herd record")))
         for fragment in ("`task`", "`/jdi:do`"):

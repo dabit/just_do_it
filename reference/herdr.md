@@ -532,6 +532,11 @@ timeout above each call. Where the shell tool caps lower than 300 s, use its cap
 `--timeout`. `hc send` also waits up to 60 s for a person's unfinished draft in the worker's input
 before it types.
 
+Sent from the Butler's agent terminal, the prompt arrives wrapped in a `<hc from="<terminal>">`
+tag. H5's short prompt and H6's answer are plain text, which the worker reads and follows inside the
+tag, so they are sent as they are. Only H9 on the app's handoff, a slash command that the tag would
+stop Claude Code from expanding, drops the tag (R7).
+
 Classification reads the JSON hc prints, on stdout and stderr. The exit code only confirms it. A
 check-in whose `--timeout` expired prints `reason: timeout` on stdout with exit 0, and is not an
 error.
@@ -985,10 +990,17 @@ for an untrusted main checkout, or for a CLI that does not carry trust over to a
 **Hand it the work.** Only after the readiness wait reported `status: idle`:
 
 ```text
-hc send <terminal> '<invocation>' --if idle
+env -u HC_TERMINAL_ID hc send <terminal> '<invocation>' --if idle
 ```
 
-The invocation comes from the invocation table above, with `<WORK>` filled in. No `--wait`:
+The invocation comes from the invocation table above, with `<WORK>` filled in. **Drop the
+Butler's terminal address for this one command.** Sent from an agent's terminal, hc wraps the text
+in a `<hc from="<terminal>">` tag, and the herd agent then receives a tagged message instead of a
+real slash command: Claude Code does not expand it, and the model decides whether and when to load
+the command (R7). Without `HC_TERMINAL_ID` the same send arrives untagged and is expanded. Remove
+only `HC_TERMINAL_ID`, and only for the handoff: the core is still the one `HC_SESSION` selects,
+inherited as every other command's is, so never `HC_SESSION` or any other variable, and never hc's
+`notes` setting, which is the user's (rule 2). No `--wait`:
 the herd sends every handoff first and reads the states afterward. `--if idle` makes the app
 refuse to type unless the status is exactly `idle`, so the invocation never lands in a dialog. A
 refusal (exit 9 blocked, or exit 10 not idle) typed nothing: report the issue as blocked at

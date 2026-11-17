@@ -402,6 +402,24 @@ class HerdCommandTest(unittest.TestCase):
             "blocked at startup",
         )
 
+    def test_h9_app_hands_off_untagged(self):
+        """Task 27, R7: from an agent's terminal hc wraps a send in an `<hc from>` tag, and a
+        tagged `/jdi:do` is not a slash command (F-h). Dropping only `HC_TERMINAL_ID` for the one
+        handoff sends it untagged to the same core, and `--if idle` still holds."""
+        self.assertH9AppContains(
+            "env -u HC_TERMINAL_ID hc send <terminal> '<invocation>' --if idle",
+            "`<hc from=",
+            "a real slash command",
+            "only `HC_TERMINAL_ID`",
+            "never `HC_SESSION`",
+            "(R7)",
+        )
+        self.assertNotRegex(
+            self.h9_app_text(),
+            r"(?<!HC_TERMINAL_ID )hc send <terminal> '<invocation>'",
+            "H9 on the app still hands off with a tagged `hc send` somewhere",
+        )
+
     def test_h9_app_cleanup_order(self):
         h9_app = self.h9_app_text()
         steps = (

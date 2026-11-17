@@ -196,7 +196,7 @@ with the decision or probe behind it.
 | Waves, the tab | `herdr tab create --workspace … --cwd … [--env …] --no-focus`, then `herdr tab rename` | `herdr-app do tab.new --name jdi-wave-<first run id> --space <space> --folder <root> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A1). The name is given at creation, so there is no rename; `--folder` replaces the `sh` wrapper. The app runs the argv in an interactive shell that stays live after the agent exits, so the tab stays open until H8 closes it; closing its last pane closes the tab with it (UAT, herdr-app 0.1.16), so H8's `tab.close` then returns the harmless `no tab` error (A7). Later workers split a live pane of the wave tab (D4) |
 | Waves, the wait | `herdr agent wait <name> --timeout 30000` per worker | `hc wait <terminal> --timeout 30` per worker |
 | H9 Create a worktree | `herdr worktree create --cwd … --path … --branch … --base … --label … --no-focus` | `git worktree add -b <scratch branch> <path> origin/<default>` only, at herd step 6 (P5). The space comes at step 8, after `herd.seed`: `herdr-app do space.new --name '<label>' --folder <path> --tab <name> --argv '[…]' --focus false`, which prints `{space, tab, terminal}` (A8). The name is always single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick arrives literally (A17), then H4b's label and readiness wait |
-| H9 Hand it the work | `herdr agent prompt <name> '<invocation>'` | after the readiness wait reports `status: idle`, `hc send <terminal> '<invocation>' --if idle` (D6). Never `space.new --task`. On both surfaces the invocation is one shell argument, single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick in a task arrives literally (M2) |
+| H9 Hand it the work | `herdr agent prompt <name> '<invocation>'` | after the readiness wait reports `status: idle`, `hc send <terminal> '<invocation>' --if idle` (D6), with the Butler's terminal address dropped for that one command: `env -u HC_TERMINAL_ID hc send <terminal> '<invocation>' --if idle`, so the agent gets a real slash command rather than an `<hc from>`-tagged message (R7). Never `space.new --task`. On both surfaces the invocation is one shell argument, single-quoted, with each `'` written as `'\''`, so a `'`, `$` or backtick in a task arrives literally (M2) |
 | H9 Reattach | `herdr worktree open` | find the space in `herdr-app ls` whose folder is inside the worktree and `herdr-app do space.select --id <space>`; otherwise `herdr-app do space.new --folder <path> --focus false` |
 | H9 Watch | `herdr agent get <name>` | `hc get <terminal>`, `hc read <terminal> --lines 80`. In the window, a space's and a tab's status is its most urgent agent's (blocked, then done, then working, then idle) |
 | H9 Cleanup | `herdr worktree remove --workspace <id> [--force]` | after JDI's plan-file check, `herdr-app do space.close --id <space> --confirmed true`, then `git -C <main checkout> worktree remove [--force] <path>`. Terminals first, then the folder, as the app's own dialog does it |
@@ -332,6 +332,15 @@ session and app home through the isolation guard, with a nested throwaway TUI on
   turn the status is `done`, and `hc send --if idle` refuses a `done` agent. R6 showed nothing
   JDI does clears `done`, so H6 answers a `done` worker with a plain send after checking its
   status (see the H6 row); cleanup sends nothing.
+- **R7, the app handoff.** Sent from an agent's terminal, `hc send` wraps the text as
+  `<hc from="<terminal>">…</hc>`, so a herd agent got its `/jdi:do` as a tagged message and Claude
+  Code did not expand it (UAT #38's F-h); from a plain shell's terminal the same send was not
+  tagged. `env -u HC_TERMINAL_ID hc send … --if idle` arrived untagged and was expanded, reached the
+  same core (the core is picked by the inherited `HC_SESSION`, not by `HC_TERMINAL_ID`), and still
+  refused a `done` and a silent terminal (exit 10, nothing typed). A first prompt in the agent's
+  argv was also expanded, and waited through a trust dialog, but it is Claude-specific, so the herd
+  keeps typing the handoff and drops only `HC_TERMINAL_ID` for it. H5's prompt and H6's answer are
+  plain text and stay tagged.
 - **R5, git.** The porcelain prints a worktree's resolved path even when it was added through a
   symlink, while an app space keeps its `folder` in the form it was opened with. G3 amended the app
   match to resolve the folder with `pwd -P` first. A worktree whose folder was deleted is marked
