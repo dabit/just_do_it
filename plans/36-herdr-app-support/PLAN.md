@@ -1946,6 +1946,8 @@ touched. This is an agent smoke test; (u4)–(u7) are the user's.
 ### (a) A `do`-mode herd of untracked tasks: **fail** (agent 3; see F-e, F-f, F-g, F-h, F-i)
 
 > **Re-run after task 27: still fail** (agent 3, F-e; F-h closed). See *Re-run after task 27 (2026-11-16)* below.
+>
+> **Re-runs after task 28: still fail.** Sonnet: agent 3 built and pushed again (F-e), no agent posted `**Size:**`. Opus: agent 3 continued into prep before any edit, with no push and a correct `PLAN.md`, but no agent posted the verdict in chat (F-n), and the pre-start announcement was not a chat line on either run (F-i). See *Re-run after task 28 (Sonnet)* and *(Opus)* below.
 
 `/jdi:herd "fix the typo 'recieve' in README.md and keep $HOME/bin as it is" "make greet() strip surrounding whitespace from the name, with a test" "turn this into a web service with user accounts, a database, and an admin dashboard"`, herd ID `20261117T011544`.
 - **The herd: pass, but the announcement is weak.**
@@ -2057,10 +2059,12 @@ Local `herd.mode: bogus`, `/clear`,
   received literally. The prep agent made `rename-greeting-hi` from `origin/main` and a plan, and
   stopped on its own. Local config restored to `do`.
 
-### (f) Cleanup of (a): **pass** (entry 3's plan question not reachable; see note)
+### (f) Cleanup of (a): **pass** (entry 3's plan question observed in the re-run after task 28, Opus)
 
 > **Re-run after task 27:** entry 3's plan question is still not reachable, because (a)'s agent 3 again
 > never reached prep. The first run's pass stands for the rest. See *Re-run after task 27 (2026-11-16)* below.
+>
+> **Re-run after task 28 (Opus): entry 3's own plan question observed**, with the plan commit offered; "keep" left entry 3 in the record. The Sonnet re-run could not reach it (agent 3 built instead). See *Re-run after task 28 (Opus)* below.
 
 `/clear`, `/jdi:herd --cleanup 20261117T011544`; all agents `done`.
 - One list, one question. Entry 1: space `sp813873…`, plain removal, scratch `-1` "→ delete (still
@@ -2456,6 +2460,329 @@ own plan question remains **unobserved**.
   `~/.config/herdr/sessions/`, the rename state and `~/.claude/projects/` unchanged; `~/.claude.json`
   `projects` keys the same 4; the real `git worktree list` 1 line, and no `jdi/` folder in its git
   directory.
+
+### Re-run after task 28 (Sonnet) (2026-11-16)
+
+Scenarios (a) and (f) again, after task 28 made `/jdi:do` step 4 a gate whose first field is
+`**Size:** fits one pull request` or `**Size:** too big for one session — <why>`, posted before any
+edit, and made herd step 8 quote its announcement ("Mode `do`: each agent opens and merges its own
+pull request, unattended and in parallel with the others; `herd.mode: prep` stops each at a plan
+instead."). Herd agents on Sonnet (`--model sonnet` in `harnesses.claude.args`), the Butler on the
+account's default model (the pane showed Opus 5.5). Same versions (`herdr` 0.9.3, `herdr-app`
+0.1.16, `hc` 0.1.21, `git` 2.56.0, `claude` 2.1.326), branch HEAD `a952b74`. (b)–(e) and (g) were
+not repeated.
+
+**Harness, rebuilt as the previous re-run's**, in a fresh `<scratch>` used for this run only.
+- **Guard** `<scratch>/g`, the same script (refusal unless `JDI_PROBE_SESSION` and `JDI_PROBE_HOME`
+  are set and the session matches `jdiprobe-*`; the nine `HC_*`/`HERDR_*` variables, `CLAUDECODE`,
+  every `CLAUDE_CODE_*`, `CLAUDE_PID`, `CLAUDE_EFFORT` and the five `GH_*` token variables unset;
+  `HC_SESSION`, `HERDR_APP_HOME`, `GH_CONFIG_DIR=<scratch>/gh-empty` and
+  `HERDR_SOCKET_PATH=<scratch>/no-tui/herdr.sock` exported). A new `<probe-session>` and a short
+  throwaway home `~/.config/<probe-home>` (six characters).
+- **Self-checks, run and logged before anything else.**
+  1. `env -u JDI_PROBE_SESSION <scratch>/g echo X`: `exit=64`, 0 stdout bytes, stderr
+     `probe guard: JDI_PROBE_SESSION and JDI_PROBE_HOME must both be set; refusing`. **Pass.**
+  2. The user's `herdr session list` captured outside the guard; `<scratch>/g herdr status` exited 1
+     with the `sun_path` error; `herdr session list` again: byte-identical to the first capture and
+     to the snapshot. `<scratch>/no-tui/` stayed empty. **Pass.**
+  3. `<scratch>/g gh auth status`: exit 1, `You are not logged into any GitHub hosts`. **Pass.**
+- **Snapshots** (outside the guard, read-only, taken once before this run and reused for the Opus
+  run): the user's `hc ls --json` **2** terminals; the real `git worktree list` **1** line;
+  `~/.claude.json` **4** `projects` keys; `~/.local/state/herdr-core/` = `default jute personal vault`;
+  `~/.config/herdr/sessions/` four entries; `herdr session list` five sessions; `~/.claude/projects/`,
+  the rename state, `~/.config/` and `/tmp` listed; no `jdi/` folder in the real repository's git
+  directory.
+- **Scratch repository**, as before: bare `<scratch>/origin.git`, one commit `ba8d317` (the **origin
+  SHA**), the same six files (the committed `.jdi/config.yml` added with `git add -f`), clone
+  `<scratch>/repo`, `origin/HEAD` → `origin/main`, throwaway identity and `commit.gpgsign false` in the
+  clone only. Suffixes recomputed: `t089c30`, `t75a757`, `t9e2fdc`. Local config
+  `herd: {kind: claude, mode: do}`,
+  `harnesses.claude.args: ["--model", "sonnet", "--plugin-dir", "<this repo>", "--settings", '{"enabledPlugins":{"jdi@just-do-it":false}}']`.
+- **App.** Home `settings.json` `{"worktrees":{"directory":"<scratch>/worktrees"}}`. Through the
+  guard, `herdr-app status` exited 2 and `hc ls --json` printed `{"hidden_finished":0,"terminals":[]}`;
+  `herdr-app` started in the background; `overlay.close` → `{"ok":true}`.
+- **Trust.** `~/.claude.json` copied aside; only `<scratch>/repo` pre-trusted (`jq` to a temporary
+  file, then `mv`). No herd worktree opened a trust dialog.
+- **The Butler**, as before: `claude --plugin-dir <this repo> --settings '{"enabledPlugins":{"jdi@just-do-it":false}}'`
+  as the argv of a throwaway `space.new` (`butler`, `t1`) on `<scratch>/repo`, `hc wait` → `idle`,
+  then the plain-text instruction (reply `OK`). The herd command was sent without `--if idle` (`t1`
+  was `done`). `/clear` and the instruction again before (f). No dialog was answered and no
+  `hc keys` was used.
+- **Reading the panes.** A pane line of the form `● <text> · summary` is Claude Code's display of a
+  **thinking block**, not a chat message: the transcript holds it as `{"type":"thinking"}` in the
+  assistant turn, with no `text` block. Every check below that says "in chat" was read from the
+  transcript's `text` blocks.
+
+#### (a) A `do`-mode herd of untracked tasks: **fail** (no size verdict posted; agent 3 built and pushed again)
+
+Herd ID `20261117T033406`.
+
+- **The herd.** No parse question; 0 `gh` commands in the Butler's transcript; the documented hash
+  command with the task-1 text single-quoted as `'\''`; names `fix-typo-recieve-readme-t089c30`,
+  `greet-strip-whitespace-t75a757`, `web-service-accounts-t9e2fdc`. Three
+  `git worktree add -b jdi-herd-scratch-20261117T033406-<N> … origin/main`, three
+  `space.new --name '<suffix> <task text>'` (task 1 with `'\''`, `$HOME` literal), then
+  `env -u HC_TERMINAL_ID hc send t2 '/jdi:do fix the typo '\''recieve'\'' in README.md and keep $HOME/bin as it is (untracked, started by /jdi:herd)' --if idle`
+  and the same form for `t3`, `t4`. Record `<scratch>/repo/.git/jdi/herds/20261117T033406.json`:
+  `surface: app`, `state: handed_off`, 3 entries (each `issue: null`, `task` the typed text without the
+  clause, `$HOME` literal, `seeded: false`).
+- **The announcement: not a chat line.** Before the first `space.new` the Butler's only words on the
+  mode were a thinking block, shown on the pane as `● Each agent will open and merge its own pull
+  request unattended and in parallel, or stop at a plan if herd.mode is prep. … · summary`. No
+  `text` block before the start says it, step 8's quoted sentence was not used, and `herd.mode: prep`
+  appears in no assistant text of the run (0 matches). The report names `do` mode, gives one row per
+  task, the args, the record path, `/jdi:herd --cleanup 20261117T033406` and the do-stop sentence
+  ("An agent that stops before merging also shows done in the sidebar … Open its space to see its
+  reason"), but not `herd.mode: prep`. It also said "there's no `.jdi/config.local.yml` override"
+  while applying that file's args (F-k again).
+- **Agent 1 (typo).** First message a real slash command (`<command-name>/jdi:do`, 0 `<hc`). Two
+  reads, then `git fetch -q origin && git checkout -q -b fix-typo-recieve-readme origin/main`, then
+  `sed -i` on `README.md`, commit, `git push -q -u origin fix-typo-recieve-readme`, `gh pr create`
+  (not logged in). Stop: "`gh` isn't authenticated here, and the origin is a local bare repo, not a
+  GitHub remote." **No plan and no `**Size:**` line in any `text` block**; its only pre-edit words
+  were a thinking block ("I'm fixing the "recieve" typo on line 3 …").
+- **Agent 2 (strip).** Real slash command. Two reads, then the edit, the test
+  `test_strips_surrounding_whitespace` (2 tests OK), a commit and `git push -qu origin HEAD` **on
+  `jdi-herd-scratch-20261117T033406-2`** (F-f recurred). Stop on the no-PR-host reason. Its sizing
+  was a thinking block only: "The change is small enough for one pull request … I'm using the
+  existing herd-created branch". No plan in chat.
+- **Agent 3 (web service): fail, as in both earlier runs.** Real slash command. Two reads, then it
+  wrote `db.py`, `auth.py`, `app.py`, `serve.py`, `test_app.py` (13 tests OK) and a README rewrite on
+  the scratch branch, ran the server on `localhost:8765` with a `mktemp -d` folder in `/tmp` (outside
+  `<scratch>`; removed at cleanup), committed `2c79d9b`, ran `git push -q -u origin HEAD` (the scratch
+  branch reached origin) and `gh pr create --fill`. Its one sizing thought came **after** the code
+  was written, and judged wrongly: "The `greet` change is scoped to one pull request: a stdlib-only
+  web service …". No E7 line, no prep, no `PLAN.md`, no feature branch.
+- **Origin afterwards.** `main` = `ba8d317` (= origin SHA). Branches: `fix-typo-recieve-readme`,
+  `jdi-herd-scratch-20261117T033406-2`, `jdi-herd-scratch-20261117T033406-3`, `main`. **No push to
+  `main`.**
+
+| Check (task file, (a)) | Result | Why |
+|---|---|---|
+| No parse question | pass | all three quoted; none asked |
+| Announcement as its own chat line, naming `herd.mode: prep` | **fail** | a thinking block only; `herd.mode: prep` in no `text` block (F-i) |
+| No tracker step, no `gh` call (Butler) | pass | 0 `gh` commands |
+| Record: 3 entries, `issue: null`, `task`, suffixes, `surface: app`, `handed_off` | pass | as above |
+| Handoff `env -u HC_TERMINAL_ID hc send … --if idle`, `'\''`, `$HOME` literal | pass | three commands in the transcript |
+| Each agent's `/jdi:do` loads as a real slash command | pass | `<command-name>/jdi:do` in all three; 0 `<hc` |
+| Each agent posts the plan, `**Size:**` first, before any edit | **fail (0 of 3)** | no plan in any `text` block; edits followed reads directly (F-n) |
+| Agents 1–2: verdict "fits" | **fail** | never posted; agent 2's "small enough for one pull request" was thinking |
+| Agents 1–2: feature branch from `origin/main` | **fail (agent 2)** | agent 1 `git checkout -b … origin/main`; agent 2 committed on its scratch branch (F-f) |
+| Agent 2: a test | pass | `test_strips_surrounding_whitespace`, 2 tests OK |
+| Agents 1–2: push to the bare origin, stop at the no-PR-host step | pass | both pushed (agent 2 the scratch branch) and stopped on the no-PR-host reason |
+| Origin `main` unchanged | pass | `ba8d317` before and after |
+| Agent 3: verdict "too big …", says it continues with `/jdi:prep` | **fail** | built the whole service; judged "scoped to one pull request" after building (F-e) |
+| Agent 3: pushes nothing | **fail** | pushed `jdi-herd-scratch-20261117T033406-3` |
+| Agent 3: prep keeps do's branch, no tracking question, `PLAN.md` with `Tracker: none` / `Issue: none` | **fail (not reached)** | prep never ran |
+| Report: rows, mode, do-stop sentence, record path, cleanup command | pass | all present; `herd.mode: prep` not named |
+
+#### (f) Cleanup of (a): **pass on the rules; entry 3's plan question not reachable**
+
+`/clear`, `/jdi:herd --cleanup 20261117T033406`, every agent `done`.
+- One list, one question. Entry 1: space, plain removal, `jdi-herd-scratch-20261117T033406-1`
+  "deleted (still at its base commit)". Entry 2: space, plain removal, scratch `-2` "kept (holds
+  commit 1a1984b)". Entry 3: space, plain removal, scratch `-3` "kept (holds commit 2c79d9b)". No
+  plan files anywhere, so no separate question; the feature branch `fix-typo-recieve-readme` named
+  and left alone.
+- Answer "yes for entries 1 and 2; leave entry 3 out and keep it". The transcript ran, per entry,
+  `git -C <wt> status --porcelain -- plans` → `herdr-app do space.close --id <space> --confirmed true`
+  → `git -C <main checkout> worktree remove <path>` (no `--force`) → `show-ref --verify --quiet` and
+  `rev-list --count ba8d317..refs/heads/<scratch>` = 0 and the worktree gone → `git branch -D`.
+- After: worktrees 1 and 2 gone; scratch `-1` deleted; scratch `-2` kept because agent 2 committed on
+  it (correct by H9's rule, but the expectation "scratch `-1` and `-2` deleted" rests on agents
+  branching, which agent 2 did not); `fix-typo-recieve-readme` kept. Record `handed_off` with one
+  entry, `n: 3`, `web-service-accounts-t9e2fdc` and its task text; entry 3's space, worktree and branch
+  intact. The report named each entry by task text and result.
+- **Not reachable:** agent 3 never ran prep, so entry 3 had no plan and no plan question.
+
+#### Cleanup (Sonnet run)
+
+- **Closed, through the guard.** Both remaining spaces (`butler`, entry 3) with `space.close
+  --confirmed true` (`{"ok":true}` each; `hc ls --json` then 0 live terminals), `window.close`
+  (`{"ok":true}`; `herdr-app status` then exited 2), `hc server stop` (`{"stopped":true}`). No process
+  naming the probe session or `<scratch>` remained.
+- **Logged before removal.** Origin `main` = `ba8d317` (= origin SHA); `<scratch>/gh-empty` and
+  `<scratch>/no-tui/` empty.
+- **Removed.** The throwaway home, `~/.local/state/herdr-core/<probe-session>/` (no TUI session or
+  rename state was created), the Butler's and agents' transcript folders under `~/.claude/projects/`,
+  Claude's temporary folders for `<scratch>` paths, agent 3's `mktemp` folder in `/tmp` and the
+  throwaway app's `/tmp/herdr-app-<pid>-done.mp3`, the one `~/.claude.json` `projects` entry under
+  `<scratch>` (`jq`, not restored wholesale), and the copy of `~/.claude.json`. Then `git worktree
+  prune` in the clone and `<scratch>` removed.
+- **Checks afterwards**, all equal to the snapshots: the user's `hc ls --json` **2** terminals;
+  `herdr session list` byte-identical; `~/.local/state/herdr-core/` = `default jute personal vault`;
+  `~/.config/herdr/sessions/`, the rename state, `~/.claude/projects/` and `~/.config/` unchanged;
+  `~/.claude.json` `projects` keys the same 4 (mode `600`); the real `git worktree list` 1 line; no
+  `jdi/` folder in its git directory. `/tmp` differed by one file, `herdr-app-<pid>-done.mp3` written
+  by the user's own `herdr-app` (a process started hours before this run), left alone.
+
+### Re-run after task 28 (Opus) (2026-11-16)
+
+The same scenarios with herd agents on Opus (`--model opus`), the Butler again on the default model
+(Opus 5.5). Everything rebuilt from nothing in a new `<scratch>`, a new `<probe-session>` and a new
+short `~/.config/<probe-home>`, so the runs shared no state.
+
+**Harness.** As the Sonnet run's, with the same results: self-check 1 `exit=64`, 0 stdout bytes, the
+same stderr; self-check 2 `herdr status` exit 1 (`sun_path`), `herdr session list` byte-identical,
+`<scratch>/no-tui/` empty; self-check 3 not logged in. Origin SHA `7b417c3`. Local config identical
+but `"--model", "opus"`. App home, trust (only `<scratch>/repo`), Butler and plain-text instruction
+as before; `overlay.close` → `{"ok":true}`.
+
+#### (a) A `do`-mode herd of untracked tasks: **fail on the posted verdict; the too-big fallback works on Opus**
+
+Herd ID `20261117T033939`.
+
+- **The herd.** As the Sonnet run: no parse question, 0 `gh` commands, the same hash commands and
+  names, three worktrees from `origin/main`, three `space.new`, then
+  `env -u HC_TERMINAL_ID hc send t<N> '/jdi:do … (untracked, started by /jdi:herd)' --if idle` with
+  task 1's `'\''` and literal `$HOME`. Record `20261117T033939.json`: `surface: app`, `state:
+  handed_off`, 3 entries, each `issue: null`, `task` the typed text, the three names, `seeded: false`.
+- **The announcement: again not a chat line before the start.** A thinking block only: "Each agent
+  will open and merge its own pull request unattended and in parallel, unless `herd.mode: prep` stops
+  them at a plan." The **report**, after the start, did say it near verbatim: "The herd ran in **`do`
+  mode**: each agent opens and merges its own pull request, unattended and in parallel with the
+  others. Setting `herd.mode: prep` would stop each one at a plan instead." It had one row per task,
+  the args, the record path, the do-stop sentence ("A do agent that stopped before merging also shows
+  done, so open its space to see which happened") and the cleanup command. It said
+  "`.jdi/config.local.yml` doesn't exist" while applying its args (F-k).
+- **Agent 1 (typo).** Real slash command (0 `<hc`). One read, `git fetch origin && git switch -c
+  fix-readme-receive-typo origin/main`, `sed -i`, unittest OK, commit `8f4a06d`, `git push -u origin
+  fix-readme-receive-typo`. Stop: "The remote (`origin`) is a local bare repository, not GitHub, and
+  `gh` isn't logged in. I didn't push to `main` myself because this command forbids it." **No plan and
+  no `**Size:**` line in chat.**
+- **Agent 2 (strip).** Real slash command. Two reads, `git switch -c greet-strip-whitespace
+  origin/main`, `name.strip()` and `test_strips_surrounding_whitespace` (2 of 2 OK), commit `a90dd04`,
+  `git push -u origin greet-strip-whitespace`, `gh pr create --fill` (not logged in). Stop on the
+  no-PR-host reason. **No plan in chat.**
+- **Agent 3 (web service): the fallback fired, but the verdict stayed in thinking.** Real slash
+  command. Two reads, then a thinking block, shown on the pane as `● … · summary`: "The work is too
+  big for one session, so I'm moving on to /jdi:prep on the web-service-accounts branch, since the
+  design questions (framework, how the first admin is created, what greet becomes) still need
+  answers." Then `git switch -c web-service-accounts origin/main` in the same command as `cat <this
+  repo>/commands/prep.md`, prep's checks, and `plans/web-service-accounts/PLAN.md`. It spawned a
+  `jdi:researcher` in the background, merged its findings into `PLAN.md` ("skipped the issue step since
+  there's nothing to record findings on"), and its last thinking was "Before I plan, I need answers to
+  four questions that change the work's shape." No `text` block ever said "too big" or `**Size:**`.
+  - `PLAN.md`: `Tracker: none`, `Project: none`, `Issue: none`, `Issue URL: none`,
+    `Base commit: origin/main @ 7b417c3…`, equal to `git -C <wt3> rev-parse HEAD`.
+  - `git -C <wt3> branch --show-current` = `web-service-accounts`; the work's branches are that one
+    feature branch and `jdi-herd-scratch-20261117T033939-3` at its base. `git status --short`: `?? plans/`.
+  - No tracking question; no push (origin: `main` and the two feature branches of agents 1 and 2).
+  - **Stopped** once `PLAN.md` held the research and the agent was about to ask its questions: `hc
+    interrupt t4` through the guard (it was `working`, no dialog open; this is not `hc keys`) answered
+    `still_working` while the Researcher returned, and a second one `stopped`; `hc get` then `idle`,
+    turn 1. No question tool dialog was opened.
+- **Origin afterwards.** `main` = `7b417c3` (= origin SHA). Branches: `fix-readme-receive-typo`,
+  `greet-strip-whitespace`, `main`. **No push to `main`, and no scratch branch reached origin.**
+
+| Check (task file, (a)) | Result | Why |
+|---|---|---|
+| No parse question | pass | none asked |
+| Announcement as its own chat line, naming `herd.mode: prep` | **fail (partial)** | before the start a thinking block only; the report names `herd.mode: prep` near verbatim (F-i) |
+| No tracker step, no `gh` call (Butler) | pass | 0 `gh` commands |
+| Record: 3 entries, `issue: null`, `task`, suffixes, `surface: app`, `handed_off` | pass | as above |
+| Handoff `env -u HC_TERMINAL_ID hc send … --if idle`, `'\''`, `$HOME` literal | pass | three commands in the transcript |
+| Each agent's `/jdi:do` loads as a real slash command | pass | `<command-name>/jdi:do` in all three; 0 `<hc` |
+| Each agent posts the plan, `**Size:**` first, before any edit | **fail (0 of 3)** | no plan in any `text` block (F-n) |
+| Agents 1–2: verdict "fits" | **fail** | never posted |
+| Agents 1–2: feature branch from `origin/main` | pass | `git switch -c … origin/main` in both |
+| Agent 2: a test | pass | 2 of 2 OK |
+| Agents 1–2: push to the bare origin, stop at the no-PR-host step | pass | both pushed feature branches and stopped on that reason |
+| Origin `main` unchanged | pass | `7b417c3` before and after |
+| Agent 3: verdict "too big …", says it continues with `/jdi:prep` | **fail (partial)** | the right judgment, made before any edit, but as thinking; nothing posted (F-n) |
+| Agent 3: pushes nothing | pass | origin holds no branch of agent 3 |
+| Agent 3: prep keeps do's branch | pass | one feature branch `web-service-accounts` from `origin/main`; scratch `-3` at base |
+| Agent 3: no tracking question | pass | none; "skipped the issue step" |
+| Agent 3: `PLAN.md` with `Tracker: none` / `Issue: none` | pass | and its base commit equals the branch HEAD |
+| Report: rows, mode, do-stop sentence, record path, cleanup command | pass | all present, with `herd.mode: prep` |
+
+#### (f) Cleanup of (a): **pass** (entry 3's own plan question observed)
+
+`/clear`, `/jdi:herd --cleanup 20261117T033939`; agents 1–2 `done`, agent 3 `idle`.
+- Before asking, "Checking what's in entry 3's uncommitted plan folder". Then one list for entries 1
+  and 2 (space, worktree, plain removal, scratch branch "still at the base commit, so they hold
+  nothing", ignored files go with the worktree, feature branches `fix-readme-receive-typo` and
+  `greet-strip-whitespace` kept) and **a separate question for entry 3**: "It has an uncommitted
+  plan, plans/web-service-accounts/PLAN.md, on branch web-service-accounts. Removing the worktree
+  without committing it deletes the plan", offering (a) commit `docs: Add web-service-accounts plan`
+  then remove, (b) commit and keep, (c) leave it alone, (d) remove and lose the plan.
+- Answer "1. yes 2. (c) leave it alone; keep it". Per entry: `status --porcelain -- plans` →
+  `space.close --confirmed true` → `git worktree remove <path>` (plain) → `show-ref` and `rev-list
+  --count <base>..refs/heads/<scratch>` = 0 and the worktree gone → `git branch -D`.
+- After: worktrees 1 and 2 and their spaces gone, scratch `-1` and `-2` **deleted**, both feature
+  branches kept; record `handed_off` with one entry, `n: 3`, `web-service-accounts-t9e2fdc`, its task;
+  entry 3's space, worktree, branch `web-service-accounts`, scratch `-3` and the uncommitted `PLAN.md`
+  intact. The report named each entry by `name` and task text.
+
+#### Cleanup (Opus run)
+
+- **Closed, through the guard.** `butler` and entry 3's space (`{"ok":true}` each; 0 live terminals),
+  `window.close` (`{"ok":true}`; `herdr-app status` exit 2), `hc server stop` (`{"stopped":true}`). No
+  process naming the probe session or `<scratch>` remained.
+- **Logged before removal.** Origin `main` = `7b417c3` (= origin SHA); `<scratch>/gh-empty` and
+  `<scratch>/no-tui/` empty.
+- **Removed.** As the Sonnet run (throwaway home, `~/.local/state/herdr-core/<probe-session>/`,
+  transcript and Claude temporary folders for `<scratch>` paths, the throwaway app's
+  `/tmp/herdr-app-<pid>-done.mp3`, the one `~/.claude.json` entry under `<scratch>` by `jq`, the copy
+  of `~/.claude.json`, `git worktree prune`, `<scratch>`). Agent 3's one Edit to a mangled path failed
+  with "File not found" and created nothing.
+- **Checks afterwards**, all equal to the snapshots: `hc ls --json` **2**; `herdr session list`
+  byte-identical; `~/.local/state/herdr-core/` = `default jute personal vault`;
+  `~/.config/herdr/sessions/`, the rename state, `~/.claude/projects/` and `~/.config/` unchanged;
+  `~/.claude.json` `projects` keys the same 4; the real `git worktree list` 1 line; no `jdi/` in its
+  git directory. `/tmp` differed by the user's own `herdr-app` sound file (above) and a
+  `.org.chromium.Chromium.*` file held by the user's own Chromium (running since the morning); both
+  left alone.
+
+#### Diagnosis, both runs (no product docs changed here)
+
+- **F-n (new). The size verdict gate is not followed: 0 of 6 agents posted `**Size:**`, on either
+  model.** The sizing judgment moved into thinking: Sonnet agent 2 "small enough for one pull
+  request", Sonnet agent 3 "scoped to one pull request" (after building), Opus agent 3 "too big for one
+  session" (before any edit). On the pane these show as `● … · summary` and look like chat, but the
+  transcripts hold no `text` block before the agent's final message. The gate's wording ("posted …
+  verdict first") is read as "decide first" rather than "write it to the user first", and step 4's
+  "do not wait for approval of it" plus bypass permissions make a silent plan the shortest path.
+  Candidate fix (a new task): require the verdict as the agent's **first chat message**, before any
+  tool call that changes anything, and add a herd-side check that the first assistant `text` begins
+  with `**Size:**`; or accept the thinking-only judgment and test behaviour instead of the line.
+- **F-e: closed on Opus, open on Sonnet.** On Opus the too-big task went straight to prep before any
+  edit, with one feature branch, no push, no tracking question and a correct `PLAN.md`. On Sonnet it
+  was built and pushed for the third time; the only size thought came after the code.
+- **F-f: Sonnet only.** Sonnet agent 2 committed on its scratch branch (and agent 3 on its); Opus
+  agents 1–3 all branched from `origin/main`.
+- **F-i persists on the Butler (Opus 5.5 both runs).** Step 8's quoted sentence never appeared as a
+  chat line before the first start; both times it was a thinking block. The Opus run's report said it
+  near verbatim after the start; the Sonnet run's report did not name `herd.mode: prep`. Same Butler
+  model, so this is run variance on a line that is still not posted.
+- **F-k recurred in both reports** ("no `.jdi/config.local.yml`" while applying it); both cleanup
+  runs read the file correctly.
+- **(f) is now fully observed** (Opus run): entry 3's own plan question with the plan commit offered,
+  keep honoured, partial upkeep of the record.
+
+#### Clause map status (re-runs after task 28; replaces the earlier rows for (a) and (f))
+
+| Clause | Status |
+|---|---|
+| `herd.mode` exists, default `do` | tests pass; (a) ran `do` both runs; named in both reports; the pre-start chat line missing (F-i) |
+| `do` mode hands each agent `/jdi:do <task>` | tests pass; **(a) pass** both runs: a real `/jdi:do` slash command with the literal task, 0 `<hc` |
+| Too-big continues into `/jdi:prep` in the same session | tests pass; **Opus: pass on behaviour** (prep in the same session, before any edit), the verdict line not posted (F-n); **Sonnet: fail** (built and pushed, F-e) |
+| … nothing built at that point | tests pass; Opus pass (no edit, no push); Sonnet fail |
+| An untracked task needs no tracker | tests pass; (a) no `gh` in either Butler; Opus agent 3's prep asked no tracking question and wrote `Tracker: none` / `Issue: none` |
+| Name, folder and record entry from the description | tests pass; (a) pass both runs |
+| Handed over as text | tests pass; (a) pass both runs |
+| `do` stops become waits; the report says so | tests pass; agents 1–2 of both runs stopped on the no-PR-host reason; both reports have the sentence |
+| `--cleanup` and the record keep working | tests pass; **(f) pass**: Opus run with entry 3's plan question, keep honoured, scratch `-1`/`-2` deleted at base, feature branches kept; Sonnet run per the rules (scratch `-2` kept because agent 2 committed on it) |
+| Docs: `do` merges unattended; `herd.mode: prep` is the way back | tests pass; the Opus report says it; the pre-start chat line missing in both runs (F-i) |
+| Task 28's gate: `**Size:**` first, before any edit | tests pass; **observed 0 of 6** (F-n) |
+| Other rows | unchanged from the first run's table |
+
+#### Repository checks (re-runs after task 28)
+
+- **Full suite.** `python3 -m unittest discover -s tests`: `Ran 266 tests … OK`.
+- **GitHub and origin.** Origin `main` unchanged in both runs (`ba8d317`, `7b417c3`) after (a), (f) and
+  at cleanup; `<scratch>/gh-empty` empty both times; every agent `gh` call printed "please run: gh auth
+  login" or not logged in, none reached a host; the Butlers ran none.
 
 ## Tasks
 
