@@ -1854,7 +1854,7 @@ Not run by the agent. Steps for the user, in their own app window (or TUI):
 
 **Wave 11** — run together
 - [x] [20](20-herd-mode-config-key.md) — The `herd.mode` config key (depends on: none) — Planner Task 20
-- [ ] [21](21-h9-modes-clause-quoting-tasks.md) — H9: modes, the herd clause, single quoting, untracked tasks, the record (depends on: none) — Planner Task 21
+- [x] [21](21-h9-modes-clause-quoting-tasks.md) — H9: modes, the herd clause, single quoting, untracked tasks, the record (depends on: none) — Planner Task 21
 
 **Wave 12** — run together
 - [ ] [22](22-do-and-prep-honour-the-herd-clause.md) — `/jdi:do` and `/jdi:prep` honour the herd clause; `/jdi:do` updates a branch the default moved under (depends on: 21) — Planner Task 22

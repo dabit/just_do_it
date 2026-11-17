@@ -63,6 +63,7 @@ class HerdRecordTest(unittest.TestCase):
             {
                 "n",
                 "issue",
+                "task",
                 "name",
                 "worktree",
                 "scratch_branch",
@@ -75,6 +76,14 @@ class HerdRecordTest(unittest.TestCase):
         self.assertEqual(
             set(entry["herdr"]),
             {"workspace_id", "space_id", "tab_id", "pane_id", "terminal_id", "agent_name"},
+        )
+
+    def test_record_untracked_entry(self):
+        """M-D: an untracked task's entry has a `null` issue and its `task` text."""
+        self.assertRecordContains(
+            "`null` for an untracked task",
+            "`schema` stays `1`",
+            "a missing `task` as `null`",
         )
 
     def test_record_heading_is_inside_h9(self):
@@ -210,6 +219,16 @@ class HerdCleanupFromRecordTest(unittest.TestCase):
             "git rev-list --count <base_commit>..refs/heads/<scratch branch>",
             "git branch -D <scratch branch>",
             "Never delete any other branch",
+        )
+
+    def test_cleanup_reports_tasks_by_name(self):
+        """M-D: an untracked entry has no issue ID, so the report names it otherwise."""
+        self.assertCleanupContains("reported by its `name` and its task text")
+
+    def test_scratch_branch_reason_names_do(self):
+        """M-D: either mode leaves the scratch branch behind, so the deletion rule holds."""
+        self.assertCleanupContains(
+            "`/jdi:do` and `/jdi:prep` both leave the scratch branch behind"
         )
 
     def test_record_upkeep(self):

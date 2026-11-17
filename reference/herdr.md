@@ -779,19 +779,22 @@ worker panes are made and waited on.
 
 ## H9 - Give a Butler its own worktree
 
-This section applies to `/jdi:herd` only. Each issue in a herd gets its own worktree, workspace,
-pane and agent, and the agent is a whole Butler running the prep command. Nothing waits for it:
-the herd hands the work off and reports.
+This section applies to `/jdi:herd` only. Each issue or untracked task in a herd gets its own
+worktree, workspace, pane and agent, and the agent is a whole Butler running the herd's command,
+`/jdi:do` or `/jdi:prep` by `herd.mode`. Nothing waits for it: the herd hands the work off and
+reports.
 
 **The kind.** A herd applies H2's supported and installed checks to `herd.kind`, or to the
 `--kind` the user passed, in place of `models.<role>.harness`. A kind with no row in the
 invocation table below is rejected at H2 for a herd.
 
-**Names.** The caller supplies one name per issue, `<slug>-<suffix>`, built from the issue title
-as `commands/herd.md` step 5 says: a short slug of the title's key words, then the issue's short
-ID. When no title was read, the name falls back to `jdi-herd-<issue>`. Check the name against
+**Names.** The caller supplies one name per issue or task, `<slug>-<suffix>`, built from the issue
+title as `commands/herd.md` step 5 says: a short slug of the title's key words, then the issue's
+short ID. When no title was read, the name falls back to `jdi-herd-<issue>`. Check the name against
 `herdr agent list`. A live agent that already holds the name may be a Butler for that issue, so
-the caller reports it and asks.
+the caller reports it and asks. An untracked task's suffix is built as `commands/herd.md` step 5
+says. An untracked task has no `jdi-herd-<issue>` fallback. Its label, the TUI's `--label` and the
+app's space name, is `<suffix> <task text>`.
 
 **The worktree folder carries the issue.** Its folder name is the step-5 name, which ends in the
 suffix, so after a crash or a closed workspace `git worktree list` (or `ls`) shows which folder
@@ -807,8 +810,8 @@ belongs to which issue, even when prep never reached its branch step. Build the 
 **An existing folder is not overwritten.** Match on the suffix, not the whole name: the slug comes
 from a title and a judgment, so a second herd for the same issue can pick different words, and the
 title can change between runs. Look in `<worktrees dir>/<repo>/` for any folder whose name
-ends in `-<suffix>`, or is named `jdi-herd-<issue>` from an older herd. When one exists, a herd
-has run for this issue before. A false match costs one question, never a folder. Say so, and name
+ends in `-<suffix>`, or, for an issue, is named `jdi-herd-<issue>` from an older herd. When one
+exists, a herd has run for this issue or task before. A false match costs one question, never a folder. Say so, and name
 the folder. Show its branch
 (`git -C <path> branch --show-current`) and whether its plan folder has uncommitted files
 (`git -C <path> status --porcelain -- <plans.path>`). Then ask: continue there (a fresh session in
@@ -827,13 +830,13 @@ branch.
 **Create it.**
 
 ```text
-herdr worktree create --cwd "$PWD" --path <worktrees dir>/<repo>/<name> --branch jdi-herd-scratch-<herd-id>-<N> --base origin/<default> --label "<SHORT-ID> <TITLE>" --no-focus
+herdr worktree create --cwd "$PWD" --path <worktrees dir>/<repo>/<name> --branch jdi-herd-scratch-<herd-id>-<N> --base origin/<default> --label '<SHORT-ID> <TITLE>' --no-focus
 ```
 
 The label is the issue title in full, after the short ID, for example
 `f4960613 Seam 1 - A copy lands directly below the original as a sibling`. When no title was read,
-it is `"<ISSUE-ID>"`. Pass the label as one shell argument, quoted so that a quote, `$` or
-backtick in a title arrives literally. `herdr worktree create --help` and
+it is `'<ISSUE-ID>'`. Pass the label as one shell argument, single-quoted, with a `'` written as
+`'\''`, so that a quote, `$` or backtick in a title arrives literally. `herdr worktree create --help` and
 `herdr workspace rename --help` (0.8.2) state no length limit for a label.
 
 Read `.result.worktree.path`, `.result.root_pane.pane_id`, `.result.workspace.workspace_id` and
@@ -851,13 +854,24 @@ empty, create a tab inside the new workspace and use its root pane instead:
 `herdr tab create --workspace <id> --cwd <path> --env KEY=VALUE ... --no-focus`, then use
 `.result.root_pane.pane_id` and `.result.tab.tab_id` from that result.
 
-**The invocation table.** The command each herd Butler receives, by kind:
+**The invocation table.** The command each herd Butler receives, by kind and `herd.mode`:
 
-| Kind | Invocation |
-|---|---|
-| `claude` | `/jdi:prep <ISSUE-ID>` |
-| `codex` | `$jdi:run prep <ISSUE-ID>` |
-| `opencode` | `/jdi-prep <ISSUE-ID>` |
+| Kind | `herd.mode: do` | `herd.mode: prep` |
+|---|---|---|
+| `claude` | `/jdi:do <WORK>` | `/jdi:prep <WORK>` |
+| `codex` | `$jdi:run do <WORK>` | `$jdi:run prep <WORK>` |
+| `opencode` | `/jdi-do <WORK>` | `/jdi-prep <WORK>` |
+
+`<WORK>` is the issue ID followed by `(started by /jdi:herd)`, or, for an untracked task, the task
+text followed by `(untracked, started by /jdi:herd)`, with one space between. The clause tells
+`/jdi:do` and `/jdi:prep` that a herd started them; it is not part of the work. The task text is
+one line: every run of whitespace, line breaks included, is collapsed to one space, because a line
+break typed into an agent can submit it early. For example, `/jdi:do ENG-12 (started by /jdi:herd)`
+and `/jdi:do fix the typo in the signup email (untracked, started by /jdi:herd)`.
+
+Pass the invocation as one shell argument, single-quoted, never double-quoted, with a `'` inside
+written as `'\''`: a task is text a person typed, and inside double quotes the shell expands `$`
+and backticks first.
 
 These spellings come from the README install table that `tests/test_codex_plugin.py`'s
 `test_harness_table_uses_jdi_run_and_preserves_other_harnesses` pins (`/jdi:prep`,
@@ -870,7 +884,7 @@ the `--label` it was created with, the title label above.
 **Start the Butler** with **H4b** under `<name>`, in the pane chosen above. The arguments are
 `harnesses.<kind>.args` verbatim, with no model flag.
 
-**Hand it the work.** `herdr agent prompt <name> "<invocation>"`, with no `--wait`. The herd sends
+**Hand it the work.** `herdr agent prompt <name> '<invocation>'`, with no `--wait`. The herd sends
 every prompt first and reads the states afterward.
 
 **Watch.** `herdr agent get <name>` reports the state. `herdr agent read <name> --source
@@ -931,7 +945,7 @@ herdr-app do space.new --name '<SHORT-ID> <TITLE>' --folder <path> --tab <name> 
   the environment goes on the app: no extra tab is needed. Expand every path first, and quote the
   JSON as H4 on the app says.
 - **The name** is the label the TUI passes to `--label`: the short ID and the issue title, or the
-  issue ID when no title was read. **Single-quote it, never double quotes**, even for a plain
+  issue ID when no title was read, or `<suffix> <task text>` for an untracked task. **Single-quote it, never double quotes**, even for a plain
   number. Inside single quotes a `'`, `$` or backtick arrives literally (A17); inside double quotes
   the shell expands `$` and backticks first. A `'` inside the name is written as `'\''`. For
   example:
@@ -971,15 +985,15 @@ for an untrusted main checkout, or for a CLI that does not carry trust over to a
 **Hand it the work.** Only after the readiness wait reported `status: idle`:
 
 ```text
-hc send <terminal> "<invocation>" --if idle
+hc send <terminal> '<invocation>' --if idle
 ```
 
-The invocation comes from the invocation table above, with the issue ID filled in. No `--wait`:
+The invocation comes from the invocation table above, with `<WORK>` filled in. No `--wait`:
 the herd sends every handoff first and reads the states afterward. `--if idle` makes the app
 refuse to type unless the status is exactly `idle`, so the invocation never lands in a dialog. A
 refusal (exit 9 blocked, or exit 10 not idle) typed nothing: report the issue as blocked at
 startup, as above. Never `--task`: it hands the text over as a launch argument, not typed input,
-and the prep command must arrive typed into a ready agent.
+and the herd's command must arrive typed into a ready agent.
 
 **Watch.** `hc get <terminal>` reports the state. `hc read <terminal> --lines 80` shows a blocked
 agent's question, for inspection only (rule 4). A herd Butler's dialogs belong to the user
@@ -1031,7 +1045,8 @@ shape is identical on both surfaces; a key that does not apply to the surface is
   "issues": [
     {
       "n": 1,
-      "issue": "<ISSUE-ID>",
+      "issue": "<ISSUE-ID, else null>",
+      "task": "<task text, else null>",
       "name": "<slug>-<suffix>",
       "worktree": "<path as git worktree list --porcelain prints it>",
       "scratch_branch": "jdi-herd-scratch-<herd-id>-<N>",
@@ -1061,6 +1076,9 @@ shape is identical on both surfaces; a key that does not apply to the surface is
 - `worktree` is stored exactly as `git worktree list --porcelain` prints it, taken from the entry
   whose `branch` is `refs/heads/<scratch branch>`.
 - `base_commit` is `git -C <path> rev-parse HEAD`, run right after the worktree is created.
+- `issue` is the issue ID, or `null` for an untracked task; `task` is the task text as handed to
+  the agent, without the clause, or `null` for an issue. `task` is additive, so `schema` stays `1`,
+  and a reader treats a missing `task` as `null`.
 
 **Write points.**
 
@@ -1151,11 +1169,12 @@ once. Entries with uncommitted plan files are asked separately, each its own yes
    this record's `herd_id`; it still exists (`git show-ref --verify --quiet refs/heads/<scratch branch>`);
    `git rev-list --count <base_commit>..refs/heads/<scratch branch>` is `0`; and its worktree is
    gone. Then `git branch -D <scratch branch>`. Never delete any other branch. The reason:
-   `/jdi:prep` leaves the scratch branch behind at its base and works on a branch of its own, so the
-   scratch branch holds nothing, and any other branch may hold the work.
+   `/jdi:do` and `/jdi:prep` both leave the scratch branch behind at its base and work on a branch
+   of their own, so the scratch branch holds nothing, and any other branch may hold the work.
 5. Update the record: the cleanup removes the entry once its worktree is no longer in
    `git worktree list --porcelain`, and deletes the record file when the last entry goes. The record
    is written as *The herd record* says: whole, then `mv -f`.
 
 **The report.** Per issue: removed, or skipped with its reason. Then the record's state afterwards:
-the entries left, or that the record file was deleted.
+the entries left, or that the record file was deleted. An entry whose `issue` is `null` is reported
+by its `name` and its task text.

@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 21 — H9: modes, the herd clause, single quoting, untracked tasks, the record
 
 Depends on: None

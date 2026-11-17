@@ -22,9 +22,10 @@ H9_HEADING = "## H9 - Give a Butler its own worktree"
 H9_APP_HEADING = "### H9 on the app"
 
 INVOCATION_ROWS = (
-    "| `claude` | `/jdi:prep <ISSUE-ID>` |",
-    "| `codex` | `$jdi:run prep <ISSUE-ID>` |",
-    "| `opencode` | `/jdi-prep <ISSUE-ID>` |",
+    "| Kind | `herd.mode: do` | `herd.mode: prep` |",
+    "| `claude` | `/jdi:do <WORK>` | `/jdi:prep <WORK>` |",
+    "| `codex` | `$jdi:run do <WORK>` | `$jdi:run prep <WORK>` |",
+    "| `opencode` | `/jdi-do <WORK>` | `/jdi-prep <WORK>` |",
 )
 
 
@@ -204,15 +205,50 @@ class HerdCommandTest(unittest.TestCase):
             "`<slug>-<suffix>`",
             "ends in `-<suffix>`",
             "`jdi-herd-<issue>` from an older herd",
-            '--label "<SHORT-ID> <TITLE>"',
+            "--label '<SHORT-ID> <TITLE>'",
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
+        self.assertNotIn('--label "', h9, "H9 still double-quotes the TUI --label")
         self.assertNotIn(
             "--path <worktrees dir>/<repo>/jdi-herd-<issue>",
             h9,
             "H9 still creates the worktree at `jdi-herd-<issue>`",
         )
+
+    def test_h9_invocation_by_mode_and_clause(self):
+        """M-B: the command follows `herd.mode`, and a fixed clause says a herd started it."""
+        h9 = normalized("\n".join(self.h9_lines()))
+        for fragment in (
+            "`herd.mode`",
+            "`(started by /jdi:herd)`",
+            "`(untracked, started by /jdi:herd)`",
+            "it is not part of the work",
+            "collapsed to one space",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
+
+    def test_h9_invocation_is_single_quoted(self):
+        """M-B: typed task text stays literal, so the invocation is never double-quoted."""
+        h9 = normalized("\n".join(self.h9_lines()))
+        for fragment in (
+            "`herdr agent prompt <name> '<invocation>'`",
+            "single-quoted, never double-quoted",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
+        self.assertNotIn('"<invocation>"', h9, "H9 still double-quotes an invocation")
+
+    def test_h9_untracked_task_label_and_no_fallback(self):
+        """M-C: an untracked task is labelled by its suffix and text, with no issue fallback."""
+        h9 = normalized("\n".join(self.h9_lines()))
+        for fragment in (
+            "`<suffix> <task text>`",
+            "has no `jdi-herd-<issue>` fallback",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, h9, "H9 lacks %r" % fragment)
 
     def test_h9_drops_the_collision_prone_scratch_branch(self):
         h9 = normalized("\n".join(self.h9_lines()))
@@ -249,7 +285,7 @@ class HerdCommandTest(unittest.TestCase):
         self.assertH9AppContains(
             "hc wait <terminal> --timeout 120",
             "status: idle",
-            'hc send <terminal> "<invocation>" --if idle',
+            "hc send <terminal> '<invocation>' --if idle",
             "Never `--task`",
             "blocked at startup",
         )
