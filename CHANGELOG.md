@@ -4,7 +4,8 @@
 
 **JDI works inside Herdr, the TUI or the desktop app: a Butler can run a delegated role as its own
 agent process, wait for it, and accept its work only through a validated result file, and
-`/jdi:herd` preps several issues at once, one worktree and agent each.**
+`/jdi:herd` runs several issues or untracked tasks at once, one worktree and agent each, each
+agent running `/jdi:do` (or `/jdi:prep`).**
 
 - **`delegation.transport` decides how a role on another CLI runs: `native`, `auto` or `herdr`.**
   `native` is the default and is the delegation JDI already did; it probes nothing at step 0 and
@@ -90,6 +91,19 @@ agent process, wait for it, and accept its work only through a validated result 
   worktree is removed. Only the herd's own scratch branch is deleted, and only when it has no
   commits of its own; a feature branch is never touched. A normal herd's report now names the
   exact cleanup command.
+- **`herd.mode: do | prep` picks what each herd agent runs; the default is `do`.** In `do` mode
+  each agent runs `/jdi:do` and opens and merges its own pull request, **unattended and in
+  parallel** with the others; the repository's own rules still win, so where they say an agent may
+  not merge, it stops before the merge. `herd.mode: prep` is the way back: each agent runs
+  `/jdi:prep` and stops at a plan. Whether a herd may ship unattended is the team's call, so
+  `herd.mode` belongs in `.jdi/config.yml`. The herd announces the mode before the first start. A
+  `/jdi:do` started by a herd whose work is too big for one session continues with `/jdi:prep` in
+  the same session instead of handing back. An invalid `herd.mode` runs as `prep`. A herd also
+  takes quoted **untracked** tasks, such as `/jdi:herd ENG-1234 "fix the typo in the signup
+  email"`: they need no tracker, and each is named by a stable hash of its text (`t` followed by
+  six hex digits), so the same text always gets the same name. The invocation is single-quoted on
+  both surfaces, and the herd record gains a `task` field. `/jdi:do` now also updates a branch
+  whose pull request the default branch moved under, then re-runs its gates before merging.
 
 **On the Herdr app** (`herdr.surface`):
 

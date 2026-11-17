@@ -1,4 +1,4 @@
-status: pending
+status: done
 # 24 — User docs and CHANGELOG: herd modes and untracked tasks
 
 Depends on: 20, 21

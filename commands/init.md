@@ -198,8 +198,11 @@ Follow these steps:
       kind each herd Butler runs, default `claude`), `herd.max_parallel` (how many issues one run
       starts without asking again, default `5`), and `herd.seed` (the gitignored files to copy,
       the per-worktree values to set, and the setup commands each worktree needs). Say that a
-      herd's arguments and environment come from `harnesses.<kind>`, not from `herd`. With no
-      answer, write no `herd` block.
+      herd's arguments and environment come from `harnesses.<kind>`, not from `herd`.
+      Then offer `herd.mode`: `do`, the default, has each herd agent run `/jdi:do`, which opens
+      and merges its own pull request unattended and in parallel; `prep` stops each at a plan. Say
+      that this is the team's call, so it belongs in `config.yml`, not `.jdi/config.local.yml`.
+      With no answer, write no `herd` block.
 
 11. **Ask about consumers — optional** — Sibling repositories or client codebases that consume this
     repo's public interfaces (APIs, webhooks, published packages, tool surfaces). The Researcher

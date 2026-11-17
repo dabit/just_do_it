@@ -10,7 +10,7 @@ Explain the Just Do It (JDI) workflow to the user. Print the following, then add
 naming what this repository is currently configured for — the tracker, the plan store, what the
 split pieces become, whether TDD is on, whether Jev is on, which roles have a model configured
 and whether any of them runs in another agent CLI, which delegation transport is set, when it is
-not `native`, which Herdr surface is pinned, when not `auto`, whether `.jdi/config.yml` exists at all, and whether a `.jdi/config.local.yml`
+not `native`, which Herdr surface is pinned, when not `auto`, which herd mode is set, when not `do`, whether `.jdi/config.yml` exists at all, and whether a `.jdi/config.local.yml`
 overrides any of it — name the blocks, not the values. If the
 config does not exist, say `/jdi:init` writes it, and that JDI works without it by asking as it
 goes.
@@ -28,7 +28,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 |---|---|---|
 | `/jdi:init` | Butler | Set JDI up for this repo — tracker, split pieces, TDD, Jev, plan store, docs folder, models, delegation transport, Herdr surface. Writes `.jdi/config.yml`. |
 | `/jdi:prep` | Butler + Researcher + Planner + Splitter | Run start, research, plan, and split in one pass. Stops only for real questions, and leaves a task list ready for `/jdi:yolo`. Runs a role configured on another CLI in its own pane when `delegation.transport` allows it. |
-| `/jdi:do` | Butler | Just do it: read the code, post a ten-line plan in chat, build with tests, verify, open the PR, work the review to green, and merge. No plan folder, no task files, no stop between phases. Stops only for work too big for one session, a product decision outside the request, a change the repo reserves for a person, or a review that will not converge. |
+| `/jdi:do` | Butler | Just do it: read the code, post a ten-line plan in chat, build with tests, verify, open the PR, work the review to green, and merge. No plan folder, no task files, no stop between phases. Stops only for work too big for one session (under `/jdi:herd` it continues with `/jdi:prep` instead), a product decision outside the request, a change the repo reserves for a person, or a review that will not converge. |
 | `/jdi:start` | Butler | Kick off a task — describe it, optionally link an issue. Creates the branch and the initial `PLAN.md`. |
 | `/jdi:research` | Researcher | Find or create the architecture docs for the area being changed. Searches past plans. Writes the findings back to the issue. Ranks the candidate docs and screens `consumers` with Jev when `jev.enabled` is on. |
 | `/jdi:plan` | Butler + Planner | Clarify the ambiguities with you, then write the implementation plan on top of the research. |
@@ -42,7 +42,7 @@ tracker or none, stores plans in the repo or in a note service, and runs on any 
 | `/jdi:feedback` | Butler + Feedbacker | Critique the latest output on demand — verdict, fixes, and proposed prompt improvements. Orders the findings with Jev when `jev.enabled` is on. |
 | `/jdi:replan` | Butler + Planner | Throw the plan away and write a fresh one. |
 | `/jdi:reresearch` | Butler + Researcher | Throw the research away and look again. |
-| `/jdi:herd` | Butler | Prep several issues at once inside Herdr, the TUI or the app: one worktree, pane and agent per issue, each running `/jdi:prep`. Needs Herdr and stops when it is missing; it never falls back to a sequential prep. With `--cleanup`, as `/jdi:herd --cleanup [<herd-id>]`, it cleans a herd up from its record instead, asking once. |
+| `/jdi:herd` | Butler | Run several issues or quoted untracked tasks at once inside Herdr, the TUI or the app: one worktree, pane and agent each, each running `/jdi:do`, which opens and merges its own pull request unattended and in parallel with the others; `herd.mode: prep` stops each at a plan with `/jdi:prep` instead. Needs Herdr and stops when it is missing; it never falls back to a sequential prep. With `--cleanup`, as `/jdi:herd --cleanup [<herd-id>]`, it cleans a herd up from its record instead, asking once. |
 
 **On the Feedbacker:** it reviews on demand only. It is not a gate on the producing commands —
 invoke it deliberately with `/jdi:feedback` when you want an output or a prompt audited. It never

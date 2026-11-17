@@ -133,5 +133,54 @@ class HerdCleanupDocumentationTest(unittest.TestCase):
         self.assertIn("`/jdi:herd --cleanup [<herd-id>]`", body)
 
 
+class HerdModeDocumentationTest(unittest.TestCase):
+    """#38: herd modes (`herd.mode: do | prep`) and quoted untracked tasks, named by help, init,
+    the README and the 1.0.13 CHANGELOG.
+
+    The AGENTS.md row for `commands/herd.md` and the help `/jdi:do` row change too, but no test
+    pins either.
+    """
+
+    def test_help_herd_row_names_the_modes(self):
+        text = jdi_files.read("commands/help.md")
+        rows = [line for line in text.split("\n") if line.startswith("| `/jdi:herd` |")]
+        self.assertTrue(rows, "no /jdi:herd row in the help command table")
+        for fragment in ("`/jdi:do`", "`herd.mode: prep`", "merges"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, rows[0])
+
+    def test_help_opening_names_the_herd_mode(self):
+        text = jdi_files.read("commands/help.md")
+        paragraph = normalized(
+            " ".join(jdi_files.paragraph_starting_with(text, "Explain the Just Do It"))
+        )
+        self.assertIn("which herd mode is set, when not `do`", paragraph)
+
+    def test_init_offers_the_mode(self):
+        self.assertIn("offer `herd.mode`", jdi_files.read("commands/init.md"))
+
+    def test_readme_herd_paragraph_names_the_modes(self):
+        text = jdi_files.read("README.md")
+        paragraph = normalized(
+            " ".join(jdi_files.paragraph_starting_with(text, "`/jdi:herd ENG-1234 "))
+        )
+        for fragment in (
+            "`herd.mode`",
+            "unattended",
+            "in parallel",
+            "`herd.mode: prep`",
+            '"fix the typo in the signup email"',
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, paragraph)
+
+    def test_changelog_names_the_modes(self):
+        text = jdi_files.read("CHANGELOG.md")
+        body = normalized("\n".join(jdi_files.section(text, "## 1.0.13")))
+        for fragment in ("`herd.mode`", "unattended", "in parallel", "`herd.mode: prep`", "untracked"):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, body)
+
+
 if __name__ == "__main__":
     unittest.main()

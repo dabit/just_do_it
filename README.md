@@ -371,16 +371,24 @@ once and runs each wave in order.
 critiques the last thing an agent produced — on demand, never as an automatic gate. `/jdi:replan`
 and `/jdi:reresearch` throw a phase away and redo it.
 
-`/jdi:herd ENG-1234 ENG-1235` preps several existing issues at once inside Herdr. Each issue gets
-its own git worktree, its own Herdr workspace or space (the Herdr app calls it a space) labeled with
-the issue title, and its own agent running `/jdi:prep`. The agent, its tab and its worktree folder
-share one readable name built from the title and the issue's short ID, such as
-`add-presence-indicators-eng-1234`; with no title to read, the name falls back to
+`/jdi:herd ENG-1234 "fix the typo in the signup email"` runs several pieces of work at once inside
+Herdr: existing issues, and quoted untracked tasks that need no tracker, whose name, folder and
+herd record entry come from the task's own text. Each one gets its own git worktree, its own
+Herdr workspace or space (the Herdr app calls it a space) labeled with the issue title or the task
+text, and its own agent. What that agent runs is the `herd.mode` key. By default
+(`herd.mode: do`) each agent runs `/jdi:do`: it plans in chat, builds, verifies, opens its pull
+request and merges it, unattended and in parallel with the others, and the repository's own rules
+still win, so where they say an agent may not merge, it stops before the merge. An agent whose work
+is too big for one session continues with `/jdi:prep` in the same space. An agent that stops before
+merging waits in its space, and the sidebar shows it as done, so open the space to see why.
+`herd.mode: prep` is the way back: every agent runs `/jdi:prep` and stops at a plan. The agent, its
+tab and its worktree folder share one readable name built from the title and the issue's short ID,
+such as `add-presence-indicators-eng-1234`; with no title to read, the name falls back to
 `jdi-herd-<issue>`. The command needs Herdr, and it stops with the reason when Herdr is missing; it
-never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the agent kind,
-how many issues one run starts without asking, and what each worktree is seeded with. The command
-removes no worktree on its own, and never removes one that holds an uncommitted plan without your
-explicit yes.
+never falls back to a sequential prep. The `herd` block in `.jdi/config.yml` sets the mode, the
+agent kind, how many issues one run starts without asking, and what each worktree is seeded with.
+The command removes no worktree on its own, and never removes one that holds an uncommitted plan
+without your explicit yes.
 
 `/jdi:herd --cleanup [<herd-id>]` cleans a herd up from its herd record. Every herd writes that
 record under the repository's git directory, one file per herd, so every worktree sees it and it
