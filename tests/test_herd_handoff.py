@@ -14,10 +14,13 @@ in `reference/herdr.md` H9. This module pins four rules that hang off them:
   exactly as H9 defines them;
 - `/jdi:do` step 10 updates a branch the default branch moved under, on every
   run, herd-started or not;
-- `/jdi:do` step 4's plan is a gate whose first field is a size verdict, posted
-  before any edit, standalone and under a herd alike, and step 5's *too big*
-  stop points back at that verdict. Two UAT runs of #38 showed herd agents
-  skipping the plan, and with it the only place the size judgment was made.
+- `/jdi:do` step 4's plan is a gate whose first field is a size verdict: the
+  size is decided before any edit, standalone and under a herd alike, and step
+  5's *too big* stop points back at that verdict. Two UAT runs of #38 showed
+  herd agents skipping the plan, and with it the only place the size judgment
+  was made. After task 28 the gate is the decision, not the post: the re-runs
+  showed Opus agents deciding before any edit without posting the verdict, and
+  the user accepted that behaviour as passing.
 
 Deviation from `DoPlanShapeTest`: that class's `step()` helper lives in
 `tests/test_structural_checks.py`, and importing it would make unittest collect
@@ -152,13 +155,18 @@ class DoSizeVerdictTest(unittest.TestCase):
 
     def test_the_plan_is_a_gate_before_any_edit(self):
         for fragment in (
-            "before any edit",
+            "the size is decided before any edit",
             "No file is edited, no branch is pushed",
-            "verdict first",
             "in a standalone run and under a herd alike",
         ):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, self.text)
+
+    def test_the_gate_is_the_decision_not_the_post(self):
+        self.assertIn("nothing requires posting it before acting", self.text)
+        for fragment in ("posted before any edit", "before it is posted", "verdict first,"):
+            with self.subTest(fragment=fragment):
+                self.assertNotIn(fragment, self.text)
 
     def test_a_too_big_verdict_is_the_step_5_stop(self):
         self.assertIn("is step 5's *Too big for one session* stop", self.text)

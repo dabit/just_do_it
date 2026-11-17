@@ -364,6 +364,17 @@ class HerdBlockTest(unittest.TestCase):
             self.notes(),
         )
 
+    def test_notes_recommend_a_model_for_do_mode(self):
+        notes = self.notes()
+        for fragment in (
+            "`do` mode relies on each agent judging size before it builds",
+            "Opus herd agents did",
+            "Sonnet agents built an oversized task instead",
+            "or use `herd.mode: prep`",
+        ):
+            with self.subTest(fragment=fragment):
+                self.assertIn(fragment, notes)
+
     def test_notes_say_invalid_mode_runs_prep(self):
         self.assertIn(
             "An invalid `herd.mode` is announced once and runs as `prep`",

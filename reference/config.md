@@ -424,7 +424,9 @@ models:                      models:                        models:
   which treats its request as the authorization to merge, so a `do` herd ships several changes in
   parallel with nobody approving each one. The repository's own rules still win, and
   `herd.mode: prep` stops every agent at a plan instead. It is the team's call, so it belongs in
-  `config.yml`.
+  `config.yml`. `do` mode relies on each agent judging size before it builds: in testing, Opus herd
+  agents did, and Sonnet agents built an oversized task instead, so pick the herd agents' model
+  (through `harnesses.<herd.kind>`) accordingly, or use `herd.mode: prep`.
 - **An invalid `herd.mode` is announced once and runs as `prep`**, the mode with less authority,
   never the other way.
 - **`/jdi:herd` validates Herdr and stops; it never repairs.** A failed check ends the run with the

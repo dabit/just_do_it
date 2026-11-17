@@ -2843,6 +2843,9 @@ Herd ID `20261117T033939`.
 **Wave 13b**
 - [x] [28](28-do-size-verdict-gate.md) — `/jdi:do`'s plan opens with a size verdict; the herd names the way back (depends on: 27) — then re-run task 26 (a) and (f) on Sonnet and Opus
 
+**Wave 13c**
+- [x] [29](29-gate-wording-and-model-note.md) — Size gate judged by behaviour; model note for `do`-mode herds (depends on: 28)
+
 **Wave 13**
 - [ ] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26
 

@@ -99,8 +99,11 @@ agent running `/jdi:do` (or `/jdi:prep`).**
   `herd.mode` belongs in `.jdi/config.yml`. The herd announces the mode before the first start, in
   a quoted line that names `herd.mode: prep` as the way back. A `/jdi:do` started by a herd whose
   work is too big for one session continues with `/jdi:prep` in the same session instead of
-  handing back; `/jdi:do`'s plan now opens with a size verdict, posted before any edit, so the
-  judgment is made in every run, herd or not. An invalid `herd.mode` runs as `prep`. A herd also
+  handing back; `/jdi:do`'s plan now opens with a size verdict, and the size is decided before any
+  edit, so the judgment is made in every run, herd or not. `do` mode relies on each agent judging
+  size before it builds: in testing, Opus herd agents did, and Sonnet agents built an oversized task
+  instead, so pick the herd agents' model accordingly, or use `herd.mode: prep`. An invalid
+  `herd.mode` runs as `prep`. A herd also
   takes quoted **untracked** tasks, such as `/jdi:herd ENG-1234 "fix the typo in the signup
   email"`: they need no tracker, and each is named by a stable hash of its text (`t` followed by
   six hex digits), so the same text always gets the same name. The invocation is single-quoted on

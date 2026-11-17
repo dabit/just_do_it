@@ -381,7 +381,10 @@ request and merges it, unattended and in parallel with the others, and the repos
 still win, so where they say an agent may not merge, it stops before the merge. An agent whose work
 is too big for one session continues with `/jdi:prep` in the same space. An agent that stops before
 merging waits in its space, and the sidebar shows it as done, so open the space to see why.
-`herd.mode: prep` is the way back: every agent runs `/jdi:prep` and stops at a plan. The agent, its
+`herd.mode: prep` is the way back: every agent runs `/jdi:prep` and stops at a plan. `do` mode
+relies on each agent judging size before it builds: in testing, Opus herd agents did, and Sonnet
+agents built an oversized task instead, so pick the herd agents' model accordingly, or use
+`herd.mode: prep`. The agent, its
 tab and its worktree folder share one readable name built from the title and the issue's short ID,
 such as `add-presence-indicators-eng-1234`; with no title to read, the name falls back to
 `jdi-herd-<issue>`. The command needs Herdr, and it stops with the reason when Herdr is missing; it

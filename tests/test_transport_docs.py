@@ -174,6 +174,26 @@ class HerdModeDocumentationTest(unittest.TestCase):
             with self.subTest(fragment=fragment):
                 self.assertIn(fragment, paragraph)
 
+    def test_readme_and_changelog_recommend_a_model_for_do_mode(self):
+        readme = normalized(
+            " ".join(jdi_files.paragraph_starting_with(jdi_files.read("README.md"), "`/jdi:herd ENG-1234 "))
+        )
+        changelog = normalized("\n".join(jdi_files.section(jdi_files.read("CHANGELOG.md"), "## 1.0.13")))
+        for name, text in (("README", readme), ("CHANGELOG", changelog)):
+            for fragment in (
+                "`do` mode relies on each agent judging size before it builds",
+                "Opus herd agents did",
+                "Sonnet agents built an oversized task instead",
+                "or use `herd.mode: prep`",
+            ):
+                with self.subTest(doc=name, fragment=fragment):
+                    self.assertIn(fragment, text)
+
+    def test_changelog_says_the_size_is_decided_not_posted(self):
+        body = normalized("\n".join(jdi_files.section(jdi_files.read("CHANGELOG.md"), "## 1.0.13")))
+        self.assertNotIn("size verdict, posted before any edit", body)
+        self.assertIn("decided before any edit", body)
+
     def test_changelog_names_the_modes(self):
         text = jdi_files.read("CHANGELOG.md")
         body = normalized("\n".join(jdi_files.section(text, "## 1.0.13")))

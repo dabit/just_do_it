@@ -70,7 +70,7 @@ Follow these steps:
    a past plan over the same area, and read its decisions. Do this yourself: the session that reads
    the code is the session that builds it, so this step delegates nothing.
 
-4. **Plan — ten lines in chat, not a document, posted before any edit** — Post it in the message
+4. **Plan — ten lines in chat, not a document; the size is decided before any edit** — Post it in the message
    body. No plan folder, no task files, no tracker comment. Five fields, each at most 60 words, the
    size verdict first:
 
@@ -86,9 +86,11 @@ Follow these steps:
    once and read back for the rest of this run. With `tdd.enabled` false or absent, say nothing
    about TDD.
 
-   **This plan is a gate.** No file is edited, no branch is pushed, and no tool that changes
-   anything runs before it is posted, verdict first, in a standalone run and under a herd alike;
-   step 2's branch and issue move are the only changes made before it. A *too big* verdict is
+   **This plan is a gate, and the gate is the size decision.** No file is edited, no branch is
+   pushed, and no tool that changes anything runs until the size is decided, in a standalone run
+   and under a herd alike; step 2's branch and issue move are the only changes made before it. The
+   verdict is the plan's first field when the plan is shown, but nothing requires posting it before
+   acting: what is required is the decision, made before any edit. A *too big* verdict is
    step 5's *Too big for one session* stop: under a herd, continue with `/jdi:prep` as that stop
    says; standalone, hand back as it says.
 
