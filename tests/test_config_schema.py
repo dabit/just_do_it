@@ -279,17 +279,28 @@ class HerdrBlockTest(unittest.TestCase):
 
 
 class HerdBlockTest(unittest.TestCase):
-    """The `herd:` block carries `kind`, `max_parallel` and `seed`, and nothing else.
+    """The `herd:` block carries `kind`, `mode`, `max_parallel` and `seed`, and nothing else.
 
-    `/jdi:herd` reads those three keys. PR #5 also added `herd.args` and
+    `/jdi:herd` reads those four keys. `mode` is `do | prep`, defaulting to `do`;
+    the example shows `prep`, a non-default value, per
+    `docs/config-key-lifecycle.md`. PR #5 also added `herd.args` and
     `herd.env`, which duplicated `harnesses.<kind>.{args,env}`; herd agents take
     their arguments and environment from `harnesses.<herd.kind>` instead, so the
     two keys must not come back.
     """
 
     def setUp(self):
-        self.schema_keys = jdi_files.key_paths(jdi_files.schema_block())
+        self.schema = jdi_files.schema_block()
+        self.schema_comments = [
+            line for line in self.schema if line.lstrip().startswith("#")
+        ]
+        self.example = jdi_files.read("jdi.config.example.yml").split("\n")
+        self.schema_keys = jdi_files.key_paths(self.schema)
         self.config_text = jdi_files.read("reference/config.md")
+
+    def notes(self):
+        text = "\n".join(jdi_files.section(self.config_text, "## Notes"))
+        return " ".join(text.split())
 
     def test_herd_keys_are_schema_keys(self):
         for key in ("herd.kind", "herd.max_parallel", "herd.seed"):
@@ -310,6 +321,7 @@ class HerdBlockTest(unittest.TestCase):
         rows = jdi_files.section(self.config_text, "## Defaults when nothing is configured")
         for key, default in (
             ("herd.kind", "`claude`"),
+            ("herd.mode", "`do`"),
             ("herd.max_parallel", "`5`"),
             ("herd.seed", "empty"),
         ):
@@ -318,6 +330,48 @@ class HerdBlockTest(unittest.TestCase):
                     any(row.startswith("| `%s` | %s" % (key, default)) for row in rows),
                     "the defaults table has no `%s` row defaulting to %s" % (key, default),
                 )
+
+    def test_mode_is_a_schema_key(self):
+        self.assertIn("herd.mode", self.schema_keys)
+
+    def test_schema_default_is_do(self):
+        self.assertTrue(
+            any(re.match(r"^  mode: do$", line) for line in self.schema),
+            "reference/config.md's schema has no `  mode: do` line",
+        )
+
+    def test_schema_comment_lists_mode_values(self):
+        self.assertIn("  # do | prep", self.schema_comments)
+
+    def test_schema_comment_says_do_merges(self):
+        self.assertTrue(
+            any(
+                "opens its pull request and merges it," in line
+                for line in self.schema_comments
+            ),
+            "the schema comment does not say a `do` agent merges its pull request",
+        )
+
+    def test_example_mode_is_not_the_default(self):
+        self.assertTrue(
+            any(re.match(r"^  mode: prep$", line) for line in self.example),
+            "jdi.config.example.yml has no `  mode: prep` line",
+        )
+
+    def test_notes_say_do_mode_merges_unattended(self):
+        self.assertIn(
+            "**`herd.mode: do` opens and merges pull requests unattended.**",
+            self.notes(),
+        )
+
+    def test_notes_say_invalid_mode_runs_prep(self):
+        self.assertIn(
+            "An invalid `herd.mode` is announced once and runs as `prep`",
+            self.notes(),
+        )
+
+    def test_notes_say_do_and_prep_learn_from_the_invocation(self):
+        self.assertIn("learn they run in a herd from the invocation", self.notes())
 
 
 if __name__ == "__main__":

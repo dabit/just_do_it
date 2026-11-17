@@ -223,8 +223,8 @@ herdr:
   # fact about your machine: set it in .jdi/config.local.yml.
   surface: auto
 
-# Optional. Read only by /jdi:herd, which preps several issues in parallel,
-# one Herdr worktree and agent per issue.
+# Optional. Read only by /jdi:herd, which runs several issues or untracked
+# tasks in parallel, one Herdr worktree and agent each.
 #
 # There is no `args` or `env` here. Herd agents take their arguments and
 # environment from `harnesses.<herd.kind>.{args,env}`, verbatim, exactly as a
@@ -234,6 +234,18 @@ herd:
   # installed: it appears on Herdr's `kinds:` line, and the CLI resolves on
   # PATH. See reference/herdr.md, H2.
   kind: claude
+
+  # do | prep
+  #   do   - each agent runs /jdi:do: it reads, plans in chat, builds, verifies,
+  #          opens its pull request and merges it, unattended and in parallel
+  #          with the others. An agent whose work is too big for one session
+  #          continues with /jdi:prep in the same session instead.
+  #   prep - each agent runs /jdi:prep and stops at a plan.
+  #
+  # The repository's own rules still win: where its CLAUDE.md / AGENTS.md says
+  # an agent may not merge, a `do` agent stops before the merge. Whether a herd
+  # may ship unattended is the team's call: set it in .jdi/config.yml.
+  mode: do
 
   # How many issues one /jdi:herd run may start without asking again. Each
   # agent is a full session with a real token cost, so this is a spend guard,
@@ -251,8 +263,8 @@ herd:
   #
   # Placeholders, substituted in every `set` value and every `setup` command:
   #   {{n}}            the worktree's 1-based index in this herd
-  #   {{issue}}        the issue ID, e.g. JUT-3073
-  #   {{issue_lower}}  the same, lowercased
+  #   {{issue}}        the issue ID, e.g. JUT-3073 (an untracked task: its suffix)
+  #   {{issue_lower}}  the same, lowercased (an untracked task: its suffix)
   #   {{worktree}}     absolute path to the new worktree
   #   {{repo_root}}    absolute path to the checkout /jdi:herd ran in
   #
@@ -333,6 +345,7 @@ models:                      models:                        models:
 | `delegation.transport` | `native` - roles are delegated exactly as before this key existed; nothing is probed at step 0 and nothing is announced |
 | `herdr.surface` | `auto` - the Herdr this session runs in; the innermost when one runs inside the other, the TUI when that cannot be told |
 | `herd.kind` | `claude` |
+| `herd.mode` | `do` - each herd agent runs `/jdi:do` and merges its own pull request; `prep` stops each at a plan |
 | `herd.max_parallel` | `5` |
 | `herd.seed` | empty - worktrees are created bare, with nothing gitignored copied in and nothing run |
 | `consumers` | empty |
@@ -405,7 +418,15 @@ models:                      models:                        models:
   Herdr you run is a fact about the machine.
 - **`herd` is read by `/jdi:herd` and nothing else.** No other command changes behavior because the
   block exists, and a repo without Herdr never reaches a line that reads it. The block is optional,
-  and every key in it has a working default.
+  and every key in it has a working default. `/jdi:do` and `/jdi:prep` learn they run in a herd
+  from the invocation, never from this block.
+- **`herd.mode: do` opens and merges pull requests unattended.** Each herd agent runs `/jdi:do`,
+  which treats its request as the authorization to merge, so a `do` herd ships several changes in
+  parallel with nobody approving each one. The repository's own rules still win, and
+  `herd.mode: prep` stops every agent at a plan instead. It is the team's call, so it belongs in
+  `config.yml`.
+- **An invalid `herd.mode` is announced once and runs as `prep`**, the mode with less authority,
+  never the other way.
 - **`/jdi:herd` validates Herdr and stops; it never repairs.** A failed check ends the run with the
   reason. It starts nothing and installs nothing, because `/jdi:herd` has no fallback: it never
   degrades to a sequential `/jdi:prep`, since a herd that quietly became one prep looks exactly

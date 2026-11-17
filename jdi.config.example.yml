@@ -138,6 +138,9 @@ herdr:
 # `harnesses.<kind>`, so this block has no `args` or `env`.
 herd:
   kind: opencode
+  # `do` (the default) has each agent open and merge its own pull request,
+  # unattended; this repo keeps a person on every merge, so it stops at a plan.
+  mode: prep
   max_parallel: 3
 
   # What goes into each worktree before its agent starts. A worktree is created

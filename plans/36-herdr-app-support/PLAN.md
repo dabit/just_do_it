@@ -421,6 +421,185 @@ The rules live in `reference/herdr.md` and are guarded by `tests/test_herd_recor
 - **R17** `--path-format=absolute` needs git ≥ 2.31 (already needed by H9 on the app); `mv -f` is POSIX; Windows unverified.
 - **R18** A blocked-at-startup agent can't be cleaned while its dialog is open → the skip reason tells the user to answer it or close the space.
 
+## Herd modes and untracked tasks (#38) — plan
+
+- Issue: #38 (https://github.com/dabit/just_do_it/issues/38)
+- Added: 2026-11-16, same branch and PR, release 1.0.13, no version bump. Base: `2f30a28` (219 tests OK).
+- Summary: `herd.mode: do | prep` (default `do`); in `do` mode a too-big `/jdi:do` continues into `/jdi:prep` in the same session; `/jdi:herd` also takes free-text tasks whose name, folder and record entry come from the text.
+
+### Decisions
+
+User (2026-11-16): **U1** `herd.mode: do | prep`, default `do`; a herd-started too-big `/jdi:do` continues into `/jdi:prep` in the same session. **U2** free-text tasks alongside issue IDs, no tracker needed. **U3** this branch, same PR. **M1 and M4 approved by the user** (below).
+
+- **E1 How do learns it is in a herd.** Every herd invocation ends with a fixed clause: `(started by /jdi:herd)` for an issue, `(untracked, started by /jdi:herd)` for a task. do.md step 5's *Too big* bullet gains a rule that applies only when the stop is found **before step 6 has changed anything**: say so in one line, push nothing, note nothing on the issue, follow prep's steps on the same request in this session. Branching checked: do step 2 (`commands/do.md:60-63`) creates the feature branch with T6 from `origin/<default>` before step 3; prep step 6 (`commands/prep.md:79-86`) only runs `git switch -c` "if the current branch does not already name this work", so prep keeps do's (unpushed, commit-less) branch; a fallback from do step 1 (a container with no children) happens before step 2, so prep creates its own branch. No PR exists (do opens one at step 8). After step 6 has changed anything the normal *too big* stop applies. Standalone `/jdi:do` is unchanged.
+- **E2 do's other stops** (a product decision, a change the repo reserves for a person, a review that won't converge, a PR it cannot open) leave the agent waiting in its space. Correction to the Butler default: that is a finished turn, so the sidebar shows `done` (same as a merged agent); the report says to open the space to see which.
+- **E3 Parsing (refined).** In herd.md step 3: a quoted argument (`"…"` or `'…'`, opened at the start of an argument) is always a task; an unquoted argument is an issue ID only when a tracker is configured and it has an issue's shape (an issue URL, `#<digits>` or `<digits>` for GitHub, or `<KEY>-<digits>`; with `tracker.id_prefix` set, `<KEY>` must be that prefix); with no tracker configured, nothing is an issue ID; any other unquoted words, or an unmatched quote, are ambiguous — each run joined into one candidate task — and the herd shows its whole reading, asks once, and starts nothing before the answer.
+- **E4 Naming untracked tasks.** Suffix = `t` + first 6 hex of `printf '%s' '<normalised task>' | git hash-object --stdin` (normalised = lowercased, whitespace runs collapsed, ends trimmed). A hash, not an index: the same text always gives the same suffix, so H9's suffix check still finds an earlier folder for that task; an index would make every herd's first task `t1`. Worked example: `fix the typo in the signup email` → `96ae2d07982d30fb9e3b6a127640b39f0f7bb696` → `t96ae2d` → `fix-typo-signup-email-t96ae2d`. Label / space name `<suffix> <task text>`. Record: `issue` may be `null`; new key `task` (text without the clause, `null` for an issue); `schema` stays `1` (additive; record never shipped; a missing `task` reads as `null`). Cleanup reports a `null`-issue entry by `name` and task text.
+- **E5 No tracker work for tasks.** Tasks skip T2 and every tracker step; no `jdi-herd-<issue>` fallback; nothing read from or posted to a tracker. `{{issue}}` / `{{issue_lower}}` expand to the task's suffix.
+- **E6 Docs and config.** CHANGELOG, README, help, herd.md and `reference/config.md` say plainly that `do` mode merges unattended and in parallel, `herd.mode: prep` is the way back. Repo-level key in `config.yml` (five-question test: team policy differs per repo; no repo states it; not a harness fact; degradation: invalid → `prep`, too-big do → prep, a repo forbidding merges stops do before merge, no PR host stops do at step 8). **Recorded deviation** from `docs/config-key-lifecycle.md`: `do` is not the least-demanding default; U1 chose it, and no herd has shipped (`commands/herd.md` is not on `origin/main`). Init offers the key in step 10's existing herd sub-bullet (no new numbered step; herd / `herdr.surface` precedent).
+- **E7 The switch is visible:** one line "too big for one session, because …, continuing with `/jdi:prep`" before prep's step 1.
+- **E8 UAT** (task 26): guard additions below; small scratch repo with a local bare `origin`; with no GitHub remote do pushes to the bare `origin` and stops at step 8 with the reason (acceptable, stated; no do.md rule); rebase-on-conflict and merge-in-a-worktree are user scenarios.
+- **M1 (approved)** Prep mode's invocation carries the clause too; prep step 2 gains: the herd answered step 2's and step 3's questions (an issue uses the configured tracker; `untracked` means not tracked) — ask neither; the clause is not part of the work. Only herd-started preps are affected.
+- **M2 Quoting.** The invocation is one shell argument, single-quoted, never double-quoted, `'` written `'\''`: TUI `herdr agent prompt <name> '<invocation>'`, app `hc send <terminal> '<invocation>' --if idle`, TUI label `--label '<SHORT-ID> <TITLE>'` (double-quoted today). Task text is one line: whitespace runs incl. line breaks collapse to one space (a typed line break can submit early).
+- **M3** Invalid `herd.mode` → announced once, runs as `prep` (less authority), never the other way.
+- **M4 (approved)** do.md step 10: when the PR stops merging cleanly because the default branch moved, update the branch from `origin/<default>` the way the repo allows, re-run step 7's gates, push, wait for checks on the new head; a conflict needing a product decision is a step-5 stop. Applies to standalone `/jdi:do` too.
+- **M5** herd step 8 announces the mode before the first start (in `do`: each agent opens and merges its own PR, unattended, in parallel). The herd invocation is the authorization, as do's request is.
+- **M6 Where rules live.** Parsing: herd.md step 3. Naming + task suffix: herd.md step 5 (H9 *Names* gets a pointer + label + no-fallback rule). Invocation table, clause, quoting, record: H9. herd.md calls H9 by name (as C11).
+- **M7** No `--mode` flag; no `mode` field in the record.
+- **M8** The fallback resolves prep as `${CLAUDE_PLUGIN_ROOT}/commands/prep.md`, or, if that does not resolve, the prep command file beside this one (OpenCode: `jdi-prep.md`). Codex/OpenCode fallback unverified (R24, u7).
+
+### Order (#38)
+
+Wave 11: 20 ‖ 21. Wave 12: 22 ‖ 23 ‖ 24 ‖ 25 (22: `commands/do.md`, `commands/prep.md`, `tests/test_herd_handoff.py`; 23: `commands/herd.md`, `tests/test_herd.py`; 24: `README.md`, `commands/help.md`, `commands/init.md`, `AGENTS.md`, `CHANGELOG.md`, `tests/test_transport_docs.py`; 25: two docs + `tests/test_herdr_surfaces_doc.py`) — all depend on 21; 24 also on 20. Wave 13: 26. Critical path 21 → 22/23 → 26. Expected test methods: 233 after wave 11, 256 after wave 12 (executors report actual). TDD rhythm as before; one commit per task; no em dash in `reference/herdr.md`; `commands/herd.md` uses ` - `. Fences in Appendix M are literal physical lines (table rows, YAML, commands byte for byte); prose may be rewrapped unless noted.
+
+### Task 20 — the `herd.mode` key
+Files: `tests/test_config_schema.py`, `reference/config.md`, `jdi.config.example.yml`.
+1. Tests first, in `HerdBlockTest`: `test_mode_is_a_schema_key` (`herd.mode` in `key_paths(schema)`); `test_schema_default_is_do` (`^  mode: do$`); `test_schema_comment_lists_mode_values` (a comment line exactly `  # do | prep`); `test_schema_comment_says_do_merges` (`opens its pull request and merges it,`); `test_example_mode_is_not_the_default` (`^  mode: prep$`); `test_defaults_table_covers_herd` + ``("herd.mode", "`do`")``; `test_notes_say_do_mode_merges_unattended` (``**`herd.mode: do` opens and merges pull requests unattended.**``); `test_notes_say_invalid_mode_runs_prep` (``An invalid `herd.mode` is announced once and runs as `prep` ``); `test_notes_say_do_and_prep_learn_from_the_invocation` (`learn they run in a herd from the invocation`). Update the class docstring.
+2. `reference/config.md`: M-A schema lines after `  kind: claude`; herd intro comment → "Read only by /jdi:herd, which runs several issues or untracked tasks in parallel, one Herdr worktree and agent each."; `{{issue}}`/`{{issue_lower}}` comment lines + "(an untracked task: its suffix)"; defaults row ``| `herd.mode` | `do` - each herd agent runs `/jdi:do` and merges its own pull request; `prep` stops each at a plan |``; Notes: M-A's two bullets and the appended sentence.
+3. `jdi.config.example.yml`: in `herd:` after `  kind: opencode`, a two-line comment then `  mode: prep`.
+4. Verify: module green; full suite; `grep -rn "herd.mode" reference/config.md jdi.config.example.yml` shows schema, defaults, notes, example.
+
+### Task 21 — H9: modes, clause, quoting, tasks, record
+Files: `reference/herdr.md`, `tests/test_herd.py`, `tests/test_herd_record.py`.
+1. Tests first. `tests/test_herd.py`: replace `INVOCATION_ROWS` with the four M-B table lines (header + 3 rows); `test_h9_app_hands_off_by_send` fragment → `hc send <terminal> '<invocation>' --if idle`; in `test_h9_uses_the_title_name_suffix_match_and_title_label` the label fragment → `--label '<SHORT-ID> <TITLE>'` plus `assertNotIn('--label "', h9)`; new `test_h9_invocation_by_mode_and_clause` (normalized H9 contains `` `herd.mode` ``, `` `(started by /jdi:herd)` ``, `` `(untracked, started by /jdi:herd)` ``, `it is not part of the work`, `collapsed to one space`); new `test_h9_invocation_is_single_quoted` (H9 contains `` `herdr agent prompt <name> '<invocation>'` `` and `single-quoted, never double-quoted`; H9 does NOT contain `"<invocation>"`); new `test_h9_untracked_task_label_and_no_fallback` (`` `<suffix> <task text>` ``, ``has no `jdi-herd-<issue>` fallback``). `tests/test_herd_record.py`: the shape test's entry key set gains `"task"`; new `test_record_untracked_entry` (`` `null` for an untracked task ``, `` `schema` stays `1` ``, `` a missing `task` as `null` ``); new `test_cleanup_reports_tasks_by_name` (cleanup section: `` reported by its `name` and its task text ``); new `test_scratch_branch_reason_names_do` (cleanup section: `` `/jdi:do` and `/jdi:prep` both leave the scratch branch behind ``).
+2. `reference/herdr.md`, H9 only: intro "running the herd's command, `/jdi:do` or `/jdi:prep` by `herd.mode`"; *Names*: "one name per issue or task", pointer to herd.md step 5 for a task's suffix, and M-C; existing-folder check "or, for an issue, is named `jdi-herd-<issue>`"; TUI create fence `--label '<SHORT-ID> <TITLE>'` and the quoting sentence → "single-quoted, with a `'` written as `'\''`"; invocation table → M-B (keep the "These spellings come from…" paragraph); TUI handoff `herdr agent prompt <name> '<invocation>'`; app handoff fence `hc send <terminal> '<invocation>' --if idle` and "the prep command must arrive typed" → "the herd's command must arrive typed"; record fence `"issue": "<ISSUE-ID, else null>",` then next line `"task": "<task text, else null>",` (column-0 fence, valid JSON) + M-D write-rule bullet; cleanup step 4 reason and *The report* sentence per M-D; app space-name bullet "the issue title …, or `<suffix> <task text>` for an untracked task".
+3. Verify: both modules green; full suite; `grep -n '"<invocation>"\|--label "' reference/herdr.md` prints nothing.
+
+### Task 22 — `/jdi:do` and `/jdi:prep` honour the herd clause (+ M4)
+Files: `commands/do.md`, `commands/prep.md`, new `tests/test_herd_handoff.py`. Depends on 21 (reads H9).
+1. Tests first, using `jdi_files.paragraph_starting_with` (deviation from `DoPlanShapeTest`: its `step()` lives in `test_structural_checks.py`, importing it would run its classes twice; `paragraph_starting_with` stops at the first blank line, so every insertion must stay inside its paragraph):
+   - `test_too_big_in_a_herd_continues_with_prep`: paragraph starting `   - **Too big for one session.**` (do.md), flattened; every fragment lies between the index of `**Too big for one session.**` and of `**A product decision outside the request.**`: `` `(started by /jdi:herd)` ``, `` `(untracked, started by /jdi:herd)` ``, `before step 6 has changed anything`, `do not hand back`, `Say in one line that the work is too big for one session`, ``continue with `/jdi:prep` ``, `in this session`, `Push nothing`, `prep's step 6 keeps the branch step 2 created`.
+   - `test_standalone_too_big_still_hands_back`: same paragraph still has ``Recommend `/jdi:prep` with what you learned``.
+   - `test_clause_is_not_part_of_the_work`: do paragraph `1. **Identify the work**` contains `that clause is not part of the work`.
+   - `test_merge_updates_a_branch_the_default_moved_under`: paragraph `10. **Merge**` contains `a parallel change merged first`, `run step 7's gates again`, `a step-5 stop`.
+   - `test_prep_takes_the_herds_tracking_answer`: prep paragraph `2. **Determine the tracking context**` contains both clauses, `Ask neither`, `The clause is not part of the work`.
+   - `test_clauses_match_h9`: both backticked clauses appear in H9's normalized section, in do.md and in prep.md.
+2. Append M-E text to: the first paragraph of do step 1 (`:48-51`), the *Too big* bullet (`:89-91`), step 10's paragraph (`:139-143`), prep step 2 (`:51-53`). No blank line inside those paragraphs; don't renumber.
+3. Verify: module green; full suite (confinement scans both files); `DoPlanShapeTest` and prep's structural tests stay green.
+
+### Task 23 — `commands/herd.md`: modes, tasks, report
+Files: `commands/herd.md`, `tests/test_herd.py`. Depends on 21.
+1. Tests first, with a local helper `step_text(text, n)` (from the first line starting `"%d. **" % n` to the next line matching `^\d+\. \*\*` or `^## `):
+   - `test_herd_reads_the_mode` (step 1): `` `herd.mode` ``, `` announced once and runs as `prep` ``.
+   - `test_herd_parses_issues_and_tasks` (step 3): `A quoted argument is always a task`, `an issue ID only when a tracker is configured`, `` `tracker.id_prefix` ``, `With no tracker configured, no argument is an issue ID`, `ask once`, `Never guess`, `start nothing before the answer`.
+   - `test_tasks_skip_the_tracker` (step 3): `Tasks skip **T2** and every other tracker step`, `nothing is read from or posted to a tracker for a task`.
+   - `test_task_suffix_is_a_stable_hash` (step 5): `printf '%s' '<normalised task>' | git hash-object --stdin`, `` `t96ae2d` ``, `` `fix-typo-signup-email-t96ae2d` ``, `an index in the herd would give every herd's first task the same suffix`.
+   - `test_task_suffix_example_is_reproducible`: take the herd.md line whose stripped form starts with `printf '%s' '<normalised task>'`, substitute `fix the typo in the signup email`, run `subprocess.run(["sh","-c",cmd], cwd=jdi_files.ROOT, capture_output=True, text=True)`, assert `stdout.strip()[:6] == "96ae2d"` (precedent `tests/test_structural_checks.py:84`; `hash-object` without `-w` writes nothing).
+   - `test_mode_announced_before_start` (step 8): `opens and merges its own pull request`, `` `herd.mode: prep` ``.
+   - `test_report_names_do_mode_stops` (step 10): `` a `do` agent that stopped ``, `` the sidebar shows `done` for it ``.
+   - `test_cleanup_refuses_tasks_alongside`: `` Issue IDs, tasks or `--kind` ``.
+   - `test_argument_hint_names_tasks`: hint contains `'task text'` and `--cleanup [<herd-id>]`.
+   - Existing pins must survive: `one name per issue`, `perform **T2**`, `` falls back to the old name `jdi-herd-<issue>` for that issue and says so once ``, `The workspace label is the issue title`, `leaves the scratch branch behind`, `` never fall back to a sequential `/jdi:prep` ``.
+2. Edits: frontmatter (M-F); intro "one session per issue or task, each running `/jdi:do` or `/jdi:prep` by `herd.mode`"; step 1 `herd.mode`, default `do`, M3; step 3 → M-F parse rules; step 5 "one name per issue or task" + M-F task bullet; step 6 task label `<suffix> <task text>` and "continue there … `/jdi:status`, or `/jdi:do` again where no plan exists"; step 7 placeholder rows "(an untracked task: its suffix, e.g. `t96ae2d`)"; step 8 M5 announcement; step 9 "H9's invocation table for the kind and `herd.mode`, with `<WORK>` filled in"; step 10 one row per issue or task, the mode, the M-F do-stop sentence, and the scratch sentence → "`/jdi:do` or `/jdi:prep` leaves the scratch branch behind at its base …"; step 11 "a prep-mode worktree, or one whose `do` agent continued with prep, usually holds an uncommitted plan"; cleanup step 2 "Issue IDs, tasks or `--kind`"; Limits: two bullets "`do` mode ships unattended" and "Parallel merges can conflict".
+3. Verify: module green; full suite; confinement green.
+
+### Task 24 — user docs and CHANGELOG
+Files: `README.md`, `commands/help.md`, `commands/init.md`, `AGENTS.md`, `CHANGELOG.md`, `tests/test_transport_docs.py`. Depends on 20, 21.
+1. Tests first, class `HerdModeDocumentationTest` (precedent `HerdCleanupDocumentationTest`): help row starting `` | `/jdi:herd` | `` has `` `/jdi:do` ``, `` `herd.mode: prep` ``, `merges`; help opening paragraph (normalized) has ``which herd mode is set, when not `do` ``; init.md has `` offer `herd.mode` ``; README paragraph starting `` `/jdi:herd ENG-1234 `` has `` `herd.mode` ``, `unattended`, `in parallel`, `` `herd.mode: prep` ``, `"fix the typo in the signup email"`; `## 1.0.13` section has `` `herd.mode` ``, `unattended`, `in parallel`, `` `herd.mode: prep` ``, `untracked`.
+2. README: rewrite the herd paragraph to open with `` `/jdi:herd ENG-1234 "fix the typo in the signup email"` `` covering modes, fallback, stops and the way back; help: herd row, closing-line clause, unpinned `/jdi:do` row clause "(under `/jdi:herd` it continues with `/jdi:prep` instead)"; init step 10 herd sub-bullet offers `herd.mode` (what `do` does; a team choice for `config.yml`); AGENTS.md herd row (unpinned; say so); CHANGELOG headline names `/jdi:do` + a bold bullet after the `--cleanup` bullet.
+3. Verify: module green; full suite; `VersionTest` green (no bump).
+
+### Task 25 — architecture docs
+Files: `docs/herdr-surfaces-architecture.md`, `docs/delegation-transport-architecture.md`, `tests/test_herdr_surfaces_doc.py`. Depends on 21.
+1. Tests first: `test_operation_map_single_quotes_the_invocation` (row `| H9 Hand it the work |` has `` `herdr agent prompt <name> '<invocation>'` `` and `` `hc send <terminal> '<invocation>' --if idle` ``, and no `"<invocation>"`); `test_herd_record_section_names_task` (`## The herd record` has `` `task` `` and `` `/jdi:do` ``); `test_two_layers_names_herd_mode` (`## Two layers` has `` `herd.mode` `` and `` `/jdi:do` ``).
+2. Surfaces doc: the map row's quoting; record bullets (the `task` key; "`/jdi:do` and `/jdi:prep` start the real work …"); Status names #38. Transport doc: *Two layers* (agents run `/jdi:do` or `/jdi:prep` by `herd.mode`) and *Isolation* (in `do` mode each opens and merges its own PR; a later one updates its branch).
+3. Verify: module green; full suite.
+
+### Task 26 — UAT (agent smoke test)
+Files: PLAN.md (`## UAT log (#38)`, directly above `## Tasks`). Depends on 20–25.
+**Guard** `<scratch>/g` (#37's plus E8): refuse unless `JDI_PROBE_SESSION` and `JDI_PROBE_HOME` are set and the session matches `jdiprobe-*`; unset the nine `HC_*`/`HERDR_*` variables, `CLAUDECODE`, `CLAUDE_CODE_*`, `CLAUDE_PID`, `CLAUDE_EFFORT`, `GH_TOKEN`, `GITHUB_TOKEN`, `GH_REPO`, `GH_HOST`, `GH_ENTERPRISE_TOKEN`; export `HC_SESSION`, `HERDR_APP_HOME`, `GH_CONFIG_DIR=<scratch>/gh-empty`; `HERDR_SOCKET_PATH=<scratch>/no-tui/herdr.sock` (nonexistent) unless `JDI_PROBE_TUI=1`, then the throwaway TUI's socket (refuse if missing). **Self-checks logged first:** refusal exit 64 with 0 stdout bytes; `<scratch>/g herdr status` exits non-zero and the user's `herdr session list` (read-only, outside the guard) is identical before and after (VERIFY-AT-EXECUTION: if it creates anything under `<scratch>/no-tui/`, record and stop it through the guard); `<scratch>/g gh auth status` reports not logged in. **Snapshots** (outside the guard, read-only): user's `hc ls --json` count, real repo `git worktree list`, `~/.claude.json` project keys.
+**Scratch repo** `<scratch>/repo` cloned from bare `<scratch>/origin.git` (`origin/HEAD` → `main`): `README.md` with `Install into $HOME/bin and recieve updates.`; `greet.py` + `test_greet.py` (stdlib unittest); `AGENTS.md` (tests run with `python3 -m unittest`); `.gitignore` with `.jdi/config.local.yml`; committed `.jdi/config.yml` (`tracker: {name: none}`, `tdd.enabled: false`, `jev.enabled: false`). Local config (Butler's):
+```yaml
+herd:
+  kind: claude
+  mode: do
+harnesses:
+  claude:
+    args: ["--model", "sonnet", "--plugin-dir", "<this repo>", "--settings", '{"enabledPlugins":{"jdi@just-do-it":false}}']
+```
+(herd agents load this branch's plugin; pre-trust `<scratch>/repo` only; the Butler is `claude --plugin-dir <this repo> --settings '…'` as the argv of a throwaway `space.new`, asking its questions in plain text.)
+**Scenarios:**
+- (a) do-mode herd: `/jdi:herd "fix the typo 'recieve' in README.md and keep $HOME/bin as it is" "make greet() strip surrounding whitespace from the name, with a test" "turn this into a web service with user accounts, a database, and an admin dashboard"` → no parse question; mode announced before start; record 3 entries `issue: null`, `task` = text without clause, each suffix = the documented command on the normalised text; transcripts show `hc send … '/jdi:do … (untracked, started by /jdi:herd)' --if idle` with `'\''` and literal `$HOME`, each agent's first message literal; agents 1–2: ten-line plan, branch from `origin/main`, commits+tests, `git push -u origin <branch>` to the bare origin, stop at step 8 with a no-PR-host reason, bare origin `main` SHA unchanged; agent 3: the E7 line, no push, prep keeps do's branch (`git -C <wt3> branch --list` = scratch + one feature branch), no tracking question, `PLAN.md` with `Tracker: none`, `Issue: none`, base commit = branch HEAD (leave it at its first question or after 20 min); report names mode, do-stop sentence, `--cleanup <herd-id>`.
+- (b) duplicate: re-herd task 1 as `"Fix  the TYPO 'recieve' in README.md and keep $HOME/bin as it is"` → same suffix → found by suffix → question → `skip`; no new worktree or record.
+- (c) parse: with `tracker: {name: github}` locally, `/jdi:herd 12 "fix typo" bump lint` → one question (issue `12`, task `fix typo`, ambiguous `bump lint`) → `cancel`, nothing created; with tracker `none`, `/jdi:herd 201 202` → one question showing one task `201 202` → `cancel`.
+- (d) prep mode: `herd.mode: prep`, `/jdi:herd "add a --shout flag to greet"` → invocation `/jdi:prep add a --shout flag to greet (untracked, started by /jdi:herd)` (the quoted `--shout` survives the `--kind` drop), no tracking question, branch from `origin/main`, a `PLAN.md`; leave it.
+- (e) invalid mode: `herd.mode: bogus`, one task → exactly one announcement and a `/jdi:prep` invocation; leave it.
+- (f) cleanup of (a): `/jdi:herd --cleanup <id-a>` → entries 1–2 space closed, plain remove, scratch `-1`/`-2` deleted (0 commits), feature branches kept and named; entry 3 its own plan question → keep → entry stays; report by name + task text.
+- (g) TUI, if cheap: nested throwaway TUI (A10), `JDI_PROBE_TUI=1`, one do task with `'` and `$` → `herdr agent prompt <name> '<invocation>'` arrives literally; record `surface: tui`, `task` set; stop once seen.
+**Repository checks:** full-suite count; confinement; no personal paths in the log; bare origin `main` unchanged; `<scratch>/gh-empty` holds no credentials.
+**User scenarios (pending):** (u4) real do-mode herd on GitHub, two tasks editing the same lines → the second updates its branch and merges (M4); (u5) a do merge from a worktree (does `gh pr merge` deleting the local branch fail while `main` is checked out in the main checkout; does do read the merge back); (u6) a tracked issue in do mode moves through issue states; (u7) a Codex or OpenCode herd kind: the fallback finds prep (M8).
+**Cleanup:** Appendix B and #37's list plus `<scratch>/gh-empty`; user's `hc ls` count, `herdr session list`, real `git worktree list`, `~/.claude.json` keys match the snapshots.
+
+### Appendix M — verbatim text
+
+**M-A. `reference/config.md`** — schema lines after `  kind: claude`:
+```yaml
+
+  # do | prep
+  #   do   - each agent runs /jdi:do: it reads, plans in chat, builds, verifies,
+  #          opens its pull request and merges it, unattended and in parallel
+  #          with the others. An agent whose work is too big for one session
+  #          continues with /jdi:prep in the same session instead.
+  #   prep - each agent runs /jdi:prep and stops at a plan.
+  #
+  # The repository's own rules still win: where its CLAUDE.md / AGENTS.md says
+  # an agent may not merge, a `do` agent stops before the merge. Whether a herd
+  # may ship unattended is the team's call: set it in .jdi/config.yml.
+  mode: do
+```
+Notes bullets: "**`herd.mode: do` opens and merges pull requests unattended.** Each herd agent runs `/jdi:do`, which treats its request as the authorization to merge, so a `do` herd ships several changes in parallel with nobody approving each one. The repository's own rules still win, and `herd.mode: prep` stops every agent at a plan instead. It is the team's call, so it belongs in `config.yml`." and "**An invalid `herd.mode` is announced once and runs as `prep`**, the mode with less authority, never the other way." Appended to the "`herd` is read by `/jdi:herd` and nothing else" bullet: "`/jdi:do` and `/jdi:prep` learn they run in a herd from the invocation, never from this block."
+
+**M-B. H9 invocation table** (replaces the current one):
+```text
+**The invocation table.** The command each herd Butler receives, by kind and `herd.mode`:
+
+| Kind | `herd.mode: do` | `herd.mode: prep` |
+|---|---|---|
+| `claude` | `/jdi:do <WORK>` | `/jdi:prep <WORK>` |
+| `codex` | `$jdi:run do <WORK>` | `$jdi:run prep <WORK>` |
+| `opencode` | `/jdi-do <WORK>` | `/jdi-prep <WORK>` |
+
+`<WORK>` is the issue ID followed by `(started by /jdi:herd)`, or, for an untracked task, the task text followed by `(untracked, started by /jdi:herd)`, with one space between. The clause tells `/jdi:do` and `/jdi:prep` that a herd started them; it is not part of the work. The task text is one line: every run of whitespace, line breaks included, is collapsed to one space, because a line break typed into an agent can submit it early. For example, `/jdi:do ENG-12 (started by /jdi:herd)` and `/jdi:do fix the typo in the signup email (untracked, started by /jdi:herd)`.
+
+Pass the invocation as one shell argument, single-quoted, never double-quoted, with a `'` inside written as `'\''`: a task is text a person typed, and inside double quotes the shell expands `$` and backticks first.
+```
+**M-C. H9 *Names*, appended:** "An untracked task's suffix is built as `commands/herd.md` step 5 says. An untracked task has no `jdi-herd-<issue>` fallback. Its label, the TUI's `--label` and the app's space name, is `<suffix> <task text>`."
+
+**M-D. Record and cleanup.** Write-rule bullet: "`issue` is the issue ID, or `null` for an untracked task; `task` is the task text as handed to the agent, without the clause, or `null` for an issue. `task` is additive, so `schema` stays `1`, and a reader treats a missing `task` as `null`." Cleanup step 4's reason: "`/jdi:do` and `/jdi:prep` both leave the scratch branch behind at its base and work on a branch of their own, so the scratch branch holds nothing, and any other branch may hold the work." *The report*: "An entry whose `issue` is `null` is reported by its `name` and its task text."
+
+**M-E. do.md and prep.md.**
+1. do step 1, end of its first paragraph: "A request that ends with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)` came from a herd: that clause is not part of the work, so leave it out of the branch name, the commits and the pull request, and with `untracked` run no tracker step at all."
+2. do step 5, end of the *Too big* bullet: "**Started by `/jdi:herd`** (the request ends with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)`) **and found before step 6 has changed anything:** do not hand back. Say in one line that the work is too big for one session, why, and that you continue with `/jdi:prep`; then read JDI's prep command (`${CLAUDE_PLUGIN_ROOT}/commands/prep.md`, or, if that variable does not resolve, the prep command file beside this one) and follow its steps on the same request in this session, with what you learned. Push nothing and note nothing on the issue first: prep's step 6 keeps the branch step 2 created, because it already names this work, and creates one when step 2 has not run yet."
+3. do step 10, appended: "When the pull request no longer merges cleanly because the default branch moved (a parallel change merged first), bring the branch up to date with `origin/<default>` the way the repository allows, run step 7's gates again, push, and wait for the checks on the new head; a conflict whose resolution needs a product decision is a step-5 stop."
+4. prep step 2, appended: "When the request ends with `(started by /jdi:herd)` or `(untracked, started by /jdi:herd)`, the herd has answered this step and step 3's question: an issue in it uses the configured tracker, and `untracked` means not tracked. Ask neither. The clause is not part of the work: leave it out of the slug and the title."
+
+**M-F. herd.md.** Frontmatter:
+```text
+description: "Run several issues or untracked tasks in parallel - one Herdr worktree, pane, and agent each, running /jdi:do (or /jdi:prep, by herd.mode) - or clean a herd up from its record."
+argument-hint: "<issue-id | 'task text'> [...] [--kind <kind>] | --cleanup [<herd-id>]"
+```
+Step 3 titled `3. **Parse the issues and tasks**`, E3's rules in four bullets beginning "**A quoted argument is always a task.**", "**An unquoted argument is an issue ID only when a tracker is configured** …", "**With no tracker configured, no argument is an issue ID** …", "**Anything else is ambiguous** … ask once … Never guess, and start nothing before the answer." Then: "Tasks skip **T2** and every other tracker step: nothing is read from or posted to a tracker for a task." Keep the existing T2 and fallback sentences for issues.
+Step 5's task bullet: "**An untracked task** has no title and no issue ID. `<slug>` comes from the task text's key words by the same rules, and `<suffix>` is `t` followed by the first six hex digits of its hash, where the normalised task is the task text lowercased, with every run of whitespace collapsed to one space and none at either end:" then an indented `text` fence holding exactly `printf '%s' '<normalised task>' | git hash-object --stdin`, then: "Single-quote the task as H9's invocation table says. The same text always gives the same suffix, so a second herd for the same task finds the first one's folder by the suffix check in step 6; an index in the herd would give every herd's first task the same suffix and make that check fire for unrelated work. `fix the typo in the signup email` hashes to `96ae2d07…`, so its suffix is `t96ae2d` and its name `fix-typo-signup-email-t96ae2d`."
+Step 10's do-stop sentence: "In `do` mode, a `do` agent that stopped before merging (a product decision, a change the repository reserves for a person, a review that will not converge, or a pull request it could not open) waits in its space with its reason, and the sidebar shows `done` for it, as for one that merged: open its space to see which. An agent whose work was too big says so and continues with `/jdi:prep` in the same space."
+
+### Testing strategy (#38)
+Every new case is red at HEAD and reddened by removing the text this plan adds at its definition site (config.md schema/defaults/notes; H9 table, clause, quoting, record, cleanup; do.md steps 1/5/10 and prep step 2; herd.md steps 1/3/5/8/10 and frontmatter; help/init/README/CHANGELOG; the two docs). Guards kept green, not the fix: `ConfigSchemaTest.test_schema_keys_appear_in_the_example`, `test_standalone_too_big_still_hands_back`, the surviving herd pins (#31 D11, C4), `VersionTest`, `HerdrConfinementTest`. `test_clauses_match_h9` crosses the do↔H9 boundary so both sides keep one string. `test_task_suffix_example_is_reproducible` executes the documented command (`printf '%s'` vs `echo` would change the hash). Not unit-observable → T26: the fallback really happens and is announced and keeps its branch (a); parse rules applied (c); hash at run time (a, b); literal quoting on each surface (a, g); prep skips the tracking question (a, d); record `task` and cleanup by name (a, f); the no-PR-host stop (a); invalid mode as prep (e); unattended merge and M4 → (u4, u5); Codex/OpenCode → (u7). Blocker record (2f30a28): only `tests/test_opencode_sync.py` and `tests/test_structural_checks.py` use subprocess (shell snippets/sync script, never an agent CLI); stdlib unittest only; no test yet mentions `herd.mode`, the clause or `hash-object`. CHANGELOG/README/init prose reviewed by reading.
+
+### Risks (#38)
+- **R19** Unattended parallel merges by default (U1) → M5 announcement, docs, the repo's own rules win, `prep` the way back.
+- **R20** Shell expansion of task text → single-quoting everywhere (M2); the hash command quotes the same way; collapsed whitespace stops an early submit.
+- **R21** 24-bit suffix collision → one question, never a folder.
+- **R22** SHA-256 repos give different suffixes → stable within the repo.
+- **R23** A person typing the clause by hand opts into the fallback → harmless.
+- **R24** Fallback on Codex/OpenCode may not find prep → M8 path rule; (u7).
+- **R25** `gh pr merge` from a worktree may fail to delete the local branch while the remote merge succeeds → do step 11 reads the merge back; (u5).
+- **R26** A fallback prep asking questions waits and shows `done` → the report says so.
+- **R27** The no-host stop is agent judgment → a worse action in (a) (e.g. pushing to `main`) is a failure and a new task.
+- **R28** A do agent underestimating size ships a sprawling PR unattended → repo review, `prep` mode.
+- **R29** The lifecycle-doc deviation (E6) is recorded so the next key doesn't copy it.
+- **R30** UAT safety (highest): guard isolates the TUI socket (F-c) and GitHub (empty `GH_CONFIG_DIR`, tokens unset); herd agents inherit the guarded env; they load this branch's plugin; sonnet herd agents cost tokens, the fallback and prep agents are stopped early.
+- **R31** Cleanup of a stopped do worktree with an open PR → feature branch never deleted; do pushed it before stopping.
+
 ## Probe log
 
 Task 02, run 2026-11-16 on Linux (Wayland), `herdr` 0.9.3, `herdr-app` 0.1.16, `hc` 0.1.21,
@@ -1671,14 +1850,29 @@ Not run by the agent. Steps for the user, in their own app window (or TUI):
 - [x] [19](19-app-send-after-done.md) — `reference/herdr.md`: app sends that meet a `done` agent (H6 `needs_input`) (depends on: 12, 14)
 
 **Wave 10**
-- [x] [18](18-uat-herd-cleanup.md) — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test) (depends on: 12, 13, 14, 15, 16, 17) — Planner Task 18
+- [x] [18](18-uat-herd-cleanup.md) — UAT: `/jdi:herd --cleanup` from the herd record (agent smoke test) (depends on: 12, 13, 14, 15, 16, 17, 19) — Planner Task 18
+
+**Wave 11** — run together
+- [x] [20](20-herd-mode-config-key.md) — The `herd.mode` config key (depends on: none) — Planner Task 20
+- [ ] [21](21-h9-modes-clause-quoting-tasks.md) — H9: modes, the herd clause, single quoting, untracked tasks, the record (depends on: none) — Planner Task 21
+
+**Wave 12** — run together
+- [ ] [22](22-do-and-prep-honour-the-herd-clause.md) — `/jdi:do` and `/jdi:prep` honour the herd clause; `/jdi:do` updates a branch the default moved under (depends on: 21) — Planner Task 22
+- [ ] [23](23-herd-command-modes-and-tasks.md) — `commands/herd.md`: modes, untracked tasks, the report (depends on: 21) — Planner Task 23
+- [ ] [24](24-user-docs-herd-modes.md) — User docs and CHANGELOG: herd modes and untracked tasks (depends on: 20, 21) — Planner Task 24
+- [ ] [25](25-architecture-docs-herd-modes.md) — Architecture docs: herd modes, untracked tasks, single-quoted handoff (depends on: 21) — Planner Task 25
+
+**Wave 13**
+- [ ] [26](26-uat-herd-modes-and-tasks.md) — UAT: herd modes and untracked tasks (agent smoke test) (depends on: 20, 21, 22, 23, 24, 25) — Planner Task 26
 
 Critical path: 02 → 03 → 06 → 08 → 09 → 10 (six tasks).
 Critical path for #37: 12 → 14 → 18 and 13 → 14 → 18 (three tasks each; Wave 9 is four tasks wide, 14 ‖ 15 ‖ 16 ‖ 17).
+Critical path for #38: 21 → 22 → 26, 21 → 23 → 26, 21 → 24 → 26 and 21 → 25 → 26 (three tasks each; 20 → 24 → 26 is as long; Wave 12 is four tasks wide, 22 ‖ 23 ‖ 24 ‖ 25). Task 20 has no dependant but 24 and 26, so it may still be running when 22, 23 and 25 start; it shares no file with them.
 
 Dependencies that exist only because of a shared file:
 - 03 → 06 → 08 all edit `reference/herdr.md`.
 - 03 → 07: both edit `tests/test_delegation_transport.py`. Task 07 also needs H1 to know about surfaces, which Task 03 adds.
 - 13 → 14: both edit `reference/herdr.md` and `tests/test_herd_record.py`. Task 14 also needs Task 13's `### The herd record`, so the link is not only the shared file.
+- 21 → 23: both edit `tests/test_herd.py`. Task 23 also calls H9's invocation table, clause and quoting by name, which Task 21 writes, so the link is not only the shared file.
 
 The tasks are renumbered from the Planner's order so the numbers follow the waves. Each task file names its Planner task.
